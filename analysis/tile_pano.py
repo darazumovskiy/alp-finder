@@ -46,8 +46,12 @@ HTML = """<!doctype html>
   .mark span {{ position: absolute; left: 28px; top: -2px; color: #ffd200;
                 font: bold 13px sans-serif; white-space: nowrap;
                 text-shadow: 0 0 4px #000, 0 0 4px #000; }}
+  #orient {{ position: fixed; left: 10px; bottom: 10px; z-index: 10;
+             background: #000a; color: #d7dbe0; padding: 6px 10px;
+             border-radius: 6px; font: 12px/1.4 sans-serif; max-width: 340px; }}
 </style></head><body>
 <div id="pano"></div>
+<div id="orient">{orientation}</div>
 <script src="https://cdn.jsdelivr.net/npm/openseadragon@4.1/build/openseadragon/openseadragon.min.js"></script>
 <script>
 const marks = {marks_json};
@@ -176,8 +180,12 @@ def read_extra_marks(path: Path):
                 for r in csv.DictReader(f, delimiter="\t")]
 
 
+DEFAULT_ORIENT = ("Вид на склон «в лоб» (не карта): верх — вверх по склону, "
+                  "не север. Расстояния не мерить.")
+
+
 def build(merged: Path, out: Path, marks_path: Path, quality: int, title: str,
-          extra_marks: Path = None):
+          extra_marks: Path = None, orientation: str = DEFAULT_ORIENT):
     items = read_items(merged)
     cw, ch = canvas_size(items)
     levels = math.ceil(math.log2(max(cw, ch)))
@@ -205,8 +213,8 @@ def build(merged: Path, out: Path, marks_path: Path, quality: int, title: str,
         f'<Size Width="{cw}" Height="{ch}"/></Image>\n', encoding="utf-8")
     marks = marks_on_canvas(items, marks_path) + read_extra_marks(extra_marks)
     (out / "index.html").write_text(
-        HTML.format(title=title, marks_json=json.dumps(marks,
-                                                       ensure_ascii=False)),
+        HTML.format(title=title, orientation=orientation,
+                    marks_json=json.dumps(marks, ensure_ascii=False)),
         encoding="utf-8")
     del arr
     for t in tmp_paths:
@@ -226,6 +234,8 @@ if __name__ == "__main__":
     ap.add_argument("--title", default="Гигапанорама")
     ap.add_argument("--extra-marks", type=Path,
                     help="tsv label/x/y — гео-отметки от pano_compose.py")
+    ap.add_argument("--orientation", default=DEFAULT_ORIENT,
+                    help="текст плашки ориентации в углу страницы")
     args = ap.parse_args()
     build(args.merged, args.out, args.marks, args.quality, args.title,
-          args.extra_marks)
+          args.extra_marks, args.orientation)

@@ -76,7 +76,6 @@ external/               — клоны репозиториев коллег-в�
   kurumdy-image-lab/    — репозиторий C C (https://github.com/ClemenceChee/kurumdy-image-lab):
                           его .py-агенты и кодовая база 3D-фотограмметрии, сопровождает analysis/scene3d;
                           клон: git clone https://github.com/ClemenceChee/kurumdy-image-lab.git external/kurumdy-image-lab
-                          (на 14.08 автор ещё публиковал репозиторий; если клона нет — повторить clone позже)
 logs/                   — tg-updates.log (что и когда докачано из TG), tg-watch.log (служебный)
 scripts/
   manifest.tsv          — манифест скачивания: локальный путь, drive file id, размер

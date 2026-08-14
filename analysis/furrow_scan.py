@@ -154,7 +154,7 @@ def crop_with_outline(img, comp, half=CROP):
 def debug_frame(video: Path, t: float, out: Path):
     """Один кадр: полнокадровый оверлей маски снега и найденных следов."""
     cap = cv2.VideoCapture(str(video))
-    cap.set(cv2.CAP_PROP_POS_MSEC, t * 1000)
+    cap.set(cv2.CAP_PROP_POS_FRAMES, round(t * (cap.get(cv2.CAP_PROP_FPS) or 30.0)))
     ok, img = cap.read()
     cap.release()
     if not ok:
