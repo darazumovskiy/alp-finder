@@ -76,6 +76,9 @@ curl -o data/dem/N39E073.tif \
 
 ```bash
 analysis/.venv/bin/python analysis/viewer/build_viewer.py   # index.html, montages.html
+# кеш режима «Полёт» (плеер пролётов на карте): кадры + мета в analysis/viewer/flights/;
+# нужны видео в data/drive и DEM; build_map.py подхватывает список при сборке
+PYTHONPATH=analysis analysis/.venv/bin/python analysis/flight_cache.py --all
 analysis/.venv/bin/python analysis/viewer/build_map.py      # map.html (нужен DEM)
 python3 -m http.server 8077 -d .    # из корня репозитория
 # открыть http://localhost:8077/analysis/viewer/index.html

@@ -762,6 +762,15 @@ def contours_geo(dem, levels):
 # --- сборка ----------------------------------------------------------------------
 
 
+def flights_index():
+    """Список закешированных полётов (analysis/flight_cache.py) для плеера."""
+    out = []
+    for mp in sorted((OUT / "flights").glob("*/meta.json")):
+        m = json.loads(mp.read_text())
+        out.append(dict(name=mp.parent.name, date=m["date"], dur=m["dur"]))
+    return out
+
+
 def build():
     dem = Dem()
 
@@ -801,6 +810,7 @@ def build():
         slope=slope_blind(),
         cover=json.loads(COVER_JSON.read_text()) if COVER_JSON.exists() else None,
         drive=drive_ids(),
+        flights=flights_index(),
     )
     html = TEMPLATE.replace("__DATA__", json.dumps(data, ensure_ascii=False, separators=(",", ":")))
     (OUT / "map.html").write_text(html, "utf-8")
@@ -889,6 +899,26 @@ header a { color:#4da3ff; text-decoration:none; }
 .legend summary { cursor:pointer; padding:2px 0; }
 .lrow { display:flex; gap:8px; margin:7px 0; font-size:12px; line-height:1.4; color:#c7cdd6; }
 .sw { flex:0 0 16px; height:16px; margin-top:2px; border-radius:3px; }
+#flight { width:470px; display:none; flex-direction:column; gap:8px; background:var(--card);
+          border-left:1px solid var(--line); flex-shrink:0; overflow-y:auto; padding:10px 12px; }
+#flight.on { display:flex; }
+#flight .fl-top { display:flex; gap:8px; align-items:center; }
+#flight select, #flight button { background:#262a31; color:var(--text); border:1px solid var(--line);
+          border-radius:6px; padding:4px 8px; font-size:12.5px; cursor:pointer; }
+#flight select { max-width:100%; }
+#flSel { flex:1; min-width:0; }
+#flImg { width:100%; border-radius:8px; background:#0c0d10; min-height:120px; cursor:zoom-in; }
+#flTl { width:100%; height:22px; border-radius:4px; cursor:pointer; display:block; }
+#flight .fl-ctl { display:flex; gap:6px; align-items:center; }
+#flight .fl-ctl button { min-width:38px; font-size:14px; }
+#flTc { margin-left:auto; font:12px ui-monospace,Menlo,monospace; color:var(--dim); white-space:nowrap; }
+#flMeta { font-size:12px; line-height:1.55; color:#c7cdd6; }
+#flMeta b { color:var(--text); }
+.flopen { white-space:nowrap; }
+.fl-pulse { border-radius:50%; border:3px solid #40c4ff; box-sizing:border-box;
+            animation:flpulse 1.1s ease-out 3; opacity:0; }
+@keyframes flpulse { from { transform:scale(.2); opacity:1; }
+                     to { transform:scale(1.2); opacity:0; } }
 </style></head>
 <body>
 <header><nav><span class="title">Курумды — видеоанализ</span>
@@ -898,6 +928,7 @@ header a { color:#4da3ff; text-decoration:none; }
 <a href="panoramy.html">Панорамы</a>
 <a href="model-3d.html">3D-модель</a>
 <a href="coverage-3d.html">3D-покрытие</a>
+<a href="#" id="flightBtn">Полёт ▶</a>
 </nav></header>
 <div id="wrap">
 <div id="side">
@@ -982,6 +1013,33 @@ header a { color:#4da3ff; text-decoration:none; }
   <h3>Точки</h3><div id="items"></div>
 </div>
 <div id="map"></div>
+<div id="flight">
+  <div class="fl-top">
+    <select id="flDay"></select>
+    <select id="flSel"></select>
+    <button id="flClose" title="Закрыть">×</button>
+  </div>
+  <img id="flImg" alt="кадр полёта" title="Клик — кадр на весь экран">
+  <canvas id="flTl" height="22"></canvas>
+  <div class="fl-ctl">
+    <button id="flPrev" title="Кадр назад (←)">⏮</button>
+    <button id="flPlay" title="Плей/пауза (пробел)">▶</button>
+    <button id="flNext" title="Кадр вперёд (→)">⏭</button>
+    <select id="flSpeed" title="Скорость к реальному времени">
+      <option value="5">×5</option>
+      <option value="10" selected>×10</option>
+      <option value="20">×20</option>
+    </select>
+    <span id="flTc"></span>
+  </div>
+  <div id="flMeta"></div>
+  <p class="note">Кадры раз в 5 с полёта. На карте: точка — дрон, синяя заливка — что
+  сейчас видит камера (лучи рамки кадра в рельеф), крест — центр кадра. Если заливки
+  нет — фокусное этого момента не измерено (дрон висел без панорам): показаны только
+  пунктир направления и крест. Полоса под кадром окрашена по детальности момента
+  (зелёный — виден предмет от 20 см, янтарный — от 1 м, серый — обзорно), клик по ней —
+  перемотка.</p>
+</div>
 </div>
 <div id="lightbox"><img alt=""></div>
 <script>
@@ -1208,8 +1266,10 @@ map.on('contextmenu', e => {
       const scale = o8 == null ? 'масштаб не измерен' : `виден предмет от ${fmtObj(o8)}`;
       const link = D.drive[v.name]
         ? ` · <a href="https://drive.google.com/file/d/${D.drive[v.name]}/view" target="_blank">открыть</a>` : '';
+      const flLink = FLIGHT_BY_NAME.has(v.name)
+        ? ` · <a href="#" class="flopen" data-v="${v.name}" data-t="${tc}">▶ в плеере</a>` : '';
       return `<div class="covrow"><span class="sw" style="background:${TIER_COLOR[tier]}"></span>
-        <span><b>${v.name}</b>${link}<br>
+        <span><b>${v.name}</b>${link}${flLink}<br>
         ${v.date.slice(8,10)}.${v.date.slice(5,7)} · ${TIER_LABEL[tier]} — ${scale} ·
         лучший момент ~${fmtTc(tc)} · проходов рядом: ${n}</span></div>`;
     }).join('');
@@ -1513,6 +1573,229 @@ for (const k of D.kinds) {
 
 renderFilters();
 refresh();
+
+// --- режим «Полёт»: плеер пролёта, синхронный с картой ---
+// Данные готовит analysis/flight_cache.py: flights/<ролик>/meta.json — сэмплы
+// раз в meta_step с [t, lat, lon, alt, agl, yaw, pitch, o8, ctr, poly] +
+// кадры fNNNN.jpg раз в frame_step с. Часы плеера непрерывные (rAF): кадр
+// сменяется раз в frame_step полётного времени, а дрон/полигон на карте
+// обновляются каждым сэмплом — панорамы на карте не прыгают.
+const FLIGHT_BY_NAME = new Map(D.flights.map(f => [f.name, f]));
+const flPane = document.getElementById('flight');
+const flSel = document.getElementById('flSel');
+const flImg = document.getElementById('flImg');
+const flTl = document.getElementById('flTl');
+const flMeta = document.getElementById('flMeta');
+const flTc = document.getElementById('flTc');
+const flPlayBtn = document.getElementById('flPlay');
+
+const flLayer = L.layerGroup();
+const flTrack = L.polyline([], {color:'#4da3ff', weight:1.5, dashArray:'2 5', opacity:0.8,
+                                interactive:false}).addTo(flLayer);
+const flPoly = L.polygon([], {color:'#29b6f6', weight:1.5, fillColor:'#29b6f6',
+                              fillOpacity:0.22, interactive:false}).addTo(flLayer);
+const flHead = L.polyline([], {color:'#40c4ff', weight:1.6, dashArray:'3 5',
+                               interactive:false}).addTo(flLayer);
+const flCtr = L.circleMarker([0,0], {radius:4, color:'#fff', weight:2, fillColor:'#29b6f6',
+                                     fillOpacity:1, interactive:false}).addTo(flLayer);
+const flDrone = L.circleMarker([0,0], {radius:7, color:'#fff', weight:2, fillColor:'#1565c0',
+                                       fillOpacity:1, interactive:false}).addTo(flLayer);
+
+let FL = null, flName = null, flT = 0, flPlaying = false, flSpeed = 10, flLastTs = null;
+let flFrameIdx = -1;
+
+const flDay = document.getElementById('flDay');
+const fmtDay = d => d.slice(8,10) + '.' + d.slice(5,7);
+flDay.innerHTML = '<option value="all">все дни</option>' +
+  [...new Set(D.flights.map(f => f.date))].sort()
+    .map(d => `<option value="${d}">${fmtDay(d)}</option>`).join('');
+function flFillSel() {
+  const day = flDay.value;
+  const vs = D.flights.filter(f => day === 'all' || f.date === day);
+  flSel.innerHTML = '<option value="" disabled selected>— выбрать ролик —</option>' +
+    vs.map(f => `<option value="${f.name}">` +
+      `${f.name.slice(12,18).replace(/(..)(..)(..)/,'$1:$2:$3')} · ${fmtTc(f.dur)}` +
+      `${day === 'all' ? ' · ' + fmtDay(f.date) : ''} · ${f.name}</option>`).join('');
+  if (flName && vs.some(f => f.name === flName)) flSel.value = flName;
+}
+flFillSel();
+flDay.onchange = flFillSel;
+
+const lerp = (a, b, f) => a + (b - a) * f;
+const lerpYaw = (a, b, f) => a + (((b - a + 540) % 360) - 180) * f;
+
+function flSample(i) { return FL.samples[Math.max(0, Math.min(i, FL.samples.length - 1))]; }
+
+function flDrawTimeline() {
+  if (!FL) return;
+  const w = flTl.width = flTl.clientWidth, h = flTl.height;
+  const g = flTl.getContext('2d');
+  g.clearRect(0, 0, w, h);
+  const n = FL.samples.length;
+  for (let i = 0; i < n; i++) {
+    const s = FL.samples[i], o8 = s[7];
+    g.fillStyle = o8 == null ? (s[8] ? '#546e7a' : '#37474f')
+                : o8 <= 20 ? '#00e676' : o8 <= 100 ? '#ffb300' : '#78909c';
+    g.fillRect(Math.floor(i / n * w), 3, Math.ceil(w / n) + 1, h - 6);
+  }
+  const x = Math.round(flT / FL.dur * w);
+  g.fillStyle = '#fff';
+  g.fillRect(x - 1, 0, 3, h);
+}
+
+function flRender() {
+  if (!FL) return;
+  const idx = Math.min(Math.floor(flT / FL.frame_step), FL.n_frames - 1);
+  if (idx !== flFrameIdx) {
+    flFrameIdx = idx;
+    flImg.src = `flights/${flName}/f${String(idx).padStart(4,'0')}.jpg`;
+    for (let k = 1; k <= 2 && idx + k < FL.n_frames; k++)
+      new Image().src = `flights/${flName}/f${String(idx+k).padStart(4,'0')}.jpg`;
+  }
+  const k = flT / FL.meta_step, f = k - Math.floor(k);
+  const s0 = flSample(Math.floor(k)), s1 = flSample(Math.floor(k) + 1);
+  const lat = lerp(s0[1], s1[1], f), lon = lerp(s0[2], s1[2], f);
+  const yaw = lerpYaw(s0[5], s1[5], f);
+  flDrone.setLatLng([lat, lon]);
+  const s = flSample(Math.round(k));   // полигон/центр/мета — ближайший сэмпл
+  // ус взгляда: до центра кадра, если он в рельефе, иначе 130 м по азимуту
+  let head;
+  if (s[8]) head = [s[8][0], s[8][1]];
+  else {
+    const az = yaw * Math.PI / 180, len = 130;
+    head = [lat + Math.cos(az)*len/111132,
+            lon + Math.sin(az)*len/(111320*Math.cos(lat*Math.PI/180))];
+  }
+  flHead.setLatLngs([[lat, lon], head]);
+  flPoly.setLatLngs(s[9] || []);
+  if (s[8]) flCtr.setLatLng([s[8][0], s[8][1]]).setStyle({opacity:1, fillOpacity:1});
+  else flCtr.setStyle({opacity:0, fillOpacity:0});
+  flTc.textContent = fmtTc(flT) + ' / ' + fmtTc(FL.dur);
+  flMeta.innerHTML =
+    `дрон <b>${s[1].toFixed(6)}, ${s[2].toFixed(6)}</b> · выс <b>${Math.round(s[3])} м</b>` +
+    (s[4] != null ? ` (над рельефом ${s[4]} м)` : '') +
+    `<br>камера: азимут <b>${Math.round(s[5])}°</b>, наклон <b>${s[6]}°</b>` +
+    (s[8] ? ` · центр кадра в <b>${s[8][2]} м</b>` : ' · центр кадра выше горизонта') +
+    (s[7] != null ? `<br>детальность: виден предмет от <b>${fmtObj(s[7])}</b>` :
+                    '<br>детальность: масштаб этого момента не измерен');
+  flDrawTimeline();
+}
+
+function flStop() {
+  flPlaying = false;
+  flPlayBtn.textContent = '▶';
+}
+function flTick(ts) {
+  if (!flPlaying) return;
+  flT = Math.min(flT + (ts - flLastTs) / 1000 * flSpeed, FL.dur);
+  flLastTs = ts;
+  flRender();
+  if (flT >= FL.dur) flStop();
+  else requestAnimationFrame(flTick);
+}
+
+// пульс-кольцо: показать глазам, где на карте дрон
+let flPingMarker = null, flPingTimer = null;
+function flPing() {
+  if (flPingMarker) { flLayer.removeLayer(flPingMarker); clearTimeout(flPingTimer); }
+  flPingMarker = L.marker(flDrone.getLatLng(), {interactive:false,
+    icon:L.divIcon({className:'fl-pulse', iconSize:[54,54], iconAnchor:[27,27]})});
+  flPingMarker.addTo(flLayer);
+  flPingTimer = setTimeout(() => { flLayer.removeLayer(flPingMarker); flPingMarker = null; }, 3400);
+}
+
+async function flLoad(name, t0) {
+  flStop();
+  flName = name;
+  const fi = FLIGHT_BY_NAME.get(name);
+  if (flDay.value !== 'all' && fi && fi.date !== flDay.value) flDay.value = fi.date;
+  flFillSel();
+  flFrameIdx = -1;
+  FL = await (await fetch(`flights/${name}/meta.json`)).json();
+  flTrack.setLatLngs(FL.samples.map(s => [s[1], s[2]]));
+  map.fitBounds(flTrack.getBounds().pad(0.25));
+  flT = Math.max(0, Math.min(t0 || 0, FL.dur));
+  flRender();
+  flPing();
+}
+
+function flOpen(name, t0) {
+  if (!flPane.classList.contains('on')) {
+    flPane.classList.add('on');
+    map.invalidateSize();
+    flLayer.addTo(map);
+  }
+  if (name && name !== flName) flLoad(name, t0);
+  else if (name != null && t0 != null) { flT = Math.min(t0, FL.dur); flStop(); flRender(); flPing(); }
+  else if (!FL && D.flights.length) flLoad(D.flights[0].name, 0);
+}
+function flClose() {
+  flStop();
+  flPane.classList.remove('on');
+  map.removeLayer(flLayer);
+  map.invalidateSize();
+}
+
+document.getElementById('flightBtn').onclick = e => {
+  e.preventDefault();
+  flPane.classList.contains('on') ? flClose() : flOpen();
+};
+document.getElementById('flClose').onclick = flClose;
+flSel.onchange = () => flLoad(flSel.value, 0);
+document.getElementById('flSpeed').onchange = e => flSpeed = +e.target.value;
+flPlayBtn.onclick = () => {
+  if (!FL) return;
+  if (flPlaying) return flStop();
+  if (flT >= FL.dur) flT = 0;
+  flPlaying = true;
+  flPlayBtn.textContent = '⏸';
+  flLastTs = performance.now();
+  requestAnimationFrame(flTick);
+};
+function flStep(dir) {
+  if (!FL) return;
+  flStop();
+  const idx = Math.max(0, Math.min(Math.round(flT / FL.frame_step) + dir, FL.n_frames - 1));
+  flT = Math.min(idx * FL.frame_step, FL.dur);
+  flRender();
+}
+document.getElementById('flPrev').onclick = () => flStep(-1);
+document.getElementById('flNext').onclick = () => flStep(1);
+
+// клик по кадру — на весь экран (общий лайтбокс, закрытие — клик в любом месте)
+flImg.onclick = () => {
+  if (!flImg.currentSrc) return;
+  const lb = document.getElementById('lightbox');
+  lb.querySelector('img').src = flImg.src;
+  lb.classList.add('on');
+};
+
+function flSeekEv(e) {
+  if (!FL) return;
+  const r = flTl.getBoundingClientRect();
+  flT = Math.max(0, Math.min((e.clientX - r.left) / r.width, 1)) * FL.dur;
+  flRender();
+}
+flTl.addEventListener('pointerdown', e => {
+  flSeekEv(e);
+  try { flTl.setPointerCapture(e.pointerId); } catch (_) {}
+});
+flTl.addEventListener('pointermove', e => { if (e.buttons) flSeekEv(e); });
+
+document.addEventListener('click', e => {
+  const a = e.target.closest('.flopen');
+  if (!a) return;
+  e.preventDefault();
+  map.closePopup();
+  flOpen(a.dataset.v, +a.dataset.t);
+});
+document.addEventListener('keydown', e => {
+  if (!flPane.classList.contains('on') || !FL) return;
+  if (/^(SELECT|INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+  if (e.code === 'Space') { e.preventDefault(); flPlayBtn.onclick(); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); flStep(-1); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); flStep(1); }
+});
 
 // --- лайтбокс ---
 document.addEventListener('click', e => {

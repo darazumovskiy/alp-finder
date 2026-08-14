@@ -86,6 +86,14 @@ def main() -> int:
         shutil.copy2(z, DIST / z.name)
         n_zips += 1
 
+    # кеш плеера полётов (analysis/flight_cache.py): map.html грузит его fetch'ем
+    # по относительному пути flights/..., поэтому в dist он лежит рядом с картой
+    n_flights = 0
+    flights = VIEWER_DIR / "flights"
+    if flights.is_dir():
+        shutil.copytree(flights, DIST / "flights")
+        n_flights = len(list((DIST / "flights").iterdir()))
+
     n_panos = 0
     for src_rel, dst_rel in PANOS.items():
         src = REPO_ROOT / src_rel
@@ -110,7 +118,8 @@ def main() -> int:
 
     total_mb = sum(f.stat().st_size for f in DIST.rglob("*") if f.is_file()) / 2**20
     print(f"dist/: {copied} картинок + {len(PAGES)} страниц + {n_extra} 3D-моделей "
-          f"+ {n_zips} архивов + {n_panos} панорам, {total_mb:.0f} МБ")
+          f"+ {n_zips} архивов + {n_panos} панорам + {n_flights} полётов, "
+          f"{total_mb:.0f} МБ")
     if missing:
         print(f"не найдено {len(missing)} файлов (страницы будут с битыми превью):",
               file=sys.stderr)
