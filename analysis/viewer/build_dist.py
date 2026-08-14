@@ -30,7 +30,7 @@ PAGES = ["index.html", "map.html", "montages.html", "panoramy.html"]
 # Гигапанорамы (tile_pano.py): папка тайлов → путь в dist.
 # Ссылки на них — в panoramy.html; ASSET_RE их не ловит, копируем целиком.
 PANOS = {
-    "analysis/stitch/pano-veshchi/pano": "pano/veshchi",
+    "analysis/stitch/pano-veshchi-full/pano": "pano/veshchi",
     "analysis/stitch/merged-ryukzak-14/pano": "pano/ryukzak-14",
     "analysis/stitch/merged-zona/pano": "pano/zona",
 }

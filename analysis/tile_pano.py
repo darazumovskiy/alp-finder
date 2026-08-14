@@ -167,7 +167,17 @@ def marks_on_canvas(items, marks_path: Path):
     return out
 
 
-def build(merged: Path, out: Path, marks_path: Path, quality: int, title: str):
+def read_extra_marks(path: Path):
+    """Готовые канвас-координаты гео-отметок (label, x, y) — из pano_compose.py."""
+    if path is None or not path.exists():
+        return []
+    with path.open(encoding="utf-8") as f:
+        return [dict(x=float(r["x"]), y=float(r["y"]), label=r["label"])
+                for r in csv.DictReader(f, delimiter="\t")]
+
+
+def build(merged: Path, out: Path, marks_path: Path, quality: int, title: str,
+          extra_marks: Path = None):
     items = read_items(merged)
     cw, ch = canvas_size(items)
     levels = math.ceil(math.log2(max(cw, ch)))
@@ -193,7 +203,7 @@ def build(merged: Path, out: Path, marks_path: Path, quality: int, title: str):
         '<Image xmlns="http://schemas.microsoft.com/deepzoom/2008" '
         f'Format="jpg" Overlap="0" TileSize="{TILE}">'
         f'<Size Width="{cw}" Height="{ch}"/></Image>\n', encoding="utf-8")
-    marks = marks_on_canvas(items, marks_path)
+    marks = marks_on_canvas(items, marks_path) + read_extra_marks(extra_marks)
     (out / "index.html").write_text(
         HTML.format(title=title, marks_json=json.dumps(marks,
                                                        ensure_ascii=False)),
@@ -214,5 +224,8 @@ if __name__ == "__main__":
                     default=Path(__file__).parent / "findings-marks.tsv")
     ap.add_argument("--quality", type=int, default=85)
     ap.add_argument("--title", default="Гигапанорама")
+    ap.add_argument("--extra-marks", type=Path,
+                    help="tsv label/x/y — гео-отметки от pano_compose.py")
     args = ap.parse_args()
-    build(args.merged, args.out, args.marks, args.quality, args.title)
+    build(args.merged, args.out, args.marks, args.quality, args.title,
+          args.extra_marks)

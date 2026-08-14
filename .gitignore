@@ -38,6 +38,9 @@ analysis/viewer/dist/
 
 *.log
 
+# Клоны внешних репозиториев коллег (вложенные git-репы, обновляются git pull)
+external/
+
 # Рабочий мусор сессий и разовые передачи
 tmp/
 srt-drone-part3.zip
