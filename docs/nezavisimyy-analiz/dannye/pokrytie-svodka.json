@@ -1,0 +1,60 @@
+{
+ "summary": {
+  "cells": 40000,
+  "cell_m": 15.0,
+  "seen": 3249,
+  "seen_fraction": 0.0812,
+  "searched": 3249,
+  "searched_fraction": 0.0812,
+  "seen_but_too_coarse": 0,
+  "never_seen": 36751,
+  "touched_below_area_threshold": 6,
+  "min_cell_fraction": 0.1,
+  "frames_used": 0,
+  "frames_without_focal": 0,
+  "frames_without_ground_intersection": 0,
+  "searched_threshold_m_px": 0.3,
+  "flights": {},
+  "notes": []
+ },
+ "per_flight": {
+  "DJI_20260811153236_0001_Z": 1,
+  "DJI_20260811154053_0003_Z": 279,
+  "DJI_20260811160637_0001_Z": 1147,
+  "DJI_20260811161324_0003_Z": 0,
+  "DJI_20260812133415_0006_Z": 1526,
+  "DJI_20260813095243_0001_Z": 0,
+  "DJI_20260813103527_0001_Z": 30,
+  "DJI_20260813124213_0001_Z": 240,
+  "DJI_20260813124655_0003_Z": 7,
+  "DJI_20260813163855_0001_Z": 11,
+  "DJI_20260813183004_0001_Z": 3,
+  "DJI_20260813183534_0014_Z": 3,
+  "DJI_20260813183727_0015_Z": 3,
+  "DJI_20260813184253_0016_Z": 8
+ },
+ "unknown_coverage": [
+  {
+   "flight": "DJI_20260813103943_0002_Z",
+   "reason": "no focal length could be estimated, so no footprint can be computed. This flight is unknown coverage, not zero coverage."
+  }
+ ],
+ "area_km2": 9.0,
+ "searched_km2": 0.731,
+ "caveat": "This map covers the 19 flights held locally. The parallel analysis lists 22 flights from 11-12.08 alone, of which 13 are NOT held here, including 20260812135747 which their table reports at 96 percent usable scale for every object size and which holds the fixed ropes. The searched fraction below is therefore a LOWER BOUND on what the operation has covered, and the never-imaged fraction is an UPPER BOUND. Requesting the missing files is the cheapest way to tighten both.",
+ "flights_missing": [
+  "20260811153833",
+  "20260811160922",
+  "20260811202212",
+  "20260811202621",
+  "20260811205029",
+  "20260812133237",
+  "20260812133553",
+  "20260812135426",
+  "20260812135747",
+  "20260812140054",
+  "20260812140210",
+  "20260812221415",
+  "20260812221521"
+ ]
+}
