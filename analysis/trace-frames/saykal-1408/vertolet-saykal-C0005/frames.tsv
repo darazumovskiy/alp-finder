@@ -1,0 +1,5 @@
+video	t	drone_lat	drone_lon	drone_alt	hit_lat	hit_lon	hit_alt	dist_m	gb_yaw	gb_pitch	f_px	file
+C0005	0.0										C0005_t0000.jpg
+C0005	70.0										C0005_t0070.jpg
+C0005	92.0										C0005_t0092.jpg
+C0005	94.0										C0005_t0094.jpg
