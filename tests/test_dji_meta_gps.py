@@ -50,9 +50,13 @@ def f_bytes(field: int, payload: bytes) -> bytes:
 def packet(lat_rad: float, lon_rad: float, alt_mm: int, alt_rel_mm: int,
            roll_dd: int, pitch_dd: int, yaw_dd: int,
            gb_pitch_dd: int, gb_yaw_dd: int, ts_us: int = 1_000_000) -> bytes:
-    """Пакет той же формы, что кладёт M30T: см. пути полей в dji_meta_gps."""
+    """Пакет той же формы, что кладёт M30T: см. пути полей в dji_meta_gps.
+
+    В 3.3.3 борт лежит как (тангаж, крен, рыскание) - подтверждено корреляцией
+    с ускорением из GPS (полёты 11-12.08).
+    """
     gps = f_bytes(1, f_double(2, lat_rad) + f_double(3, lon_rad)) + f_varint(2, alt_mm)
-    attitude = f_varint(1, roll_dd) + f_varint(2, pitch_dd) + f_varint(3, yaw_dd)
+    attitude = f_varint(1, pitch_dd) + f_varint(2, roll_dd) + f_varint(3, yaw_dd)
     body = (
         f_bytes(3, attitude)
         + f_bytes(4, gps)
@@ -60,6 +64,14 @@ def packet(lat_rad: float, lon_rad: float, alt_mm: int, alt_rel_mm: int,
     )
     gimbal = f_bytes(3, f_varint(1, gb_pitch_dd) + f_varint(3, gb_yaw_dd))
     return f_bytes(3, f_bytes(1, f_varint(2, ts_us)) + f_bytes(3, body) + f_bytes(4, gimbal))
+
+
+def header_packet(model: bytes = b"M30T") -> bytes:
+    """Первый пакет потока: поля схемы 1.x/2.x плюс дубль телеметрии кадра 1."""
+    info = f_bytes(1, f_bytes(1, f_bytes(10, model)))
+    video = f_bytes(2, f_bytes(2, f_varint(1, 1920) + f_varint(2, 1080)
+                               + f_varint(3, 30)))
+    return info + video + packet(**KURUMDY)
 
 
 KURUMDY = dict(lat_rad=math.radians(39.4833965), lon_rad=math.radians(73.5851387),
@@ -78,6 +90,8 @@ def test_reads_position_altitude_and_angles():
     assert fix["alt_m"] == 4552.1
     assert fix["alt_rel_m"] == 554.9
     assert fix["ac_yaw"] == 153.0
+    assert fix["ac_pitch"] == 0.2
+    assert fix["ac_roll"] == -1.5
     assert fix["gb_pitch"] == -27.9
     assert fix["gb_yaw"] == 143.9
 
@@ -136,3 +150,34 @@ def test_time_column_keeps_frame_resolution():
     assert dg.fmt("lat", 39.4833965) == "39.4833965"
     assert dg.fmt("alt_m", 4552.14) == "4552.1"
     assert dg.fmt("gb_pitch", None) == ""
+
+
+def test_header_packet_gives_no_row_and_rebases_time():
+    """Пакет-заголовок отбрасывается, время идёт от кадра 1 = 0.000.
+
+    Родной DJI SRT кладёт FrameCnt 1 на 00:00:00,000, а в потоке телеметрия
+    кадра 1 лежит во втором пакете (pts 0.0334) - без пересчёта весь сайдкар
+    опаздывал бы на кадр.
+    """
+    dt = 3004 / 90000
+    pkts = [(i * dt, dg.decode_message(header_packet() if i == 0
+                                       else packet(**KURUMDY)))
+            for i in range(4)]
+    header, rows, n_packets = dg.rows_from_packets(pkts)
+    assert n_packets == 4
+    assert len(rows) == 3
+    assert rows[0]["time_s"] == 0.0
+    assert abs(rows[1]["time_s"] - dt) < 1e-9
+    assert dg.text(header.get(dg.F_MODEL)) == "M30T"
+    assert header.get(dg.F_WIDTH) == 1920
+
+
+def test_stream_without_header_packet_keeps_time_as_is():
+    """Если заголовка нет, телеметрия идёт с pts 0 и пересчёт ничего не сдвигает."""
+    dt = 3004 / 90000
+    pkts = [(i * dt, dg.decode_message(packet(**KURUMDY))) for i in range(3)]
+    header, rows, n_packets = dg.rows_from_packets(pkts)
+    assert not header
+    assert len(rows) == n_packets == 3
+    assert rows[0]["time_s"] == 0.0
+    assert abs(rows[2]["time_s"] - 2 * dt) < 1e-9

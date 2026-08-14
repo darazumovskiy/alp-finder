@@ -1,39 +1,39 @@
 t	f_px	dist_m	gsd_cm	obj8px_cm	status
-0.0	3741				above_horizon
-2.0	3741				above_horizon
-4.0	3741				above_horizon
-6.0	3741				above_horizon
-8.0	3741				above_horizon
+0.0	3441				above_horizon
+2.0	3441				above_horizon
+4.0	3441				above_horizon
+6.0	3441				above_horizon
+8.0	3441				above_horizon
 10.0	3459				above_horizon
 12.0	3459				above_horizon
 14.0	3459				above_horizon
-16.0	3741				above_horizon
-18.0	4022				above_horizon
-20.0	4022				above_horizon
-22.0	4946				above_horizon
-24.0	5870				above_horizon
-26.0	6194				above_horizon
-28.0	6194				above_horizon
-30.0	6194				above_horizon
-32.0	5870				above_horizon
-34.0	4946				above_horizon
-36.0	4516				above_horizon
-38.0	3162				above_horizon
-40.0	3162				above_horizon
-42.0	3162				above_horizon
-44.0	3162				above_horizon
-46.0	3162				above_horizon
-48.0	3162				above_horizon
-50.0	4203				above_horizon
-52.0	4203				above_horizon
-54.0	4203				above_horizon
-56.0	2536				above_horizon
-58.0					no_focal
-60.0					no_focal
-62.0					no_focal
-64.0					no_focal
-66.0					no_focal
-68.0					no_focal
+16.0	3536				above_horizon
+18.0	3613				above_horizon
+20.0	3613				above_horizon
+22.0	4337				above_horizon
+24.0	5061				above_horizon
+26.0	5302				above_horizon
+28.0	5302				above_horizon
+30.0	5302				above_horizon
+32.0	4337				above_horizon
+34.0	3613				above_horizon
+36.0	3613				above_horizon
+38.0	2958				above_horizon
+40.0	2958				above_horizon
+42.0	2958				above_horizon
+44.0	2958				above_horizon
+46.0	2958				above_horizon
+48.0	2958				above_horizon
+50.0	2303				above_horizon
+52.0	2303				above_horizon
+54.0	2303				above_horizon
+56.0	2074				above_horizon
+58.0	1845				above_horizon
+60.0	1845				above_horizon
+62.0	1845				above_horizon
+64.0	1845				above_horizon
+66.0	1845				above_horizon
+68.0	1845				above_horizon
 70.0					no_focal
 72.0					no_focal
 74.0					no_focal

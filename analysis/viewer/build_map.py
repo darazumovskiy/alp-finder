@@ -373,9 +373,9 @@ POINTS = [
          imgs=["docs/nezavisimyy-analiz/screens/20260812141803_00-00-14_1_single.png",
                "docs/nezavisimyy-analiz/screens/20260812141803_00-00-14_0_frame.jpg"]),
 
-    dict(kind="furrow", src="tg", status="open", conf=3, lat=39.483129, lon=73.584877, alt=4557,
+    dict(kind="furrow", src="tg", status="open", conf=3, lat=39.483135, lon=73.584891, alt=4557,
          name="Две крупные борозды у района вещей (TG #1752)",
-         coord=CRAY + "; камера вниз −38°, дистанция ~190 м, вилка DEM ±23 м",
+         coord=CRAY + "; камера вниз −38°, дистанция ~190 м, вилка DEM ±22 м",
          gps=[39.48431, 73.58402, 190], unc=40,
          video="DJI_20260813163855_0001_Z", tc="0:53–0:54",
          desc="Две U-образные борозды на снежнике склона района вещей, ~50 м западнее кластера "

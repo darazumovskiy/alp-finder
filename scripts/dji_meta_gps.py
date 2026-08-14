@@ -13,19 +13,30 @@
 
 * **Точно.** Широта, долгота, высота (MSL и относительная), метка времени. Координаты
   ложатся на массив, относительная высота отличается от MSL на постоянную величину,
-  равную правдоподобной высоте точки взлёта, длительность метки совпадает с
-  длительностью контейнера.
-* **Предположительно.** Углы борта и подвеса. Диапазоны и поведение сходятся (крен и
-  тангаж малы, рыскание - полный круг, тангаж подвеса ограничен), но назначение
-  «тангаж/крен» независимо не подтверждено. Скрипт печатает диапазоны - сверяйте.
+  равную правдоподобной высоте точки взлёта; сверка с родным DJI SRT по rel_alt
+  сходится до миллиметров (12.08, RMS 0.3 мм).
+* **Точно (подтверждено 14.08).** Углы борта и подвеса. Тангаж/крен борта проверены
+  корреляцией с ускорением из двойного дифференцирования GPS в связанной системе:
+  3.3.3.1 следит за продольным ускорением (r до -0.86) - тангаж, 3.3.3.2 за
+  боковым (r до +0.91) - крен. Подвес сверен покадрово с родными SRT и валидацией
+  на рюкзаке (analysis/geoproject.py).
 * **Не определено.** Фокусное расстояние/зум. Два поля меняются правдоподобно, но ни
   одно не привязывается к фокусному из первых принципов. Не брать из метаданных;
   восстанавливать фотограмметрически (при зависании движение картинки почти целиком
   задаётся вращением подвеса: оптический поток, делённый на угловую скорость подвеса
   за тот же интервал, даёт фокусное в пикселях без паспортных данных).
 
+Время: первый пакет потока - заголовок схемы (модель, серийник, размеры кадра) с
+дублем телеметрии кадра 1, телеметрия кадров идёт со второго пакета. time_s
+отсчитывается от второго пакета, чтобы кадру 1 соответствовало 0.000 - как
+FrameCnt 1 в родных DJI SRT (сверено по rel_alt: сдвиг на кадр даёт RMS 4.8 мм
+вместо 0.3 мм).
+
 Использование:
   python3 scripts/dji_meta_gps.py <видео.MP4> [ещё видео...]
+
+Файл, из которого телеметрию извлечь не удалось, пропускается с сообщением в stderr,
+остальные обрабатываются; код выхода ненулевой, если были пропуски.
 
 Рядом с каждым видео пишет сайдкар <видео>.gps.tsv со столбцами:
 time_s, lat, lon, alt_m (MSL), alt_rel_m, ac_yaw, ac_pitch, ac_roll, gb_yaw, gb_pitch.
@@ -41,13 +52,12 @@ import sys
 from pathlib import Path
 
 # Пути полей в dvtm-сообщении, номера через точку.
-F_TIMESTAMP_US = "3.1.2"
 F_LAT_RAD = "3.3.4.1.2"
 F_LON_RAD = "3.3.4.1.3"
 F_ALT_MSL_MM = "3.3.4.2"
 F_ALT_REL_MM = "3.3.5.1"
-F_AC_ROLL_DDEG = "3.3.3.1"
-F_AC_PITCH_DDEG = "3.3.3.2"
+F_AC_PITCH_DDEG = "3.3.3.1"
+F_AC_ROLL_DDEG = "3.3.3.2"
 F_AC_YAW_DDEG = "3.3.3.3"
 F_GB_PITCH_DDEG = "3.4.3.1"
 F_GB_YAW_DDEG = "3.4.3.3"
@@ -73,8 +83,9 @@ MAX_DEPTH = 8
 def meta_stream_index(video: Path) -> int:
     """Индекс data-потока с телеметрией DJI.
 
-    Раньше поток был жёстко прописан как 0:1. Это верно для съёмки М30Т, но ломается
-    молча на любом другом раскладе дорожек - поэтому ищем по handler_name.
+    Только потоки с «dji» в handler_name: подстрока «meta» ловила Sony
+    «Timed Metadata Media Handler» на вертолётных клипах, а запасной data-поток
+    без опознания подсовывал таймкод-дорожки. Не-DJI файл должен падать явно.
     """
     out = subprocess.run(
         ["ffprobe", "-v", "error", "-show_streams", "-of", "json", str(video)],
@@ -82,13 +93,17 @@ def meta_stream_index(video: Path) -> int:
     ).stdout
     streams = json.loads(out)["streams"]
     data = [s for s in streams if s.get("codec_type") == "data"]
+    handlers = []
     for s in data:
-        handler = (s.get("tags") or {}).get("handler_name", "").lower()
-        if "dji" in handler or "meta" in handler:
+        handler = (s.get("tags") or {}).get("handler_name", "")
+        handlers.append(handler)
+        if handler.lower() == "dji meta":
             return int(s["index"])
-    if data:
-        return int(data[0]["index"])
-    raise SystemExit(f"{video.name}: в файле нет data-потока с телеметрией")
+    for s, handler in zip(data, handlers):
+        if "dji" in handler.lower():
+            return int(s["index"])
+    raise ValueError(
+        f"нет data-потока DJI (data-потоки: {', '.join(handlers) or 'нет'})")
 
 
 def packets(video: Path, idx: int):
@@ -283,23 +298,44 @@ def span(rows, key):
 # --- обработка --------------------------------------------------------------
 
 
-def process(video: Path) -> Path:
-    idx = meta_stream_index(video)
-    data = dump_stream(video, idx)
-    rows = []
+def rows_from_packets(pkts) -> tuple[dict, list, int]:
+    """(заголовок, строки телеметрии, всего пакетов) из (pts, разобранный пакет).
+
+    Пакет-заголовок (поля 1.x/2.x в первом пакете) не даёт строки: его телеметрия -
+    дубль кадра 1. Время отсчитывается от следующего за ним пакета, чтобы кадр 1
+    получил 0.000, как FrameCnt 1 в родных DJI SRT.
+    """
     header: dict = {}
-    pos = n_packets = 0
-    for pts, size in packets(video, idx):
-        d = decode_message(data[pos:pos + size])
-        pos += size
+    rows = []
+    t0 = None
+    n_packets = 0
+    for pts, d in pkts:
         n_packets += 1
-        if not header:
+        if n_packets == 1:
             header = {k: v for k, v in d.items() if k.startswith(("1.", "2."))}
+            if header:
+                continue
+        if t0 is None:
+            t0 = pts
         row = fix_from(d)
         if row["lat"] is None or row["lon"] is None:
             continue
-        row["time_s"] = pts
+        row["time_s"] = pts - t0
         rows.append(row)
+    return header, rows, n_packets
+
+
+def process(video: Path) -> Path:
+    idx = meta_stream_index(video)
+    data = dump_stream(video, idx)
+
+    def decoded():
+        pos = 0
+        for pts, size in packets(video, idx):
+            yield pts, decode_message(data[pos:pos + size])
+            pos += size
+
+    header, rows, n_packets = rows_from_packets(decoded())
 
     out = video.with_suffix(video.suffix + ".gps.tsv")
     with out.open("w", encoding="utf-8") as f:
@@ -324,12 +360,23 @@ def process(video: Path) -> Path:
         s = span(rows, key)
         if s:
             print(f"  {label}: {s[0]:.1f} .. {s[1]:.1f}")
-    print("  углы - предположительное сопоставление полей, сверьте диапазоны выше")
     return out
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         sys.exit(__doc__)
+    n_failed = 0
     for arg in sys.argv[1:]:
-        process(Path(arg))
+        try:
+            process(Path(arg))
+        except Exception as e:                                   # noqa: BLE001
+            detail = str(e)
+            if isinstance(e, subprocess.CalledProcessError) and e.stderr:
+                err = e.stderr if isinstance(e.stderr, str) else \
+                    e.stderr.decode("utf-8", "replace")
+                detail = f"{detail}: {err.strip()}"
+            print(f"{arg}: ПРОПУЩЕН - {detail}", file=sys.stderr)
+            n_failed += 1
+    if n_failed:
+        sys.exit(f"не обработано файлов: {n_failed} из {len(sys.argv) - 1}")
