@@ -46,3 +46,9 @@ tmp/
 srt-drone-part3.zip
 
 .DS_Store
+
+# Слой следов и отбор кадров участка: тяжёлые артефакты прогонов не коммитятся
+analysis/scans-furrow/*/crops/
+analysis/scans-furrow/*/montage_*.jpg
+analysis/trace-frames/*/*.jpg
+analysis/debug-furrow/

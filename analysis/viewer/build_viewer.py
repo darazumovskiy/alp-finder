@@ -389,6 +389,7 @@ def page(title, body):
 <a href="map.html">Карта</a>
 <a href="panoramy.html">Панорамы</a>
 <a href="model-3d.html">3D-модель</a>
+<a href="coverage-3d.html">3D-покрытие</a>
 </nav></header>
 <main>{body}</main>
 <div id="lightbox"><img alt=""></div>

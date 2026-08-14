@@ -32,6 +32,8 @@ import tifffile
 
 ROOT = Path(__file__).resolve().parents[1]
 DEM_PATH = ROOT / "data/dem/N39E073.tif"
+PATCH_DIR = ROOT / "analysis/dem-patches"   # DSM-патчи фотограмметрии (см. README там)
+PATCH_FEATHER_M = 15.0                      # затухание поправки к краю охвата патчей
 FLOW_W = 960          # ширина центрального окна для phaseCorrelate
 RAY_STEP_M = 5.0      # шаг марша луча
 RAY_MAX_M = 6000.0
@@ -40,19 +42,102 @@ RAY_MAX_M = 6000.0
 # --- DEM ---------------------------------------------------------------------
 
 
+def _read_geotiff(path):
+    """(массив float32, lon0, lat0, dlon, dlat) — привязка верхнего левого угла."""
+    tif = tifffile.TiffFile(path)
+    page = tif.pages[0]
+    z = page.asarray().astype(np.float32)
+    scale = page.tags["ModelPixelScaleTag"].value      # (sx, sy, sz)
+    tie = page.tags["ModelTiepointTag"].value          # (i, j, k, x, y, z)
+    return z, tie[3], tie[4], scale[0], scale[1]
+
+
+def _bilinear(z, x, y):
+    """Векторная билинейная выборка z[y, x]; за границей и на NaN-соседях → NaN."""
+    x, y = np.asarray(x, np.float64), np.asarray(y, np.float64)
+    ok = (x >= 0) & (x < z.shape[1] - 1) & (y >= 0) & (y < z.shape[0] - 1)
+    xs, ys = np.where(ok, x, 0), np.where(ok, y, 0)
+    x0, y0 = xs.astype(int), ys.astype(int)
+    fx, fy = xs - x0, ys - y0
+    v = (z[y0, x0] * (1 - fx) * (1 - fy) + z[y0, x0 + 1] * fx * (1 - fy)
+         + z[y0 + 1, x0] * (1 - fx) * fy + z[y0 + 1, x0 + 1] * fx * fy)
+    return np.where(ok, v, np.nan)
+
+
 class Dem:
-    def __init__(self, path=DEM_PATH):
-        tif = tifffile.TiffFile(path)
-        page = tif.pages[0]
-        self.z = page.asarray().astype(np.float32)
-        scale = page.tags["ModelPixelScaleTag"].value      # (sx, sy, sz)
-        tie = page.tags["ModelTiepointTag"].value          # (i, j, k, x, y, z)
-        self.lon0, self.lat0 = tie[3], tie[4]              # верхний левый угол
-        self.dlon, self.dlat = scale[0], scale[1]
+    """Рельеф: тайл GLO-30 + поле поправок из фотограмметрических DSM-патчей.
+
+    Патчи (analysis/dem-patches/*.tif) — плотная реконструкция по кадрам дрона
+    в системе высот телеметрии; GLO-30 в пятне вещей врёт до ~48 м. Вместо
+    прямой подмены высот накладывается сглаженная разница «DSM − GLO-30»:
+    дыры реконструкции заполняются ближайшей измеренной поправкой, к краям
+    охвата поправка затухает до нуля — рельеф остаётся непрерывным и марш
+    луча (cast) не спотыкается об обрывы на границе патча.
+    """
+
+    def __init__(self, path=DEM_PATH, patch_dir=PATCH_DIR):
+        self.z, self.lon0, self.lat0, self.dlon, self.dlat = _read_geotiff(path)
         self.h, self.w = self.z.shape
+        self._patch = self._load_patches(patch_dir) if patch_dir else None
+
+    def _load_patches(self, patch_dir):
+        paths = sorted(Path(patch_dir).glob("*.tif"))
+        if not paths:
+            return None
+        patches = [_read_geotiff(p) for p in paths]
+        # общая сетка: объединённый bbox, шаг — как у патчей (~1 м)
+        dlon = min(p[3] for p in patches)
+        dlat = min(p[4] for p in patches)
+        lon_w = min(p[1] for p in patches)
+        lon_e = max(p[1] + p[0].shape[1] * p[3] for p in patches)
+        lat_n = max(p[2] for p in patches)
+        lat_s = min(p[2] - p[0].shape[0] * p[4] for p in patches)
+        gw = int(round((lon_e - lon_w) / dlon)) + 1
+        gh = int(round((lat_n - lat_s) / dlat)) + 1
+        lons = lon_w + np.arange(gw) * dlon
+        lats = lat_n - np.arange(gh) * dlat
+        glon, glat = np.meshgrid(lons, lats)
+
+        # среднее DSM по патчам (независимые реконструкции, расходятся ~1-2 м)
+        acc = np.zeros((gh, gw), np.float64)
+        cnt = np.zeros((gh, gw), np.int32)
+        for z, plon0, plat0, pdlon, pdlat in patches:
+            v = _bilinear(z, (glon - plon0) / pdlon, (plat0 - glat) / pdlat)
+            m = np.isfinite(v)
+            acc[m] += v[m]
+            cnt[m] += 1
+        dsm = np.where(cnt > 0, acc / np.maximum(cnt, 1), np.nan)
+
+        base = _bilinear(self.z, (glon - self.lon0) / self.dlon,
+                         (self.lat0 - glat) / self.dlat)
+        off = (dsm - base).astype(np.float32)
+        known = np.isfinite(off)
+        if not known.any():
+            return None
+
+        # дыры реконструкции → поправка ближайшего измеренного узла + сглаживание
+        ky, kx = np.nonzero(known)
+        uy, ux = np.nonzero(~known)
+        if len(uy):
+            step = 2000  # порциями, чтобы не строить матрицу все×все
+            for s in range(0, len(uy), step):
+                sy, sx = uy[s:s + step], ux[s:s + step]
+                d2 = (sy[:, None] - ky[None, :]) ** 2 + (sx[:, None] - kx[None, :]) ** 2
+                nearest = np.argmin(d2, axis=1)
+                off[sy, sx] = off[ky[nearest], kx[nearest]]
+        off = cv2.GaussianBlur(off, (0, 0), sigmaX=2)
+
+        # затухание к краям bbox: ноль на границе → непрерывный стык с GLO-30
+        m_per_deg_lat = 111132.0
+        m_per_deg_lon = 111320.0 * math.cos(math.radians((lat_n + lat_s) / 2))
+        ex = np.minimum(np.arange(gw), np.arange(gw)[::-1]) * dlon * m_per_deg_lon
+        ey = np.minimum(np.arange(gh), np.arange(gh)[::-1]) * dlat * m_per_deg_lat
+        wgt = np.minimum(np.minimum.outer(ey, ex) / PATCH_FEATHER_M, 1.0)
+        off *= wgt.astype(np.float32)
+        return off, lon_w, lat_n, dlon, dlat
 
     def elev(self, lat, lon):
-        """Билинейная высота рельефа, м."""
+        """Билинейная высота рельефа, м (с поправкой патчей, где они есть)."""
         x = (lon - self.lon0) / self.dlon
         y = (self.lat0 - lat) / self.dlat
         if not (0 <= x < self.w - 1 and 0 <= y < self.h - 1):
@@ -60,8 +145,15 @@ class Dem:
         x0, y0 = int(x), int(y)
         fx, fy = x - x0, y - y0
         z = self.z
-        return float(z[y0, x0] * (1 - fx) * (1 - fy) + z[y0, x0 + 1] * fx * (1 - fy)
+        base = float(z[y0, x0] * (1 - fx) * (1 - fy) + z[y0, x0 + 1] * fx * (1 - fy)
                      + z[y0 + 1, x0] * (1 - fx) * fy + z[y0 + 1, x0 + 1] * fx * fy)
+        if self._patch is not None:
+            off, plon0, plat0, pdlon, pdlat = self._patch
+            v = _bilinear(off, np.float64((lon - plon0) / pdlon),
+                          np.float64((plat0 - lat) / pdlat))
+            if np.isfinite(v):
+                base += float(v)
+        return base
 
 
 # --- телеметрия ---------------------------------------------------------------

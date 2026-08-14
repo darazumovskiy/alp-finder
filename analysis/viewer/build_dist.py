@@ -25,7 +25,8 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 VIEWER_DIR = Path(__file__).resolve().parent
 DIST = VIEWER_DIR / "dist"
 
-PAGES = ["index.html", "map.html", "montages.html", "panoramy.html"]
+PAGES = ["index.html", "map.html", "montages.html", "panoramy.html",
+         "coverage-3d.html"]
 
 # Самодостаточные HTML вне viewer/ (ссылки из навигации) → имя в корне dist
 EXTRA_FILES = {
