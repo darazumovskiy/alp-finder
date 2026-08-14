@@ -24,16 +24,41 @@ trap 'rm -rf "$TMP"' EXIT
 git clone -q --filter=blob:none --no-checkout --depth 1 --branch gh-pages "$URL" "$TMP"
 git -C "$TMP" read-tree HEAD
 cp -R "$DIST/." "$TMP/"
+
+GITC() { git -C "$TMP" \
+  -c user.name="$(git -C "$ROOT" config user.name)" \
+  -c user.email="$(git -C "$ROOT" config user.email)" "$@"; }
+
 # рабочее дерево = ровно dist, поэтому add -A даёт точное зеркало:
-# файлы, исчезнувшие из dist, станут удалениями
-git -C "$TMP" add -A
-if git -C "$TMP" diff --cached --quiet; then
+# файлы, исчезнувшие из dist, станут удалениями. Пушим порциями по ~200 МБ —
+# пак больше ~0.5 ГБ соединение с GitHub не переживает.
+BATCH_BYTES=$((200 * 1024 * 1024))
+batch=() ; size=0 ; n=0
+flush() {
+  [ ${#batch[@]} -eq 0 ] && return 0
+  GITC add -- "${batch[@]}"
+  if ! GITC diff --cached --quiet; then
+    n=$((n + 1))
+    GITC commit -q -m "Зеркало просмотрщика: порция $n"
+    GITC push -q "$URL" HEAD:gh-pages
+    echo "  порция $n отправлена (${#batch[@]} файлов)"
+  fi
+  batch=() ; size=0
+}
+while IFS= read -r -d '' f; do
+  batch+=("$f")
+  size=$((size + $(stat -f%z "$TMP/$f" 2>/dev/null || stat -c%s "$TMP/$f")))
+  if [ "$size" -ge "$BATCH_BYTES" ]; then flush; fi
+done < <(git -C "$TMP" ls-files -o -m --exclude-standard -z)
+flush
+
+# финальный проход: удаления и всё, что не попало в порции
+GITC add -A
+if ! GITC diff --cached --quiet; then
+  GITC commit -q -m "Зеркало просмотрщика (GitHub Pages)"
+  GITC push -q "$URL" HEAD:gh-pages
+elif [ "$n" -eq 0 ]; then
   echo "gh-pages уже актуальна, пуш не нужен"
   exit 0
 fi
-git -C "$TMP" \
-  -c user.name="$(git -C "$ROOT" config user.name)" \
-  -c user.email="$(git -C "$ROOT" config user.email)" \
-  commit -q -m "Зеркало просмотрщика (GitHub Pages)"
-git -C "$TMP" push -q "$URL" HEAD:gh-pages
 echo "готово: https://darazumovskiy.github.io/alp-finder/"

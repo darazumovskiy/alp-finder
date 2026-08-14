@@ -16,7 +16,9 @@ RANSAC), цепочка гомографий укладывает все кад�
       [--t0 SEC] [--t1 SEC]
 
 Выход в --out: mosaic_NN.jpg, mosaic_NN_preview.jpg (если мозаика крупная),
-frames_NN.tsv (таймкод кадра, позиция центра на холсте, GPS дрона из сайдкара).
+frames_NN.tsv (таймкод кадра, позиция центра на холсте, GPS дрона из сайдкара,
+гомография кадр→холст h00..h22 — по ней объект с известным пикселем кадра
+переносится на полотно, см. annotate_mosaic.py).
 """
 
 import argparse
@@ -100,8 +102,15 @@ def feather(w, h):
 
 
 def render(segment, out: Path, idx: int, gps, max_canvas: int):
-    """Уложить кадры сегмента на холст и записать mosaic/preview/tsv."""
+    """Уложить кадры сегмента на холст и записать mosaic/preview/tsv.
+
+    Холст якорится на средний кадр сегмента: относительно первого кадра длинная
+    проводка копит перспективу и вырождает дальний конец в «иглу», а от середины
+    перекос расходится в обе стороны и остаётся умеренным.
+    """
     h, w = segment[0][2].shape[:2]
+    mid_inv = np.linalg.inv(segment[len(segment) // 2][1])
+    segment = [(t, mid_inv @ G, img) for t, G, img in segment]
     corners = np.float32([[0, 0], [w, 0], [w, h], [0, h]]).reshape(-1, 1, 2)
     pts = np.concatenate(
         [cv2.perspectiveTransform(corners, G) for _, G, _ in segment])
@@ -128,7 +137,7 @@ def render(segment, out: Path, idx: int, gps, max_canvas: int):
         filled |= hit
         cx, cy = cv2.perspectiveTransform(
             np.float32([[w / 2, h / 2]]).reshape(-1, 1, 2), M).ravel()
-        rows.append((t, cx, cy))
+        rows.append((t, cx, cy, M))
 
     cv2.imwrite(str(out / f"mosaic_{idx:02d}.jpg"), canvas,
                 [cv2.IMWRITE_JPEG_QUALITY, 92])
@@ -138,10 +147,12 @@ def render(segment, out: Path, idx: int, gps, max_canvas: int):
                     cv2.resize(canvas, (round(cw * k), round(ch * k))),
                     [cv2.IMWRITE_JPEG_QUALITY, 90])
     with (out / f"frames_{idx:02d}.tsv").open("w", encoding="utf-8") as f:
-        f.write("t\tcanvas_x\tcanvas_y\tlat\tlon\talt\n")
-        for t, cx, cy in rows:
+        f.write("t\tcanvas_x\tcanvas_y\tlat\tlon\talt\tfw\tfh\t"
+                + "\t".join(f"h{i}{j}" for i in range(3) for j in range(3)) + "\n")
+        for t, cx, cy, M in rows:
             lat, lon, alt = gps_at(gps, t)
-            f.write(f"{t:.1f}\t{cx:.0f}\t{cy:.0f}\t{lat}\t{lon}\t{alt}\n")
+            f.write(f"{t:.1f}\t{cx:.0f}\t{cy:.0f}\t{lat}\t{lon}\t{alt}\t{w}\t{h}\t"
+                    + "\t".join(f"{v:.8g}" for v in M.ravel()) + "\n")
     print(f"  mosaic_{idx:02d}: кадров {len(segment)}, холст {cw}x{ch}, "
           f"{tc(segment[0][0])}–{tc(segment[-1][0])}")
 

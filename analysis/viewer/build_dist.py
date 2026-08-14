@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Сборка публичной версии просмотрщика в analysis/viewer/dist/.
 
-Копирует index.html, map.html, montages.html и все картинки, на которые они
-ссылаются (пути от корня репозитория: analysis/..., docs/..., data/...),
-в dist/ с сохранением структуры путей. Абсолютные пути картинок (/analysis/...)
+Копирует index.html, map.html, montages.html, panoramy.html и все картинки,
+на которые они ссылаются (пути от корня репозитория: analysis/..., docs/...,
+data/...), в dist/ с сохранением структуры путей; папки тайлов гигапанорам
+(PANOS) копируются целиком в dist/pano/. Также кладёт в корень dist архивы
+srt-*.zip из корня репозитория — они опубликованы как ссылки для волонтёров
+(docs/drive-inventory.md), без этого пересборка молча снимала бы их с сайта. Абсолютные пути картинок (/analysis/...)
 при копировании переписываются на относительные: страницы в dist лежат в корне
 сайта, поэтому относительные пути работают и в корне домена (Cloudflare Pages),
 и в подпапке (зеркало GitHub Pages).
@@ -22,7 +25,15 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 VIEWER_DIR = Path(__file__).resolve().parent
 DIST = VIEWER_DIR / "dist"
 
-PAGES = ["index.html", "map.html", "montages.html"]
+PAGES = ["index.html", "map.html", "montages.html", "panoramy.html"]
+
+# Гигапанорамы (tile_pano.py): папка тайлов → путь в dist.
+# Ссылки на них — в panoramy.html; ASSET_RE их не ловит, копируем целиком.
+PANOS = {
+    "analysis/stitch/pano-veshchi/pano": "pano/veshchi",
+    "analysis/stitch/merged-ryukzak-14/pano": "pano/ryukzak-14",
+    "analysis/stitch/merged-zona/pano": "pano/zona",
+}
 
 # Ловим и литеральные src="/analysis/...", и пути в JS-данных ("analysis/.../x.jpg")
 ASSET_RE = re.compile(
@@ -53,6 +64,21 @@ def main() -> int:
         )
         assets.update(ASSET_RE.findall(text))
 
+    n_zips = 0
+    for z in sorted(REPO_ROOT.glob("srt-*.zip")):
+        shutil.copy2(z, DIST / z.name)
+        n_zips += 1
+
+    n_panos = 0
+    for src_rel, dst_rel in PANOS.items():
+        src = REPO_ROOT / src_rel
+        if not src.is_dir():
+            print(f"нет панорамы {src_rel} — пропущена (страница будет с битой "
+                  f"ссылкой)", file=sys.stderr)
+            continue
+        shutil.copytree(src, DIST / dst_rel)
+        n_panos += 1
+
     copied = 0
     missing: list[str] = []
     for rel in sorted(assets):
@@ -66,7 +92,8 @@ def main() -> int:
         copied += 1
 
     total_mb = sum(f.stat().st_size for f in DIST.rglob("*") if f.is_file()) / 2**20
-    print(f"dist/: {copied} картинок + {len(PAGES)} страниц, {total_mb:.0f} МБ")
+    print(f"dist/: {copied} картинок + {len(PAGES)} страниц + {n_zips} архивов "
+          f"+ {n_panos} панорам, {total_mb:.0f} МБ")
     if missing:
         print(f"не найдено {len(missing)} файлов (страницы будут с битыми превью):",
               file=sys.stderr)

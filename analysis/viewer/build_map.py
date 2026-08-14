@@ -409,32 +409,42 @@ POINTS = [
          imgs=["data/telegram/novye-skrinshoty/1296.png",
                "data/telegram/novye-skrinshoty/1305.png",
                "data/telegram/novye-skrinshoty/1258.jpg"]),
-    dict(kind="rope", src="tg", status="open", conf=3, lat=39.478187, lon=73.591547, alt=5296,
+    dict(kind="rope", src="tg", status="open", conf=3, lat=39.478188, lon=73.591529, alt=5294,
          name="Верёвка над «надписью LOOK» (личка Геннадия)",
-         coord="геопроекция луча в рельеф с 20 м; вилка фокусного <2 м, но луч полого к склону — "
-               "вилка DEM уводит точку до ~16 м вдоль склона",
+         coord="геопроекция луча в рельеф с 20 м; пересчитано 14.08: фокусное 2915 "
+               "самокалибровкой по двум качаниям подвеса (вилка фокусного <0.2 м), пиксели "
+               "верёвки перенесены SIFT в кадр t=69 с неподвижным подвесом; луч полого "
+               "к склону — вилка DEM уводит точку до ~16 м вдоль склона",
          video="DJI_20260813124655_0003_Z", tc="1:07–1:09",
          who="находка Геннадия Беге (админ TG-группы), передана в личку 14.08 ~04:50; "
-             "«должны сегодня проверить» — облёт планировался штабом на 14.08",
-         desc="Тонкая светлая линия ~3.5–4 м (при GSD 0.4 см/пикс толщина 1–2 см — масштаб "
-              "верёвки), уходит вниз к камням: «справа верёвка идёт к камню». В ~30 м выше по "
-              "склону спорной «надписи LOOK». Версия Геннадия: если LOOK — надпись, могли "
-              "написать с верёвки, а потом подниматься.",
+             "«должны сегодня проверить» — облёт планировался штабом на 14.08, "
+             "но утренние вылеты сняли только район вещей, этот участок не покрыт",
+         desc="Тонкая светлая линия (GSD 0.7 см/пикс: толщина 1–2 пикс ≈ 0.7–1.5 см — масштаб "
+              "верёвки; видимая в кадре часть ≥2 м, продолжается ниже кромки кадра), уходит "
+              "вниз к камням: «справа верёвка идёт к камню». В ~15 м по горизонтали и ~22 м "
+              "выше по склону пятна «надписи LOOK». Версия Геннадия: если LOOK — надпись, "
+              "могли написать с верёвки, а потом подниматься.",
          imgs=["data/telegram/lichka-gennadiy-bege/148979.jpg",
                "data/telegram/lichka-gennadiy-bege/148983.jpg",
-               "analysis/fullframe/gennadiy-124655/crop_t67_rope_zoom.png"], unc=30),
-    dict(kind="object", src="tg", status="open", conf=2, lat=39.478322, lon=73.591417, alt=5268,
+               "analysis/fullframe/gennadiy-124655/recheck/rope67_outline.png",
+               "analysis/fullframe/gennadiy-124655/crop_t67_rope_zoom.png"], unc=16),
+    dict(kind="object", src="tg", status="open", conf=2, lat=39.478305, lon=73.591435, alt=5271,
          name="Тёмный предмет у «надписи LOOK» (личка Геннадия)",
-         coord="надирная геопроекция (подвес −90.7°, дистанция 34 м): к фокусному нечувствительна, ±10 м",
+         coord="пересчитано 14.08: две независимые геометрии (кадры t=114 и t=119, поправка "
+               "лага телеметрии −0.3 с, фокусное 2915 самокалибровкой) сходятся с расхождением "
+               "1 м; вилки фокусного и DEM ±3 м — итого ±5 м с учётом GPS дрона",
          video="DJI_20260813124655_0003_Z", tc="1:54",
          who="находка Геннадия Беге (админ TG-группы), передана в личку 14.08 ~04:50; "
-             "«должны сегодня проверить» — облёт планировался штабом на 14.08",
-         desc="Слабый тёмный вытянутый объект на чистом снегу (обводка ~1×0.7 м на местности, сам "
-              "предмет меньше; весь надирный кадр покрывает ~10×6 м). Практически в точке "
-              "«надписи LOOK». Слова Геннадия: «предмет (возможно камни), похожий на тело "
-              "альпиниста».",
+             "«должны сегодня проверить» — облёт планировался штабом на 14.08, "
+             "но утренние вылеты сняли только район вещей, этот участок не покрыт",
+         desc="Слабый тёмный вытянутый объект на чистом снегу; с уточнённым фокусным размер "
+              "~30×10 см (GSD 1.0 см/пикс, дистанция 30 м) — мельче, чем казалось по первой "
+              "оценке. В 1.5 м — второй компактный тёмный объект ~12–15 см (вероятно камень). "
+              "Пятно — та же деталь снега, что и центр «надписи LOOK» (заявка #1400). Слова "
+              "Геннадия: «предмет (возможно камни), похожий на тело альпиниста».",
          imgs=["data/telegram/lichka-gennadiy-bege/148980.jpg",
-               "analysis/fullframe/gennadiy-124655/crop_t114_zoom.png"], unc=10),
+               "analysis/fullframe/gennadiy-124655/recheck/obj114_zoom.png",
+               "analysis/fullframe/gennadiy-124655/crop_t114_zoom.png"], unc=5),
     dict(kind="furrow", src="tg", status="open", conf=2, lat=39.47994, lon=73.59188, alt=5210,
          name="Фестончатая дорожка по центру кулуара + «отрыв лавины»",
          coord=GPS + "; камера ВВЕРХ — объекты выше 5210 м", view=[152, 23],
@@ -490,14 +500,18 @@ POINTS = [
               "вердикт пиксельный, от геопривязки не зависит. Координата заявки (5318 м) была "
               "GPS дрона — расчётная точка на ~170 м в стороне, сама ±десятки метров.",
          imgs=["analysis/review/tg-2026-08-13-framecheck/red/aligned_170.00.png"]),
-    dict(kind="object", src="tg", status="open", conf=2, lat=39.47832, lon=73.59142, alt=5268,
-         name="«Надпись LOOK» — спорная, ждёт облёта", coord=PROJ, video="DJI_20260813124655_0003_Z", tc="1:59",
+    dict(kind="object", src="tg", status="open", conf=2, lat=39.478305, lon=73.591435, alt=5271,
+         name="«Надпись LOOK» — спорная, ждёт облёта",
+         coord="пересчитано 14.08 вместе с «тёмным предметом» (та же деталь снега): две "
+               "геометрии сходятся с расхождением 1 м, итого ±5 м",
+         video="DJI_20260813124655_0003_Z", tc="1:59",
          who="наш пиксельный разбор счёл тенями (5/5); штаб настаивает на проверке — рядом "
-             "верёвка и тёмный предмет (личка Геннадия 14.08), облёт планировался на 14.08",
+             "верёвка и тёмный предмет (личка Геннадия 14.08); утренние вылеты 14.08 сняли "
+             "только район вещей, этот участок не покрыт",
          desc="Наш разбор: рисунок теней и неровностей снега, стабилен 5 секунд — не надпись. "
-              "Переведена обратно в открытые 14.08: в ~30 м выше найдена верёвка, практически "
-              "в самой точке — тёмный предмет; версия Геннадия: если это надпись, могли "
-              "написать с верёвки, а потом подниматься. До надписи надо дойти/долететь.",
+              "Переведена обратно в открытые 14.08: в ~22 м выше по склону найдена верёвка, "
+              "практически в самой точке — тёмный предмет; версия Геннадия: если это надпись, "
+              "могли написать с верёвки, а потом подниматься. До надписи надо дойти/долететь.",
          imgs=["analysis/review/tg-2026-08-13-framecheck/slope/aligned_118.00.png",
                "analysis/fullframe/gennadiy-124655/crop_t114_zoom.png"]),
 ]
@@ -548,6 +562,9 @@ IMPACT_RECT = [[39.4855, 73.5943], [39.4860, 73.5949]]         # ударные 
 # считаются analysis/coverage_polygon.py (метод — по центрам кадров, допуск 75 м)
 SLOPE_POLY_JSON = ROOT / "analysis/coverage/sklon-poligon-2026-08-14.json"
 SLOPE_CELLS_TSV = ROOT / "analysis/coverage/sklon-poligon-2026-08-14.cells.tsv"
+
+# Сетка покрытия дрона по всем дням (3 уровня детальности) — analysis/coverage_map.py
+COVER_JSON = ROOT / "analysis/coverage/coverage-map-cells.json"
 
 
 def slope_blind():
@@ -737,6 +754,7 @@ def build():
         contours=[dict(lvl=lvl, lines=lines) for lvl, lines in contours],
         zone=ZONE_RECT, impact=IMPACT_RECT,
         slope=slope_blind(),
+        cover=json.loads(COVER_JSON.read_text()) if COVER_JSON.exists() else None,
     )
     html = TEMPLATE.replace("__DATA__", json.dumps(data, ensure_ascii=False, separators=(",", ":")))
     (OUT / "map.html").write_text(html, "utf-8")
@@ -794,6 +812,8 @@ header a { color:#4da3ff; text-decoration:none; }
 .numf { display:flex; gap:6px; align-items:center; font-size:12px; margin:2px 0; flex-wrap:wrap; }
 .numf input[type=number] { width:66px; background:#14161a; color:var(--text);
                            border:1px solid var(--line); border-radius:4px; padding:2px 4px; }
+.numf select { background:#14161a; color:var(--text); border:1px solid var(--line);
+               border-radius:4px; padding:2px 4px; font-size:11.5px; }
 .gh { display:flex; gap:6px; align-items:baseline; font-weight:600; padding:5px 2px 2px; }
 .gh .cnt { color:var(--dim); font-size:11px; font-weight:400; }
 .popup { font:13px/1.45 -apple-system,"Segoe UI",Roboto,sans-serif; max-width:340px; }
@@ -826,6 +846,7 @@ header a { color:#4da3ff; text-decoration:none; }
 <a href="index.html">Кандидаты</a>
 <a href="montages.html">Все монтажные листы</a>
 <a href="map.html"><b>Карта</b></a>
+<a href="panoramy.html">Панорамы</a>
 </nav></header>
 <div id="wrap">
 <div id="side">
@@ -854,6 +875,23 @@ header a { color:#4da3ff; text-decoration:none; }
       <b>Фиолетовый пунктирный полигон</b> — слепое пятно: склон между зоной интереса и
       вещами. Если сорвавшийся успел тормозить — он остановился здесь, выше вещей.
       Заливка — ячейки 30 м, куда ни разу не смотрел центр кадра ни одного пролёта.</div>
+    <div class="lrow"><span class="sw" style="background:#00e67666; border:1px solid #00e676"></span>
+      <b>Зелёная заливка</b> — осмотр детальный: сюда дрон смотрел с масштабом, при
+      котором различим предмет от 20 см (крышка, ботинок, каска).</div>
+    <div class="lrow"><span class="sw" style="background:#ffb30066; border:1px solid #ffb300"></span>
+      <b>Янтарная заливка</b> — осмотр средний: различим предмет от 1 м (рюкзак,
+      лежащий человек); мелкие вещи на этих участках могли пройти незамеченными.</div>
+    <div class="lrow"><span class="sw" style="background:#78909c66; border:1px solid #78909c"></span>
+      <b>Серая заливка</b> — осмотр обзорный: дрон туда смотрел, но различимо только
+      крупное (палатка, крупный след), либо масштаб кадра не удалось измерить.
+      Уровни вложены: детальный участок входит и в средний, и в обзорный слой —
+      ячейка красится лучшим из включённых уровней (включи один обзорный, чтобы
+      увидеть всю осмотренную площадь одним цветом). Селекторы «день / ролик»
+      под списком слоёв показывают покрытие одного дня или одного вылета;
+      площади в подписях уровней пересчитываются под фильтр. Всё, что НЕ залито,
+      дрон за выбранные дни не осматривал (центр кадра туда не ложился). Метод —
+      по центрам кадров с допуском 75 м, оценка осторожная: края кадров
+      в заливку не входят.</div>
     <div class="lrow"><span class="sw" style="background:#ffd54f"></span>
       <b>Янтарные тонкие</b> — изолинии высоты через 50 м; подписи подстраиваются под
       экран: видимые линии 200 м подписаны всегда, на крупном зуме подписываются
@@ -987,7 +1025,7 @@ for (const d of D.descents)
 // --- зоны ---
 const zonesLayer = L.layerGroup();
 L.rectangle(D.zone, {color:'#ff1744', weight:2, fillOpacity:0.12})
-  .bindPopup('<b>Зона интереса 5385–5485 м</b><br>5 независимых наблюдений трёх дней; на нитке маршрута сразу под Camp2. Систематически не осмотрена (coverage-gsd).')
+  .bindPopup('<b>Зона интереса 5385–5485 м</b><br>5 независимых наблюдений трёх дней; на нитке маршрута сразу под Camp2. Вердикт «систематически не осмотрена» — по дальним роликам 11–12.08 (coverage-gsd); близкий пролёт 13.08 (DJI_152839) дал детальный масштаб на части зоны — см. слой покрытия. Кандидаты зоны не сняты, повторный облёт в силе.')
   .addTo(zonesLayer);
 L.rectangle(D.impact, {color:'#b0bec5', weight:1.5, fillOpacity:0.10, dashArray:'4 4'})
   .bindPopup('Зона ударных отметин ~4950–4990 м (воронка, предметы в снегу)').addTo(zonesLayer);
@@ -1008,6 +1046,73 @@ if (D.slope) {
     L.rectangle([[la - cell/2, lo - cell/2*kLon], [la + cell/2, lo + cell/2*kLon]],
                 {color:'#e040fb', weight:0, fillColor:'#e040fb', fillOpacity:0.22,
                  interactive:false}).addTo(slopeLayer);
+}
+
+// --- покрытие дрона по всем дням: три ВЛОЖЕННЫХ уровня детальности ---
+// Ячейки 30 м, куда хотя бы раз смотрел центр кадра (допуск 75 м); лучший
+// уровень ячейки — по минимальному различимому предмету (порог 8 px), считает
+// analysis/coverage_map.py. Слои вложены: «различим предмет от 20 см» ⇒
+// «различим предмет от 1 м» ⇒ «смотрели». Ячейка рисуется самым детальным
+// из включённых уровней, на который она тянет: включён один «обзорный» —
+// вся осмотренная площадь серым; включены все — каждая ячейка лучшим цветом.
+// отдельная панель под векторными слоями: заливка не перекрывает линии и точки
+map.createPane('cover');
+map.getPane('cover').style.zIndex = 350;
+const coverRenderer = L.canvas({padding:0.4, pane:'cover'});
+// JSON хранит вклад каждого ролика отдельно — объединение делается здесь,
+// это даёт фильтры «день / ролик» без пересчёта данных.
+const COVER_TIERS = D.cover ? [
+  ['#00e676', `Осмотр: детальный — различим предмет от ${D.cover.detail_cm} см (крышка, ботинок)`],
+  ['#ffb300', `Осмотр: средний — различим предмет от ${D.cover.mid_cm/100} м (рюкзак, человек)`],
+  ['#78909c', 'Осмотр: обзорный — куда вообще смотрел центр кадра'],
+] : [];
+const coverGroup = L.layerGroup();
+let coverOpacity = 0.4;
+const coverOn = [true, true, true];
+let coverDate = 'all', coverVideo = 'all';
+let coverCells = [];       // [i, j, лучший уровень 0/1/2] по выбранным роликам
+const coverAreaEls = [];   // спаны «N км²» в подписях уровней
+
+function coverRecompute() {
+  const bestMap = new Map();     // i*100000+j -> лучший уровень
+  for (const v of D.cover.videos) {
+    if (coverDate !== 'all' && v.date !== coverDate) continue;
+    if (coverVideo !== 'all' && v.name !== coverVideo) continue;
+    for (const [i, j, t] of v.cells) {
+      const k = i * 100000 + j;
+      const cur = bestMap.get(k);
+      if (cur === undefined || t < cur) bestMap.set(k, t);
+    }
+  }
+  coverCells = [];
+  const cum = [0, 0, 0];         // накопленная площадь уровня, ячеек
+  for (const [k, t] of bestMap) {
+    coverCells.push([Math.floor(k / 100000), k % 100000, t]);
+    for (let x = t; x < 3; x++) cum[x]++;
+  }
+  coverAreaEls.forEach((el, k) => {
+    if (!el) return;
+    const a = cum[k] * D.cover.cell_m ** 2 / 1e6;
+    el.textContent = a.toFixed(a < 0.095 ? 2 : 1) + ' км²';
+  });
+}
+function redrawCover() {
+  coverGroup.clearLayers();
+  const c = D.cover;
+  for (const [i, j, b] of coverCells) {
+    let k = b;                              // ячейка тянет на уровни b..2
+    while (k < 3 && !coverOn[k]) k++;
+    if (k > 2) continue;
+    L.rectangle([[c.lat0 + i*c.dlat, c.lon0 + j*c.dlon],
+                 [c.lat0 + (i+1)*c.dlat, c.lon0 + (j+1)*c.dlon]],
+      {renderer:coverRenderer, pane:'cover', weight:0, fillColor:COVER_TIERS[k][0],
+       fillOpacity:coverOpacity, interactive:false}).addTo(coverGroup);
+  }
+}
+if (D.cover) {
+  coverRecompute();
+  coverGroup.addTo(map);
+  redrawCover();
 }
 
 // --- точки ---
@@ -1120,6 +1225,54 @@ for (const [title, layer, on] of overlays) {
   el.querySelector('input').onchange = e =>
     e.target.checked ? layer.addTo(map) : map.removeLayer(layer);
   layersDiv.appendChild(el);
+}
+
+// уровни осмотра — вложенные, чекбокс перерисовывает общий слой
+COVER_TIERS.forEach(([color, title], k) => {
+  const el = document.createElement('label');
+  el.className = 'lyr';
+  el.innerHTML = `<input type="checkbox" checked>
+    <span class="sw" style="flex:0 0 12px; height:12px; background:${color}"></span> ${title}
+    <span class="cnt" style="white-space:nowrap"></span>`;
+  el.querySelector('input').onchange = e => { coverOn[k] = e.target.checked; redrawCover(); };
+  coverAreaEls[k] = el.querySelector('.cnt');
+  layersDiv.appendChild(el);
+});
+
+if (COVER_TIERS.length) {
+  // фильтр покрытия: день и конкретный ролик внутри дня
+  const fmt = d => d.slice(8, 10) + '.' + d.slice(5, 7);
+  const dates = [...new Set(D.cover.videos.map(v => v.date))].sort();
+  const fBox = document.createElement('div');
+  fBox.innerHTML = `<div class="numf" style="padding-left:6px">осмотр за
+    <select></select> <select style="max-width:168px"></select></div>`;
+  const [dateSel, vidSel] = fBox.querySelectorAll('select');
+  dateSel.innerHTML = '<option value="all">все дни</option>' +
+    dates.map(d => `<option value="${d}">${fmt(d)}</option>`).join('');
+  const fillVideos = () => {
+    const vs = D.cover.videos.filter(v => coverDate === 'all' || v.date === coverDate);
+    vidSel.innerHTML = '<option value="all">все ролики</option>' +
+      vs.map(v => `<option value="${v.name}">${v.name}</option>`).join('');
+    coverVideo = 'all';
+  };
+  fillVideos();
+  dateSel.onchange = () => { coverDate = dateSel.value; fillVideos(); coverRecompute(); redrawCover(); };
+  vidSel.onchange = () => { coverVideo = vidSel.value; coverRecompute(); redrawCover(); };
+  layersDiv.appendChild(fBox);
+
+  const cvBox = document.createElement('div');
+  cvBox.innerHTML = `<label class="lyr" style="gap:6px">Плотность заливки осмотра:
+    <input type="range" min="5" max="90" value="${coverOpacity*100}" style="flex:1; min-width:0">
+    <span class="cnt" style="min-width:34px; color:var(--dim); font-size:11px">${coverOpacity*100}%</span></label>`;
+  const s = cvBox.querySelector('input'), pct = cvBox.querySelector('span');
+  s.oninput = () => {
+    coverOpacity = s.value / 100;
+    pct.textContent = s.value + '%';
+    redrawCover();
+  };
+  layersDiv.appendChild(cvBox);
+
+  coverRecompute();   // спаны площадей созданы после первого пересчёта — заполнить
 }
 
 const ovBox = document.createElement('div');

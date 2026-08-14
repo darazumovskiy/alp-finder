@@ -1,0 +1,60 @@
+<!doctype html>
+<!-- Страница руками (не генерируется): список гигапанорам. Тайлы кладёт в dist
+     build_dist.py из analysis/stitch/*/pano; локально страница ссылок не
+     разрешит — панорамы смотреть через python -m http.server в analysis/stitch. -->
+<html lang="ru"><head><meta charset="utf-8">
+<title>Курумды — панорамы</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { --bg:#0f1113; --card:#191c20; --line:#2a2e34; --fg:#d7dbe0; --dim:#8b929b; }
+  html, body { margin:0; background:var(--bg); color:var(--fg);
+               font:15px/1.5 system-ui, sans-serif; }
+  header { background:#14161acc; border-bottom:1px solid var(--line); padding:8px 16px; }
+  header nav { display:flex; gap:18px; flex-wrap:wrap; align-items:baseline; }
+  .title { font-weight:700; }
+  a { color:#7ab8ff; text-decoration:none; }
+  main { max-width:900px; margin:0 auto; padding:20px 16px 60px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px;
+          padding:16px 18px; margin:14px 0; }
+  .card h2 { margin:0 0 6px; font-size:18px; }
+  .meta { color:var(--dim); font-size:13px; margin-bottom:8px; }
+  .note { color:var(--dim); font-size:13px; margin-top:24px; border-top:1px solid var(--line); padding-top:12px; }
+</style></head><body>
+<header><nav><span class="title">Курумды — видеоанализ</span>
+<a href="index.html">Кандидаты</a>
+<a href="montages.html">Все монтажные листы</a>
+<a href="map.html">Карта</a>
+<a href="panoramy.html"><b>Панорамы</b></a>
+</nav></header>
+<main>
+<h1>Зумируемые панорамы участков</h1>
+<p>Съёмка дрона сшита в сверхразрешённые панорамы: обзор участка целиком, колесо
+мыши приближает до сантиметровых деталей (врезки крупных планов лежат в своём
+разрешении). Жёлтые маркеры — подтверждённые вещи и главные кандидаты.</p>
+
+<div class="card">
+<h2><a href="pano/veshchi/index.html">Район вещей: стена и кулуар</a></h2>
+<div class="meta">15,7 гигапикселя · съёмка 13.08 (ролики 163855, 183004, 183727) · отметки: палка Komperdell, крышка</div>
+Скальный пояс, кулуар и осыпь, где найдены вещи группы. Виден оранжевый
+спальник, стакан — приближайте кулуар в правой нижней части.
+</div>
+
+<div class="card">
+<h2><a href="pano/ryukzak-14/index.html">Район рюкзака: досъёмка 14.08</a></h2>
+<div class="meta">93 мегапикселя · ролик 12:13 (DJI_20260814121341) · отметки: рюкзак, два тканевых предмета</div>
+Склон над рюкзаком одним полотном: синий рюкзак внизу, в ~18 м выше по склону —
+два тёмно-синих тканевых предмета (координаты по дальномеру: 39.48261, 73.58685, 4670 м).
+</div>
+
+<div class="card">
+<h2><a href="pano/zona/index.html">Зона интереса 5385–5485 м</a></h2>
+<div class="meta">71 мегапиксель · ролик 13.08 15:28 (DJI_20260813152839) · отметка: Г-образный предмет</div>
+Полоса склона под Camp2, куда сходятся кандидаты трёх дней. Отмечен тёмный
+Г-образный предмет на чистом снегу (13.08).
+</div>
+
+<p class="note">Панорамы — инструмент отсмотра («где искать глазами»), не источник
+координат: сшивка накапливает геометрический дрейф, расстояния по ним не мерить.
+Координаты для штаба — только из реестра находок. Съёмка разных дней в одну
+панораму не сшивается (снег и свет меняются), поэтому панорамы по участкам.</p>
+</main></body></html>

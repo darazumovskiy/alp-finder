@@ -202,13 +202,21 @@ def main():
 
     keys = ["video", "width", "n", "n_ests", "no_focal", "sky",
             "gsd_med_cm", "gsd_p90_cm", "obj8_med_cm"] + [n for n, _ in OBJECTS]
-    with (OUT / "summary.tsv").open("w", encoding="utf-8") as f:
+    # сводка накопительная: строки других дат сохраняются, свои — заменяются
+    path = OUT / "summary.tsv"
+    old = {}
+    if path.exists():
+        for line in path.read_text().splitlines()[1:]:
+            old[line.split("\t", 1)[0]] = line
+    for r in summary:
+        old[r["video"]] = "\t".join("" if r.get(k) is None else
+                                    (f"{r[k]:.3f}" if isinstance(r.get(k), float) else str(r[k]))
+                                    for k in keys)
+    with path.open("w", encoding="utf-8") as f:
         f.write("\t".join(keys) + "\n")
-        for r in summary:
-            f.write("\t".join("" if r.get(k) is None else
-                              (f"{r[k]:.3f}" if isinstance(r.get(k), float) else str(r[k]))
-                              for k in keys) + "\n")
-    print(f"\nсводка: {OUT / 'summary.tsv'}")
+        for name in sorted(old):
+            f.write(old[name] + "\n")
+    print(f"\nсводка: {path}")
 
 
 if __name__ == "__main__":

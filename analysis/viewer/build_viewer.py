@@ -387,6 +387,7 @@ def page(title, body):
 <a href="index.html">Кандидаты</a>
 <a href="montages.html">Все монтажные листы</a>
 <a href="map.html">Карта</a>
+<a href="panoramy.html">Панорамы</a>
 </nav></header>
 <main>{body}</main>
 <div id="lightbox"><img alt=""></div>
