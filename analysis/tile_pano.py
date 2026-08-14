@@ -49,8 +49,14 @@ HTML = """<!doctype html>
   #orient {{ position: fixed; left: 10px; bottom: 10px; z-index: 10;
              background: #000a; color: #d7dbe0; padding: 6px 10px;
              border-radius: 6px; font: 12px/1.4 sans-serif; max-width: 340px; }}
+  #back {{ position: fixed; left: 10px; top: 10px; z-index: 10;
+           background: #000a; padding: 6px 12px; border-radius: 6px;
+           font: bold 13px sans-serif; }}
+  #back a {{ color: #7ab8ff; text-decoration: none; }}
 </style></head><body>
 <div id="pano"></div>
+<div id="back"><a href="../../panoramy.html">&larr; Панорамы</a> &nbsp;
+<a href="../../map.html">Карта</a></div>
 <div id="orient">{orientation}</div>
 <script src="https://cdn.jsdelivr.net/npm/openseadragon@4.1/build/openseadragon/openseadragon.min.js"></script>
 <script>

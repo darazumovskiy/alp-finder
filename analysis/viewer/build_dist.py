@@ -27,6 +27,12 @@ DIST = VIEWER_DIR / "dist"
 
 PAGES = ["index.html", "map.html", "montages.html", "panoramy.html"]
 
+# Самодостаточные HTML вне viewer/ (ссылки из навигации) → имя в корне dist
+EXTRA_FILES = {
+    "docs/nezavisimyy-analiz/model-3d/model-3d.html": "model-3d.html",
+    "docs/nezavisimyy-analiz/model-3d/model-3d-full.html": "model-3d-full.html",
+}
+
 # Гигапанорамы (tile_pano.py): папка тайлов → путь в dist.
 # Ссылки на них — в panoramy.html; ASSET_RE их не ловит, копируем целиком.
 PANOS = {
@@ -64,6 +70,16 @@ def main() -> int:
         )
         assets.update(ASSET_RE.findall(text))
 
+    n_extra = 0
+    for src_rel, dst_name in EXTRA_FILES.items():
+        src = REPO_ROOT / src_rel
+        if not src.is_file():
+            print(f"нет файла {src_rel} — пропущен (навигация будет с битой "
+                  f"ссылкой)", file=sys.stderr)
+            continue
+        shutil.copy2(src, DIST / dst_name)
+        n_extra += 1
+
     n_zips = 0
     for z in sorted(REPO_ROOT.glob("srt-*.zip")):
         shutil.copy2(z, DIST / z.name)
@@ -92,8 +108,8 @@ def main() -> int:
         copied += 1
 
     total_mb = sum(f.stat().st_size for f in DIST.rglob("*") if f.is_file()) / 2**20
-    print(f"dist/: {copied} картинок + {len(PAGES)} страниц + {n_zips} архивов "
-          f"+ {n_panos} панорам, {total_mb:.0f} МБ")
+    print(f"dist/: {copied} картинок + {len(PAGES)} страниц + {n_extra} 3D-моделей "
+          f"+ {n_zips} архивов + {n_panos} панорам, {total_mb:.0f} МБ")
     if missing:
         print(f"не найдено {len(missing)} файлов (страницы будут с битыми превью):",
               file=sys.stderr)

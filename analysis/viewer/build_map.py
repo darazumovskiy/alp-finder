@@ -847,6 +847,7 @@ header a { color:#4da3ff; text-decoration:none; }
 <a href="montages.html">Все монтажные листы</a>
 <a href="map.html"><b>Карта</b></a>
 <a href="panoramy.html">Панорамы</a>
+<a href="model-3d.html">3D-модель</a>
 </nav></header>
 <div id="wrap">
 <div id="side">
