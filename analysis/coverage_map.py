@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """Сетка покрытия всего района съёмкой дрона: три уровня детальности для карты.
 
-Метод попаданий тот же, что в coverage_polygon.py (и в расчёте внешней группы):
-центральный луч камеры каждые step секунд трассируется в DEM, ячейка сетки
-считается «смотрели», если центр кадра лёг ближе допуска. Масштаб момента
-(минимальный различимый предмет, порог 8 px из стенда врезок) берётся из
-analysis/coverage/<видео>.coverage.tsv; попадания роликов без таблицы —
-«смотрели, масштаб неизвестен».
+Метод — проекция рамки кадра (video_footprint_hits из coverage_polygon.py):
+каждые step секунд кадр печатается в DEM сеткой лучей по всему полю зрения,
+с реальным фокусным момента из analysis/coverage/<видео>.coverage.tsv.
+Масштаб каждого попадания (минимальный различимый предмет, порог 8 px из
+стенда врезок) — пересчитан на дистанцию конкретного луча, поэтому дальний
+край кадра честно грубее ближнего. Моменты без измеренного фокусного
+(рамка кадра неизвестна) — центральный луч с допуском 75 м без масштаба.
 
 Уровни по лучшему (минимальному) различимому предмету среди всех попаданий
 в ячейку:
@@ -15,14 +16,16 @@ analysis/coverage/<видео>.coverage.tsv; попадания роликов �
   over   — смотрели, но различимо только крупное (> 1 м) либо масштаб
            не измерен (зависание без панорам — фокусное неизвестно).
 
-Оценка по центрам кадра занижает покрытие (кадр — пятно, а не точка):
-«не смотрели» — безопасная сторона, «детально осмотрено» краёв кадра
-не преувеличивается.
+Лучи маршируются в DEM независимо, поэтому мёртвые зоны за перегибами
+рельефа внутри рамки кадра не закрашиваются.
 
 Использование:  analysis/.venv/bin/python analysis/coverage_map.py
 Выход: analysis/coverage/coverage-map-cells.json — вклад каждого ролика
-отдельно (ролик, дата вылета, ячейки с уровнем 0/1/2): карта объединяет их
-на лету, это даёт фильтры по дате и ролику. Сводка по всем дням — в stdout.
+отдельно: ролик, дата вылета, ячейки [i, j, уровень 0/1/2, лучший
+obj8px_cm | null, таймкод лучшего прохода (с), число проходов рядом].
+Карта объединяет вклады на лету (фильтры по дате и ролику) и по тем же
+данным отвечает на обратный вопрос: какие ролики видели данную точку
+(ПКМ по карте). Сводка по всем дням — в stdout.
 """
 
 import json
@@ -33,7 +36,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from coverage_polygon import (  # noqa: E402
-    DATA, M_PER_DEG_LAT, m_per_deg_lon, video_hits,
+    DATA, M_PER_DEG_LAT, m_per_deg_lon, video_footprint_hits,
 )
 from geoproject import Dem  # noqa: E402
 
@@ -44,7 +47,6 @@ LAT0, LAT1 = 39.455, 39.525
 LON0, LON1 = 73.565, 73.635
 
 CELL_M = 30.0      # шаг сетки
-RADIUS_M = 75.0    # допуск «центр кадра лёг рядом» — как у слепого пятна
 STEP_S = 2.0       # шаг сэмплов телеметрии
 TIER_DETAIL_CM = 20   # предмет ≤ 20 см различим
 TIER_MID_CM = 100     # предмет ≤ 1 м различим
@@ -55,8 +57,6 @@ def main():
     dlat = CELL_M / M_PER_DEG_LAT
     dlon = CELL_M / m_per_deg_lon(lat_c)
     bbox = (LAT0, LAT1, LON0, LON1)
-
-    reach = int(RADIUS_M // CELL_M) + 1
 
     ni = int((LAT1 - LAT0) / dlat)
     nj = int((LON1 - LON0) / dlon)
@@ -69,17 +69,19 @@ def main():
     best = {}       # (i, j) -> лучший obj8px_cm по всем роликам (для сводки)
     vid_out = []    # повидеовый вклад — фильтры по дате/ролику на карте
     for v in videos:
-        hits = video_hits(v, dem, STEP_S, bbox)
+        hits = video_footprint_hits(v, dem, STEP_S, bbox)
         n_gsd = 0
-        vbest = {}  # (i, j) -> лучший obj8px_cm этого ролика
-        for la, lo, o8 in hits:
+        vbest = {}     # (i, j) -> (лучший obj8px_cm, таймкод этого прохода)
+        vcells_t = {}  # (i, j) -> набор таймкодов сэмплов, задевших ячейку
+        for la, lo, o8, t, radius in hits:
             if math.isnan(o8):
                 o8 = math.inf
             else:
                 n_gsd += 1
             i0 = int((la - LAT0) / dlat)
             j0 = int((lo - LON0) / dlon)
-            # ячейка «смотрели», если её центр в допуске от самого попадания
+            reach = int(radius // CELL_M) + 1
+            # ячейка «смотрели», если её центр в радиусе закраски попадания
             # (точное расстояние, без квантования по сетке)
             for di in range(-reach, reach + 1):
                 for dj in range(-reach, reach + 1):
@@ -89,26 +91,31 @@ def main():
                     clat = LAT0 + (i + 0.5) * dlat
                     clon = LON0 + (j + 0.5) * dlon
                     if math.hypot((clat - la) * M_PER_DEG_LAT,
-                                  (clon - lo) * m_per_deg_lon(clat)) > RADIUS_M:
+                                  (clon - lo) * m_per_deg_lon(clat)) > radius:
                         continue
+                    vcells_t.setdefault((i, j), set()).add(round(t))
                     cur = vbest.get((i, j))
-                    if cur is None or o8 < cur:
-                        vbest[(i, j)] = o8
-        for ij, o8 in vbest.items():
+                    if cur is None or o8 < cur[0]:
+                        vbest[(i, j)] = (o8, t)
+        for ij, (o8, _t) in vbest.items():
             cur = best.get(ij)
             if cur is None or o8 < cur:
                 best[ij] = o8
         if vbest:
             nm = v.name           # DJI_YYYYMMDD..._Z.MP4 — дата вылета из имени
             date = f"{nm[4:8]}-{nm[8:10]}-{nm[10:12]}"
+            cells = [[i, j, tier(o8),
+                      None if math.isinf(o8) else round(o8),
+                      round(t), len(vcells_t[(i, j)])]
+                     for (i, j), (o8, t) in vbest.items()]
             vid_out.append(dict(
                 name=nm.removesuffix(".MP4"), date=date,
-                cells=sorted([i, j, tier(o8)] for (i, j), o8 in vbest.items())))
+                cells=sorted(cells, key=lambda c: (c[0], c[1]))))
         print(f"{v.name}: попаданий {len(hits)}, с масштабом {n_gsd}",
               file=sys.stderr)
 
     data = dict(lat0=LAT0, lon0=LON0, dlat=round(dlat, 8), dlon=round(dlon, 8),
-                cell_m=CELL_M, radius_m=RADIUS_M,
+                cell_m=CELL_M,
                 detail_cm=TIER_DETAIL_CM, mid_cm=TIER_MID_CM,
                 videos=vid_out)
     OUT.write_text(json.dumps(data, separators=(",", ":")))

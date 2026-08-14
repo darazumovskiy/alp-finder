@@ -588,12 +588,28 @@ ZONE_RECT = [[39.4768, 73.5920], [39.4777, 73.5923]]           # зона инт
 IMPACT_RECT = [[39.4855, 73.5943], [39.4860, 73.5949]]         # ударные отметины
 
 # Слепое пятно склона между зоной интереса и вещами: полигон и ячейки покрытия
-# считаются analysis/coverage_polygon.py (метод — по центрам кадров, допуск 75 м)
+# считаются analysis/coverage_polygon.py (метод — проекция рамки кадра в рельеф)
 SLOPE_POLY_JSON = ROOT / "analysis/coverage/sklon-poligon-2026-08-14.json"
 SLOPE_CELLS_TSV = ROOT / "analysis/coverage/sklon-poligon-2026-08-14.cells.tsv"
 
 # Сетка покрытия дрона по всем дням (3 уровня детальности) — analysis/coverage_map.py
 COVER_JSON = ROOT / "analysis/coverage/coverage-map-cells.json"
+
+# Манифест зеркала Drive: ссылки «открыть ролик» в попапе «чем снята точка»
+MANIFEST_TSV = ROOT / "scripts/manifest.tsv"
+
+
+def drive_ids():
+    """{имя видео без .MP4: drive file id} по манифесту скачивания."""
+    if not MANIFEST_TSV.exists():
+        return {}
+    out = {}
+    for line in MANIFEST_TSV.read_text().splitlines():
+        path, fid = line.split("\t")[:2]
+        name = path.rsplit("/", 1)[-1]
+        if name.upper().endswith(".MP4"):
+            out[name[:-4]] = fid
+    return out
 
 
 def slope_blind():
@@ -784,6 +800,7 @@ def build():
         zone=ZONE_RECT, impact=IMPACT_RECT,
         slope=slope_blind(),
         cover=json.loads(COVER_JSON.read_text()) if COVER_JSON.exists() else None,
+        drive=drive_ids(),
     )
     html = TEMPLATE.replace("__DATA__", json.dumps(data, ensure_ascii=False, separators=(",", ":")))
     (OUT / "map.html").write_text(html, "utf-8")
@@ -853,6 +870,9 @@ header a { color:#4da3ff; text-decoration:none; }
 .popup .dist { font-size:12px; margin:4px 0; }
 .popup .thumbs { display:flex; gap:6px; margin-top:6px; }
 .popup .thumbs img { height:92px; border-radius:5px; cursor:zoom-in; }
+.covlist { max-height:250px; overflow-y:auto; margin:6px 0; }
+.covrow { display:flex; gap:7px; padding:4px 0; border-top:1px solid #e3e3e3; font-size:12px; }
+.covrow .sw { flex:0 0 10px; height:10px; margin-top:3px; border-radius:2px; }
 #lightbox { position:fixed; inset:0; background:#000d; display:none; z-index:2000;
             align-items:center; justify-content:center; cursor:zoom-out; }
 #lightbox img { max-width:96vw; max-height:96vh; }
@@ -905,7 +925,7 @@ header a { color:#4da3ff; text-decoration:none; }
     <div class="lrow"><span class="sw" style="background:#e040fb38; border:1px dashed #e040fb"></span>
       <b>Фиолетовый пунктирный полигон</b> — слепое пятно: склон между зоной интереса и
       вещами. Если сорвавшийся успел тормозить — он остановился здесь, выше вещей.
-      Заливка — ячейки 30 м, куда ни разу не смотрел центр кадра ни одного пролёта.</div>
+      Заливка — ячейки 30 м, куда ни разу не попадал кадр ни одного пролёта.</div>
     <div class="lrow"><span class="sw" style="background:#00e67666; border:1px solid #00e676"></span>
       <b>Зелёная заливка</b> — осмотр детальный: сюда дрон смотрел с масштабом, при
       котором различим предмет от 20 см (крышка, ботинок, каска).</div>
@@ -920,9 +940,14 @@ header a { color:#4da3ff; text-decoration:none; }
       увидеть всю осмотренную площадь одним цветом). Селекторы «день / ролик»
       под списком слоёв показывают покрытие одного дня или одного вылета;
       площади в подписях уровней пересчитываются под фильтр. Всё, что НЕ залито,
-      дрон за выбранные дни не осматривал (центр кадра туда не ложился). Метод —
-      по центрам кадров с допуском 75 м, оценка осторожная: края кадров
-      в заливку не входят.</div>
+      в кадр за выбранные дни не попадало. Метод — проекция рамки кадра в рельеф
+      сеткой лучей с реальным фокусным момента; масштаб пересчитан на дистанцию
+      каждого луча (дальний край кадра честно грубее ближнего); мёртвые зоны за
+      перегибами рельефа внутри кадра не закрашиваются. Моменты, где фокусное
+      не измерить, дают только центр кадра с допуском 75 м (уровень «обзорно»).
+      <b>ПКМ (на телефоне — долгое нажатие) по любому месту
+      карты</b> — обратный вопрос: какие ролики снимали эту точку, с каким
+      масштабом, на каком таймкоде.</div>
     <div class="lrow"><span class="sw" style="background:#ffd54f"></span>
       <b>Янтарные тонкие</b> — изолинии высоты через 50 м; подписи подстраиваются под
       экран: видимые линии 200 м подписаны всегда, на крупном зуме подписываются
@@ -946,6 +971,8 @@ header a { color:#4da3ff; text-decoration:none; }
   <p class="note">Клик по имени точки — перелёт к ней. У точек с привязкой «GPS дрона»
   объект НЕ под точкой — смотри пунктирный ус направления камеры; точки с привязкой
   «проекция центра кадра» пересажены в расчётное место объекта.</p>
+  <p class="note">ПКМ (долгое нажатие) по любому месту карты — какие ролики снимали
+  эту точку: день, различимый размер предмета, таймкод лучшего момента, ссылка на видео.</p>
   <h3>Слои</h3><div id="layers"></div>
   <h3>Фильтры точек</h3>
   <div id="presets"></div>
@@ -1069,8 +1096,9 @@ if (D.slope) {
   const popup = `<b>Слепое пятно склона</b> (расчёт 14.08)<br>
     Склон между зоной интереса и вещами: если сорвавшийся успел тормозить
     (зарубился, зацепился), он остановился здесь, выше вещей.<br>
-    ${Math.round(D.slope.share*100)}% площади ни разу не попало в центр кадра
-    ни одного пролёта (допуск 75 м). Фиолетовые квадраты — неосмотренные ячейки 30 м.`;
+    ${Math.round(D.slope.share*100)}% площади ни разу не попало в кадр
+    ни одного пролёта (проекция рамки кадра в рельеф).
+    Фиолетовые квадраты — неосмотренные ячейки 30 м.`;
   L.polygon(D.slope.poly, {color:'#e040fb', weight:2, fillOpacity:0.04, dashArray:'6 3'})
     .bindPopup(popup).addTo(slopeLayer);
   for (const [la, lo] of D.slope.blind)
@@ -1080,9 +1108,10 @@ if (D.slope) {
 }
 
 // --- покрытие дрона по всем дням: три ВЛОЖЕННЫХ уровня детальности ---
-// Ячейки 30 м, куда хотя бы раз смотрел центр кадра (допуск 75 м); лучший
-// уровень ячейки — по минимальному различимому предмету (порог 8 px), считает
-// analysis/coverage_map.py. Слои вложены: «различим предмет от 20 см» ⇒
+// Ячейки 30 м, куда хотя бы раз попадала рамка кадра (проекция сеткой лучей
+// с реальным фокусным); лучший уровень ячейки — по минимальному различимому
+// предмету (порог 8 px), считает analysis/coverage_map.py.
+// Слои вложены: «различим предмет от 20 см» ⇒
 // «различим предмет от 1 м» ⇒ «смотрели». Ячейка рисуется самым детальным
 // из включённых уровней, на который она тянет: включён один «обзорный» —
 // вся осмотренная площадь серым; включены все — каждая ячейка лучшим цветом.
@@ -1095,7 +1124,7 @@ const coverRenderer = L.canvas({padding:0.4, pane:'cover'});
 const COVER_TIERS = D.cover ? [
   ['#00e676', `Осмотр: детальный — различим предмет от ${D.cover.detail_cm} см (крышка, ботинок)`],
   ['#ffb300', `Осмотр: средний — различим предмет от ${D.cover.mid_cm/100} м (рюкзак, человек)`],
-  ['#78909c', 'Осмотр: обзорный — куда вообще смотрел центр кадра'],
+  ['#78909c', 'Осмотр: обзорный — куда вообще попадал кадр'],
 ] : [];
 const coverGroup = L.layerGroup();
 let coverOpacity = 0.4;
@@ -1145,6 +1174,54 @@ if (D.cover) {
   coverGroup.addTo(map);
   redrawCover();
 }
+
+// --- обратный поиск: ПКМ (на телефоне — долгое нажатие) по любому месту карты ---
+// По той же повидеовой сетке отвечает, какие ролики снимали точку: уровень
+// детальности, лучший масштаб, таймкод этого момента, число проходов рядом.
+// Фильтры «день / ролик» на список не влияют — показываются все ролики.
+const TIER_LABEL = ['детально', 'средне', 'обзорно'];
+const TIER_COLOR = ['#00e676', '#ffb300', '#78909c'];
+const fmtTc = s => Math.floor(s/60) + ':' + String(Math.round(s%60)).padStart(2,'0');
+const fmtObj = cm => cm >= 100 ? (cm/100).toFixed(1).replace('.0','') + ' м' : cm + ' см';
+map.on('contextmenu', e => {
+  if (!D.cover) return;
+  const c = D.cover;
+  const i = Math.floor((e.latlng.lat - c.lat0) / c.dlat);
+  const j = Math.floor((e.latlng.lng - c.lon0) / c.dlon);
+  const rows = [];
+  for (const v of c.videos) {
+    const cell = v.cells.find(x => x[0] === i && x[1] === j);
+    if (cell) rows.push([v, cell]);
+  }
+  // лучшие сверху: по уровню, внутри уровня — по масштабу
+  rows.sort((a, b) => (a[1][2] - b[1][2]) || ((a[1][3] ?? 1e9) - (b[1][3] ?? 1e9)));
+  const coord = e.latlng.lat.toFixed(5) + ', ' + e.latlng.lng.toFixed(5);
+  let html;
+  if (!rows.length) {
+    html = `<div class="popup"><b>Точку не снимал ни один ролик</b>
+      <div class="meta">${coord}</div>
+      <div>Кадр ни одного пролёта с телеметрией сюда не попадал.
+      Участок считаем неосмотренным дроном.</div></div>`;
+  } else {
+    const items = rows.map(([v, cell]) => {
+      const tier = cell[2], o8 = cell[3], tc = cell[4], n = cell[5];
+      const scale = o8 == null ? 'масштаб не измерен' : `виден предмет от ${fmtObj(o8)}`;
+      const link = D.drive[v.name]
+        ? ` · <a href="https://drive.google.com/file/d/${D.drive[v.name]}/view" target="_blank">открыть</a>` : '';
+      return `<div class="covrow"><span class="sw" style="background:${TIER_COLOR[tier]}"></span>
+        <span><b>${v.name}</b>${link}<br>
+        ${v.date.slice(8,10)}.${v.date.slice(5,7)} · ${TIER_LABEL[tier]} — ${scale} ·
+        лучший момент ~${fmtTc(tc)} · проходов рядом: ${n}</span></div>`;
+    }).join('');
+    html = `<div class="popup"><b>Чем снята точка</b>
+      <div class="meta">${coord} · роликов: ${rows.length}</div>
+      <div class="covlist">${items}</div>
+      <div class="meta">«Снята» = рамка кадра накрывала точку (проекция в рельеф);
+      масштаб пересчитан на дистанцию конкретного участка кадра.
+      Таймкод — момент лучшего масштаба; смотреть ±10–20 с вокруг него.</div></div>`;
+  }
+  L.popup({maxWidth: 380}).setLatLng(e.latlng).setContent(html).openOn(map);
+});
 
 // --- точки ---
 const KIND_TITLE = Object.fromEntries(D.kinds.map(k=>[k.id,k.title]));

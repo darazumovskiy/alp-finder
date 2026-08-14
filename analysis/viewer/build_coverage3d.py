@@ -107,7 +107,11 @@ def build():
         h=hdm.ravel().tolist(),                 # ряды с юга на север
         mlat=M_PER_DEG_LAT,
         mlon=m_per_deg_lon((LAT0 + LAT1) / 2),
-        videos=cover["videos"],
+        # ячейки обрезаются до [i, j, уровень]: расширенная мета
+        # (таймкод, масштаб, проходы) нужна только попапу «чем снята точка» на 2D-карте
+        videos=[dict(name=v["name"], date=v["date"],
+                     cells=[c[:3] for c in v["cells"]])
+                for v in cover["videos"]],
         detail_cm=cover["detail_cm"], mid_cm=cover["mid_cm"],
         lines=lines, marks=marks,
         views=[dict(name=n, lat=la, lon=lo, dist=d) for n, la, lo, d in VIEWS],
@@ -179,9 +183,9 @@ TEMPLATE = r"""<!doctype html>
   <label><input type="checkbox" id="labels" checked> подписи (лагеря, вещи)</label>
   <label><input type="checkbox" id="lin" checked> маршрут и коридор</label>
   <div class="views" id="views"></div>
-  <div class="note">Та же сетка, что на 2D-карте: центры кадров, допуск 75 м,
-  порог различимости 8 px (docs/coverage-gsd.md). Оценка занижает покрытие —
-  «не осмотрено» может быть краем чьего-то кадра. Рельеф: GLO-30 +
+  <div class="note">Та же сетка, что на 2D-карте: проекция рамки кадра в рельеф
+  с реальным фокусным, масштаб пересчитан на дистанцию каждого участка кадра,
+  порог различимости 8 px (docs/coverage-gsd.md). Рельеф: GLO-30 +
   фотограмметрические патчи в пятне вещей (docs/dem-patches.md).</div>
 </div>
 <div id="hint">вращение — мышь · зум — колесо · сдвиг — правая кнопка</div>
