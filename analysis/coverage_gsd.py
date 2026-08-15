@@ -24,7 +24,8 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from geoproject import Dem, cast, ray_dir, load_rows, grab, gray_center
+from geoproject import (Dem, cast, ray_dir, load_rows, grab, gray_center,
+                        interp_gap, pair_focal, unwrap_deg)
 
 HERE = Path(__file__).resolve().parent
 DATA = HERE.parent / "data" / "drive"
@@ -41,18 +42,17 @@ OBJECTS = (("ryukzak", 1.00), ("kurtka", 0.60), ("kryshka", 0.17))
 
 
 def tracks(rows):
-    """Массивы времени и полей телеметрии с развёрнутым yaw."""
+    """Массивы времени и полей телеметрии с развёрнутым yaw (пропуски — nan)."""
     t = np.array([r["time_s"] for r in rows])
     out = {"t": t}
     for k in ("lat", "lon", "alt_m", "gb_pitch"):
         out[k] = np.array([r.get(k, math.nan) for r in rows])
-    yaw = np.array([r.get("gb_yaw", math.nan) for r in rows])
-    out["gb_yaw"] = np.degrees(np.unwrap(np.radians(yaw)))
+    out["gb_yaw"] = unwrap_deg([r.get("gb_yaw", math.nan) for r in rows])
     return out
 
 
 def interp(tr, t, key):
-    return float(np.interp(t, tr["t"], tr[key]))
+    return interp_gap(t, tr["t"], tr[key])
 
 
 def pan_pairs(tr):
@@ -73,31 +73,27 @@ def pan_pairs(tr):
     return pairs
 
 
-def focal_series(video: Path, tr):
-    """[(t_середины_пары, f_px)] по всем участкам панорамирования ролика."""
+def focal_series(video: Path, tr, dem: Dem):
+    """([(t_середины_пары, f_px)], счётчик отказов) по панорамированиям ролика."""
     cap = cv2.VideoCapture(str(video))
-    ests = []
+    sample = lambda t, key: interp(tr, t, key)      # noqa: E731
+    ests, why = [], {}
     for a, b in pan_pairs(tr):
-        dyaw = math.radians(interp(tr, b, "gb_yaw") - interp(tr, a, "gb_yaw"))
-        dpitch = math.radians(interp(tr, b, "gb_pitch") - interp(tr, a, "gb_pitch"))
-        pitch = math.radians(interp(tr, (a + b) / 2, "gb_pitch"))
         try:
             ga, sa = gray_center(grab(cap, a))
             gb, _ = gray_center(grab(cap, b))
         except ValueError:
             continue
         (dx, dy), _resp = cv2.phaseCorrelate(ga, gb)
-        dx, dy = dx * sa, dy * sa
-        if abs(dyaw) > 2 * abs(dpitch):
-            f = (-dx) / (dyaw * math.cos(pitch))
-        elif abs(dpitch) > 2 * abs(dyaw):
-            f = dy / dpitch
-        else:
-            continue
-        if F_BAND[0] <= f <= F_BAND[1]:
+        f, reason = pair_focal(sample, dem, (dx * sa, dy * sa), a, b)
+        if f is None:
+            why[reason] = why.get(reason, 0) + 1
+        elif F_BAND[0] <= f <= F_BAND[1]:
             ests.append(((a + b) / 2, f))
+        else:
+            why["out_of_band"] = why.get("out_of_band", 0) + 1
     cap.release()
-    return ests
+    return ests, why
 
 
 def focal_at(ests, t):
@@ -113,7 +109,7 @@ def scan_video(video: Path, dem: Dem, step: float):
     if not rows or "gb_yaw" not in rows[0]:
         return None
     tr = tracks(rows)
-    ests = focal_series(video, tr)
+    ests, why = focal_series(video, tr, dem)
     cap = cv2.VideoCapture(str(video))
     w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)) or 1920
     h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) or 1080
@@ -123,12 +119,13 @@ def scan_video(video: Path, dem: Dem, step: float):
     t = float(tr["t"][0])
     while t <= float(tr["t"][-1]):
         f = focal_at(ests, t)
-        row = dict(t=t, f=f, dist=None, gsd=None, sky=False)
-        if f is not None:
-            yaw, pitch = interp(tr, t, "gb_yaw"), interp(tr, t, "gb_pitch")
-            hit = cast(dem, interp(tr, t, "lat"), interp(tr, t, "lon"),
-                       interp(tr, t, "alt_m"),
-                       ray_dir(yaw % 360, pitch, w / 2, h / 2, w, h, f))
+        row = dict(t=t, f=f, dist=None, gsd=None, sky=False, gap=False)
+        pose = [interp(tr, t, k) for k in ("lat", "lon", "alt_m", "gb_yaw", "gb_pitch")]
+        if not all(math.isfinite(v) for v in pose):
+            row["gap"] = True
+        elif f is not None:
+            lat, lon, alt, yaw, pitch = pose
+            hit = cast(dem, lat, lon, alt, ray_dir(yaw % 360, pitch, w / 2, h / 2, w, h, f))
             if hit is None:
                 row["sky"] = True
             else:
@@ -136,7 +133,7 @@ def scan_video(video: Path, dem: Dem, step: float):
                 row["gsd"] = hit[3] / f          # м/пикс в центре кадра
         samples.append(row)
         t += step
-    return dict(video=video, n_ests=len(ests), samples=samples, width=w)
+    return dict(video=video, n_ests=len(ests), why=why, samples=samples, width=w)
 
 
 def write_video_tsv(res):
@@ -144,7 +141,9 @@ def write_video_tsv(res):
     with out.open("w", encoding="utf-8") as f:
         f.write("t\tf_px\tdist_m\tgsd_cm\tobj8px_cm\tstatus\n")
         for s in res["samples"]:
-            if s["f"] is None:
+            if s["gap"]:
+                st, fpx, d, g = "no_telemetry", "", "", ""
+            elif s["f"] is None:
                 st, fpx, d, g = "no_focal", "", "", ""
             elif s["sky"]:
                 st, fpx, d, g = "above_horizon", f"{s['f']:.0f}", "", ""
@@ -160,10 +159,12 @@ def summarize(res):
     ss = res["samples"]
     n = len(ss)
     known = [s for s in ss if s["gsd"] is not None]
-    nofocal = sum(1 for s in ss if s["f"] is None)
+    nofocal = sum(1 for s in ss if s["f"] is None and not s["gap"])
     sky = sum(1 for s in ss if s["sky"])
+    gap = sum(1 for s in ss if s["gap"])
     row = dict(video=res["video"].name, n=n, n_ests=res["n_ests"],
-               no_focal=nofocal / n, sky=sky / n, width=res["width"])
+               no_focal=nofocal / n, sky=sky / n, gap=gap / n,
+               f_drone_move=res["why"].get("drone_move", 0), width=res["width"])
     if known:
         gsds = np.array([s["gsd"] for s in known])
         row["gsd_med_cm"] = float(np.median(gsds)) * 100
@@ -179,10 +180,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--step", type=float, default=2.0, help="шаг сэмплов, с")
     ap.add_argument("--dates", default="20260811,20260812")
+    ap.add_argument("--only", default="", help="подстрока имени: пересчитать только эти ролики")
     args = ap.parse_args()
     dates = tuple(args.dates.split(","))
     videos = sorted({p.name: p for p in DATA.rglob("DJI_*.MP4")
-                     if p.name[4:12] in dates}.values(), key=lambda p: p.name)
+                     if p.name[4:12] in dates and args.only in p.name}.values(),
+                    key=lambda p: p.name)
     OUT.mkdir(exist_ok=True)
     dem = Dem()
     summary = []
@@ -196,18 +199,22 @@ def main():
         summary.append(row)
         cov = " ".join(f"{name} {row.get(name, 0):.0%}" for name, _ in OBJECTS)
         med = f"{row['obj8_med_cm']:.0f} см" if "obj8_med_cm" in row else "—"
-        print(f"{row['video']}: оценок f {row['n_ests']}, без фокусного "
-              f"{row['no_focal']:.0%}, выше горизонта {row['sky']:.0%}, "
+        print(f"{row['video']}: оценок f {row['n_ests']} (отброшено за перелёт дрона "
+              f"{row['f_drone_move']}), без фокусного {row['no_focal']:.0%}, "
+              f"провал телеметрии {row['gap']:.0%}, выше горизонта {row['sky']:.0%}, "
               f"мин. предмет (8 px, медиана) {med}; покрытие: {cov}")
 
-    keys = ["video", "width", "n", "n_ests", "no_focal", "sky",
+    keys = ["video", "width", "n", "n_ests", "f_drone_move", "no_focal", "sky", "gap",
             "gsd_med_cm", "gsd_p90_cm", "obj8_med_cm"] + [n for n, _ in OBJECTS]
     # сводка накопительная: строки других дат сохраняются, свои — заменяются
     path = OUT / "summary.tsv"
     old = {}
     if path.exists():
-        for line in path.read_text().splitlines()[1:]:
-            old[line.split("\t", 1)[0]] = line
+        lines = path.read_text().splitlines()
+        # набор колонок менялся — старые строки без пересчёта смешивать нельзя
+        if lines and lines[0].split("\t") == keys:
+            for line in lines[1:]:
+                old[line.split("\t", 1)[0]] = line
     for r in summary:
         old[r["video"]] = "\t".join("" if r.get(k) is None else
                                     (f"{r[k]:.3f}" if isinstance(r.get(k), float) else str(r[k]))

@@ -16,7 +16,22 @@ header a { color:#4da3ff; text-decoration:none; }
 #wrap { flex:1; display:flex; min-height:0; }
 #side { width:330px; overflow-y:auto; background:var(--card); border-right:1px solid var(--line);
         padding:10px 12px 40px; flex-shrink:0; }
-#map { flex:1; background:#0c0d10; }
+#map { flex:1; background:#0c0d10; position:relative; }
+#legendBtn { position:absolute; top:12px; right:12px; z-index:1100; width:36px; height:36px;
+             border-radius:50%; background:var(--card); color:var(--text);
+             border:1px solid var(--line); font:italic 700 18px/1 Georgia,serif;
+             cursor:pointer; box-shadow:0 1px 6px #0009; }
+#legendBtn:hover { background:#2f3540; }
+#legendOverlay { position:fixed; inset:0; background:#000a; display:none; z-index:1900;
+                 align-items:center; justify-content:center; padding:20px; }
+#legendOverlay.on { display:flex; }
+#legendPop { max-width:660px; max-height:86vh; overflow-y:auto; background:var(--card);
+             border:1px solid var(--line); border-radius:12px; padding:12px 18px 14px; }
+#legendPop .lg-head { display:flex; align-items:center; justify-content:space-between;
+                      position:sticky; top:-12px; background:var(--card); padding:6px 0; }
+#legendPop .lg-head button { background:none; border:none; color:var(--dim);
+                             font-size:22px; line-height:1; cursor:pointer; }
+#legendPop .lg-head button:hover { color:var(--text); }
 #side h3 { margin:14px 0 4px; font-size:13px; color:var(--dim); text-transform:uppercase;
            letter-spacing:.4px; }
 .grp { margin-bottom:4px; }
@@ -111,7 +126,22 @@ header a { color:#4da3ff; text-decoration:none; }
 </nav></header>
 <div id="wrap">
 <div id="side">
-  <details class="legend" open><summary><b>Как читать карту</b></summary>
+  <p class="note">Клик по имени точки — перелёт к ней. У точек с привязкой «GPS дрона»
+  объект НЕ под точкой — смотри пунктирный ус направления камеры; точки с привязкой
+  «проекция центра кадра» пересажены в расчётное место объекта.</p>
+  <p class="note">ПКМ (долгое нажатие) по любому месту карты — какие ролики снимали
+  эту точку: день, различимый размер предмета, таймкод лучшего момента, ссылка на видео.</p>
+  <h3>Слои</h3><div id="layers"></div>
+  <h3>Фильтры точек</h3>
+  <div id="presets"></div>
+  <p class="note">Внутри блока условия складываются через «или», между блоками — «и».
+  Отклонённые и закрытые по умолчанию скрыты.</p>
+  <div id="filters"></div>
+  <h3>Точки</h3><div id="items"></div>
+</div>
+<div id="map"><button id="legendBtn" title="Как читать карту">i</button></div>
+<div id="legendOverlay"><div id="legendPop">
+  <div class="lg-head"><b>Как читать карту</b><button id="legendClose" title="Закрыть">×</button></div>
     <div class="lrow"><span class="sw" style="background:#00e5ff"></span>
       <b>Голубой пунктир</b> — плановый маршрут группы с карты штаба; кружки — лагеря.
       Группа спускалась от Camp2 к Camp1.</div>
@@ -177,21 +207,7 @@ header a { color:#4da3ff; text-decoration:none; }
     <p class="note">Обе «линии» — модель стока по рельефу (сетка 30 м), а не траектории:
     реальные предметы прыгают и уходят дальше. Это инструмент приоритизации осмотра,
     не точные координаты.</p>
-  </details>
-  <p class="note">Клик по имени точки — перелёт к ней. У точек с привязкой «GPS дрона»
-  объект НЕ под точкой — смотри пунктирный ус направления камеры; точки с привязкой
-  «проекция центра кадра» пересажены в расчётное место объекта.</p>
-  <p class="note">ПКМ (долгое нажатие) по любому месту карты — какие ролики снимали
-  эту точку: день, различимый размер предмета, таймкод лучшего момента, ссылка на видео.</p>
-  <h3>Слои</h3><div id="layers"></div>
-  <h3>Фильтры точек</h3>
-  <div id="presets"></div>
-  <p class="note">Внутри блока условия складываются через «или», между блоками — «и».
-  Отклонённые и закрытые по умолчанию скрыты.</p>
-  <div id="filters"></div>
-  <h3>Точки</h3><div id="items"></div>
-</div>
-<div id="map"></div>
+</div></div>
 <div id="flight">
   <div class="fl-top">
     <select id="flDay"></select>
@@ -1098,6 +1114,21 @@ document.addEventListener('click', e => {
   }
 });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') document.getElementById('lightbox').classList.remove('on');
+  if (e.key === 'Escape') {
+    document.getElementById('lightbox').classList.remove('on');
+    document.getElementById('legendOverlay').classList.remove('on');
+  }
 });
+
+// «Как читать карту»: кнопка i в углу карты открывает попап,
+// клик по затемнённому фону (мимо контента) или крестик — закрывает
+const legendOverlay = document.getElementById('legendOverlay');
+document.getElementById('legendBtn').onclick = e => {
+  e.stopPropagation();
+  legendOverlay.classList.add('on');
+};
+legendOverlay.addEventListener('click', e => {
+  if (e.target === legendOverlay) legendOverlay.classList.remove('on');
+});
+document.getElementById('legendClose').onclick = () => legendOverlay.classList.remove('on');
 </script></body></html>

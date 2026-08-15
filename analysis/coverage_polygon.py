@@ -30,7 +30,7 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-from geoproject import Dem, cast, ray_dir, load_rows  # noqa: E402
+from geoproject import Dem, cast, ray_dir, load_rows, interp_gap, unwrap_deg  # noqa: E402
 
 DATA = HERE.parent / "data" / "drive"
 COV = HERE / "coverage"
@@ -117,18 +117,20 @@ def video_hits(video, dem, step, bbox):
     t_arr = np.array([r["time_s"] for r in rows])
     fields = {k: np.array([r.get(k, math.nan) for r in rows])
               for k in ("lat", "lon", "alt_m", "gb_pitch")}
-    yaw = np.degrees(np.unwrap(np.radians(
-        np.array([r.get("gb_yaw", math.nan) for r in rows]))))
+    yaw = unwrap_deg([r.get("gb_yaw", math.nan) for r in rows])
     gsd = gsd_table(video.name)
 
     hits = []
     t = float(t_arr[0])
     while t <= float(t_arr[-1]):
-        la = float(np.interp(t, t_arr, fields["lat"]))
-        lo = float(np.interp(t, t_arr, fields["lon"]))
-        al = float(np.interp(t, t_arr, fields["alt_m"]))
-        yw = float(np.interp(t, t_arr, yaw))
-        pt = float(np.interp(t, t_arr, fields["gb_pitch"]))
+        la = interp_gap(t, t_arr, fields["lat"])
+        lo = interp_gap(t, t_arr, fields["lon"])
+        al = interp_gap(t, t_arr, fields["alt_m"])
+        yw = interp_gap(t, t_arr, yaw)
+        pt = interp_gap(t, t_arr, fields["gb_pitch"])
+        if not all(math.isfinite(v) for v in (la, lo, al, yw, pt)):
+            t += step
+            continue
         # центр кадра: фокусное на направление луча не влияет
         hit = cast(dem, la, lo, al, ray_dir(yw % 360, pt, 960, 540, 1920, 1080, 1000))
         if hit is not None:
@@ -236,8 +238,7 @@ def video_footprint_hits(video, dem, step, bbox):
     t_arr = np.array([r["time_s"] for r in rows])
     fields = {k: np.array([r.get(k, math.nan) for r in rows])
               for k in ("lat", "lon", "alt_m", "gb_pitch")}
-    yaw = np.degrees(np.unwrap(np.radians(
-        np.array([r.get("gb_yaw", math.nan) for r in rows]))))
+    yaw = unwrap_deg([r.get("gb_yaw", math.nan) for r in rows])
     moments = moment_table(video.name)
 
     pxs = (np.arange(FP_GRID_X) + 0.5) * 1920 / FP_GRID_X
@@ -246,11 +247,15 @@ def video_footprint_hits(video, dem, step, bbox):
     hits = []
     t = float(t_arr[0])
     while t <= float(t_arr[-1]):
-        la = float(np.interp(t, t_arr, fields["lat"]))
-        lo = float(np.interp(t, t_arr, fields["lon"]))
-        al = float(np.interp(t, t_arr, fields["alt_m"]))
-        yw = float(np.interp(t, t_arr, yaw)) % 360
-        pt = float(np.interp(t, t_arr, fields["gb_pitch"]))
+        la = interp_gap(t, t_arr, fields["lat"])
+        lo = interp_gap(t, t_arr, fields["lon"])
+        al = interp_gap(t, t_arr, fields["alt_m"])
+        yw = interp_gap(t, t_arr, yaw)
+        pt = interp_gap(t, t_arr, fields["gb_pitch"])
+        if not all(math.isfinite(v) for v in (la, lo, al, yw, pt)):
+            t += step
+            continue
+        yw %= 360
         m = moments.get(round(t, 1)) if moments else None
 
         if m is None:

@@ -1,0 +1,257 @@
+t	f_px	dist_m	gsd_cm	obj8px_cm	status
+0.0	14565	70	0.5	4	ok
+2.0	14565	70	0.5	4	ok
+4.0	15002	75	0.5	4	ok
+6.0	15002	77	0.5	4	ok
+8.0	15002	79	0.5	4	ok
+10.0	15002	78	0.5	4	ok
+12.0	15002	78	0.5	4	ok
+14.0	15002	81	0.5	4	ok
+16.0	14565	78	0.5	4	ok
+18.0	14565	80	0.5	4	ok
+20.0	14565	80	0.6	4	ok
+22.0	14565	80	0.6	4	ok
+24.0	15002	1419	9.5	76	ok
+26.0	15397	1720	11.2	89	ok
+28.0	15002	2376	15.8	127	ok
+30.0	14989	1638	10.9	87	ok
+32.0	14186	181	1.3	10	ok
+34.0	14157	53	0.4	3	ok
+36.0	8804	45	0.5	4	ok
+38.0	3423	31	0.9	7	ok
+40.0	5078	28	0.6	4	ok
+42.0	5078	27	0.5	4	ok
+44.0	5078	23	0.5	4	ok
+46.0	5078	22	0.4	3	ok
+48.0	5078	22	0.4	3	ok
+50.0	5078	22	0.4	3	ok
+52.0	3423	22	0.6	5	ok
+54.0	3423	20	0.6	5	ok
+56.0	6734	21	0.3	2	ok
+58.0	6955	21	0.3	2	ok
+60.0	6772	21	0.3	2	ok
+62.0	6974	21	0.3	2	ok
+64.0	7175	21	0.3	2	ok
+66.0	7451	21	0.3	2	ok
+68.0	7357	25	0.3	3	ok
+70.0	7538	30	0.4	3	ok
+72.0	7538	30	0.4	3	ok
+74.0	7633	30	0.4	3	ok
+76.0	7633	39	0.5	4	ok
+78.0	7728	25	0.3	3	ok
+80.0	7796	25	0.3	3	ok
+82.0	7796	25	0.3	3	ok
+84.0	7796	27	0.3	3	ok
+86.0	7796	28	0.4	3	ok
+88.0	7796	29	0.4	3	ok
+90.0	7887	29	0.4	3	ok
+92.0	7979	28	0.4	3	ok
+94.0	7979	28	0.3	3	ok
+96.0	8446	29	0.3	3	ok
+98.0	8913	31	0.3	3	ok
+100.0	9042	32	0.4	3	ok
+102.0	9171	32	0.4	3	ok
+104.0	9813	32	0.3	3	ok
+106.0	10456	32	0.3	2	ok
+108.0	10506	31	0.3	2	ok
+110.0	10456	28	0.3	2	ok
+112.0	10456	25	0.2	2	ok
+114.0	12462	21	0.2	1	ok
+116.0	14668	19	0.1	1	ok
+118.0	14868	16	0.1	1	ok
+120.0	15037	14	0.1	1	ok
+122.0	15336	13	0.1	1	ok
+124.0	15654	11	0.1	1	ok
+126.0	15654	9	0.1	0	ok
+128.0	15635	9	0.1	0	ok
+130.0	15635	10	0.1	0	ok
+132.0	15583	10	0.1	0	ok
+134.0	15635	9	0.1	0	ok
+136.0	15583	9	0.1	0	ok
+138.0	15531	9	0.1	0	ok
+140.0	15583	9	0.1	0	ok
+142.0	15583	8	0.1	0	ok
+144.0	15583	9	0.1	0	ok
+146.0	15583	10	0.1	0	ok
+148.0	15583	10	0.1	0	ok
+150.0	15583	10	0.1	1	ok
+152.0	15583	11	0.1	1	ok
+154.0	15635	11	0.1	1	ok
+156.0	15531	12	0.1	1	ok
+158.0	15531	12	0.1	1	ok
+160.0	15365	12	0.1	1	ok
+162.0	15199	13	0.1	1	ok
+164.0	14959	12	0.1	1	ok
+166.0	14719	12	0.1	1	ok
+168.0	14386	12	0.1	1	ok
+170.0	14793	12	0.1	1	ok
+172.0	14386	12	0.1	1	ok
+174.0	3509	12	0.3	3	ok
+176.0	2985	12	0.4	3	ok
+178.0	2852	5	0.2	1	ok
+180.0	2463				above_horizon
+182.0	2720				above_horizon
+184.0	2818				above_horizon
+186.0	2818				above_horizon
+188.0	2818				above_horizon
+190.0	2818				above_horizon
+192.0	2818				above_horizon
+194.0	2916				above_horizon
+196.0	2950				above_horizon
+198.0	2916				above_horizon
+200.0	2747				above_horizon
+202.0	2916	5131	176.0	1408	ok
+204.0	2916				above_horizon
+206.0	2747				above_horizon
+208.0	2519				above_horizon
+210.0	2461				above_horizon
+212.0	2461				above_horizon
+214.0	2519	5405	214.5	1716	ok
+216.0	2747				above_horizon
+218.0	2747				above_horizon
+220.0	2916				above_horizon
+222.0	2747				above_horizon
+224.0	2578				above_horizon
+226.0	2578				above_horizon
+228.0	2578	4997	193.9	1551	ok
+230.0	2519				above_horizon
+232.0	2519				above_horizon
+234.0	2461				above_horizon
+236.0	2461				above_horizon
+238.0	2460				above_horizon
+240.0	2055				above_horizon
+242.0	1651				above_horizon
+244.0	1651	5364	324.8	2599	ok
+246.0	1651	5365	324.9	2599	ok
+248.0	2055	5484	266.9	2135	ok
+250.0	2458	5520	224.5	1796	ok
+252.0	3311	5519	166.7	1334	ok
+254.0	3311	5519	166.7	1333	ok
+256.0	1909	5520	289.2	2314	ok
+258.0	1909	5487	287.5	2300	ok
+260.0	1909				above_horizon
+262.0	1909				above_horizon
+264.0	1909				above_horizon
+266.0	1909				above_horizon
+268.0	1770				above_horizon
+270.0	1770				above_horizon
+272.0	1770				above_horizon
+274.0	1770				above_horizon
+276.0	1770				above_horizon
+278.0	1770				above_horizon
+280.0	2265				above_horizon
+282.0	2265				above_horizon
+284.0	1770				above_horizon
+286.0	1770				above_horizon
+288.0	1760				above_horizon
+290.0	1760				above_horizon
+292.0	1750				above_horizon
+294.0	1750				above_horizon
+296.0	1760				above_horizon
+298.0	1770				above_horizon
+300.0	1770				above_horizon
+302.0	1770				above_horizon
+304.0	1770				above_horizon
+306.0	1760				above_horizon
+308.0	1750				above_horizon
+310.0	1750				above_horizon
+312.0	1750				above_horizon
+314.0	1508	5392	357.6	2861	ok
+316.0	1508				above_horizon
+318.0	1508				above_horizon
+320.0	1508				above_horizon
+322.0	1508				above_horizon
+324.0	2110				above_horizon
+326.0	2110				above_horizon
+328.0	2953				above_horizon
+330.0	2953				above_horizon
+332.0	2953				above_horizon
+334.0	2953				above_horizon
+336.0	2953				above_horizon
+338.0	3051				above_horizon
+340.0	3051				above_horizon
+342.0	3051				above_horizon
+344.0	3051	1320	43.3	346	ok
+346.0	4837	1284	26.5	212	ok
+348.0	4837				above_horizon
+350.0					no_focal
+352.0					no_focal
+354.0					no_focal
+356.0					no_focal
+358.0					no_focal
+360.0					no_focal
+362.0					no_focal
+364.0					no_focal
+366.0					no_focal
+368.0					no_focal
+370.0					no_focal
+372.0					no_focal
+374.0					no_focal
+376.0					no_focal
+378.0					no_focal
+380.0					no_focal
+382.0					no_focal
+384.0					no_focal
+386.0					no_focal
+388.0					no_focal
+390.0	2731				above_horizon
+392.0	2731				above_horizon
+394.0	2731				above_horizon
+396.0	3064				above_horizon
+398.0	3064				above_horizon
+400.0	3396				above_horizon
+402.0	3396				above_horizon
+404.0	3862				above_horizon
+406.0	3862				above_horizon
+408.0	4328				above_horizon
+410.0	6062	5450	89.9	719	ok
+412.0	6062				above_horizon
+414.0	7441				above_horizon
+416.0	7441				above_horizon
+418.0	7441				above_horizon
+420.0	7441				above_horizon
+422.0	7441				above_horizon
+424.0	5884				above_horizon
+426.0	5884				above_horizon
+428.0	5884				above_horizon
+430.0	7441				above_horizon
+432.0	7441				above_horizon
+434.0	7441				above_horizon
+436.0	4328				above_horizon
+438.0	4328				above_horizon
+440.0	4328				above_horizon
+442.0	4375				above_horizon
+444.0	4422				above_horizon
+446.0	4422				above_horizon
+448.0	4422				above_horizon
+450.0	4086				above_horizon
+452.0	4086				above_horizon
+454.0	3750				above_horizon
+456.0	3750				above_horizon
+458.0	4086				above_horizon
+460.0	4086				above_horizon
+462.0	4086				above_horizon
+464.0	4422				above_horizon
+466.0	4422				above_horizon
+468.0	4422				above_horizon
+470.0	4422				above_horizon
+472.0	4133				above_horizon
+474.0	4133				above_horizon
+476.0	4422				above_horizon
+478.0	4422				above_horizon
+480.0	4422				above_horizon
+482.0					no_focal
+484.0					no_focal
+486.0					no_focal
+488.0					no_focal
+490.0	5265				above_horizon
+492.0	5265				above_horizon
+494.0	5265				above_horizon
+496.0	5265				above_horizon
+498.0					no_focal
+500.0					no_focal
+502.0					no_focal
+504.0					no_focal
+506.0					no_focal
+508.0					no_focal
+510.0					no_focal

@@ -1,0 +1,43 @@
+t	f_px	dist_m	gsd_cm	obj8px_cm	status
+0.0	14280	54	0.4	3	ok
+2.0	14280	54	0.4	3	ok
+4.0	14612	55	0.4	3	ok
+6.0	14612	57	0.4	3	ok
+8.0	14612	59	0.4	3	ok
+10.0	14612	61	0.4	3	ok
+12.0	14612	62	0.4	3	ok
+14.0	14612				above_horizon
+16.0	14612	64	0.4	4	ok
+18.0	14612	65	0.4	4	ok
+20.0	14612	66	0.5	4	ok
+22.0	14280	67	0.5	4	ok
+24.0	14612	69	0.5	4	ok
+26.0	14944	69	0.5	4	ok
+28.0	14530	69	0.5	4	ok
+30.0	14944	70	0.5	4	ok
+32.0	14944	70	0.5	4	ok
+34.0					no_focal
+36.0					no_focal
+38.0					no_focal
+40.0					no_focal
+42.0					no_focal
+44.0					no_focal
+46.0					no_focal
+48.0					no_focal
+50.0					no_focal
+52.0					no_focal
+54.0					no_focal
+56.0					no_focal
+58.0					no_focal
+60.0					no_focal
+62.0					no_focal
+64.0					no_focal
+66.0					no_focal
+68.0					no_focal
+70.0					no_focal
+72.0					no_focal
+74.0					no_focal
+76.0					no_focal
+78.0					no_focal
+80.0					no_focal
+82.0					no_focal
