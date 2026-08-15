@@ -73,7 +73,7 @@ def pan_pairs(tr):
     return pairs
 
 
-def focal_series(video: Path, tr, dem: Dem):
+def focal_series(video: Path, tr):
     """([(t_середины_пары, f_px)], счётчик отказов) по панорамированиям ролика."""
     cap = cv2.VideoCapture(str(video))
     sample = lambda t, key: interp(tr, t, key)      # noqa: E731
@@ -85,7 +85,7 @@ def focal_series(video: Path, tr, dem: Dem):
         except ValueError:
             continue
         (dx, dy), _resp = cv2.phaseCorrelate(ga, gb)
-        f, reason = pair_focal(sample, dem, (dx * sa, dy * sa), a, b)
+        f, reason = pair_focal(sample, (dx * sa, dy * sa), a, b)
         if f is None:
             why[reason] = why.get(reason, 0) + 1
         elif F_BAND[0] <= f <= F_BAND[1]:
@@ -109,7 +109,7 @@ def scan_video(video: Path, dem: Dem, step: float):
     if not rows or "gb_yaw" not in rows[0]:
         return None
     tr = tracks(rows)
-    ests, why = focal_series(video, tr, dem)
+    ests, why = focal_series(video, tr)
     cap = cv2.VideoCapture(str(video))
     w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)) or 1920
     h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) or 1080
@@ -163,8 +163,7 @@ def summarize(res):
     sky = sum(1 for s in ss if s["sky"])
     gap = sum(1 for s in ss if s["gap"])
     row = dict(video=res["video"].name, n=n, n_ests=res["n_ests"],
-               no_focal=nofocal / n, sky=sky / n, gap=gap / n,
-               f_drone_move=res["why"].get("drone_move", 0), width=res["width"])
+               no_focal=nofocal / n, sky=sky / n, gap=gap / n, width=res["width"])
     if known:
         gsds = np.array([s["gsd"] for s in known])
         row["gsd_med_cm"] = float(np.median(gsds)) * 100
@@ -199,12 +198,11 @@ def main():
         summary.append(row)
         cov = " ".join(f"{name} {row.get(name, 0):.0%}" for name, _ in OBJECTS)
         med = f"{row['obj8_med_cm']:.0f} см" if "obj8_med_cm" in row else "—"
-        print(f"{row['video']}: оценок f {row['n_ests']} (отброшено за перелёт дрона "
-              f"{row['f_drone_move']}), без фокусного {row['no_focal']:.0%}, "
+        print(f"{row['video']}: оценок f {row['n_ests']}, без фокусного {row['no_focal']:.0%}, "
               f"провал телеметрии {row['gap']:.0%}, выше горизонта {row['sky']:.0%}, "
               f"мин. предмет (8 px, медиана) {med}; покрытие: {cov}")
 
-    keys = ["video", "width", "n", "n_ests", "f_drone_move", "no_focal", "sky", "gap",
+    keys = ["video", "width", "n", "n_ests", "no_focal", "sky", "gap",
             "gsd_med_cm", "gsd_p90_cm", "obj8_med_cm"] + [n for n, _ in OBJECTS]
     # сводка накопительная: строки других дат сохраняются, свои — заменяются
     path = OUT / "summary.tsv"

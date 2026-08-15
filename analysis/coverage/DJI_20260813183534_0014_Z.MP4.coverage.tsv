@@ -6,7 +6,7 @@ t	f_px	dist_m	gsd_cm	obj8px_cm	status
 8.0	14612	59	0.4	3	ok
 10.0	14612	61	0.4	3	ok
 12.0	14612	62	0.4	3	ok
-14.0	14612				above_horizon
+14.0					no_telemetry
 16.0	14612	64	0.4	4	ok
 18.0	14612	65	0.4	4	ok
 20.0	14612	66	0.5	4	ok

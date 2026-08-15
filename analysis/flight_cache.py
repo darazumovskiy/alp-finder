@@ -80,6 +80,10 @@ def sample(dem, rows, cov, t):
     lat, lon = at(rows, t, "lat"), at(rows, t, "lon")
     alt = at(rows, t, "alt_m")
     yaw, pitch = at(rows, t, "gb_yaw"), at(rows, t, "gb_pitch")
+    # провал телеметрии: интерполировать нечего, момент выпадает из кеша
+    # (NaN в JSON плеер не прочитает вовсе)
+    if not all(math.isfinite(v) for v in (lat, lon, alt, yaw, pitch)):
+        return None
     try:
         agl = alt - dem.elev(lat, lon)
     except ValueError:
@@ -130,8 +134,8 @@ def process(dem, video: Path, force: bool):
          "-start_number", "0", str(out / "f%04d.jpg"), "-y"], check=True)
     n_frames = len(list(out.glob("f*.jpg")))
 
-    samples = [sample(dem, rows, cov, t)
-               for t in np.arange(0, dur + 1e-6, META_STEP)]
+    samples = [s for s in (sample(dem, rows, cov, t)
+                           for t in np.arange(0, dur + 1e-6, META_STEP)) if s]
     n_poly = sum(1 for s in samples if s[9])
     meta = dict(video=video.name,
                 date=f"{video.stem[4:8]}-{video.stem[8:10]}-{video.stem[10:12]}",

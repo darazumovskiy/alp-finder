@@ -38,7 +38,6 @@ FLOW_W = 960          # ширина центрального окна для ph
 RAY_STEP_M = 5.0      # шаг марша луча
 RAY_MAX_M = 6000.0
 TELEM_GAP_MAX_S = 1.0   # провал телеметрии длиннее — интерполяции не доверяем
-FOCAL_TRANS_MAX = 0.15  # допустимая доля сдвига кадра, созданная перелётом дрона
 
 
 # --- DEM ---------------------------------------------------------------------
@@ -242,44 +241,21 @@ def gray_center(img):
     return g.astype(np.float32), scale
 
 
-def velocity_enu(lat0, lon0, alt0, lat1, lon1, alt1, dt):
-    """Средняя скорость дрона (E, N, Up), м/с, между двумя фиксациями GPS."""
-    if dt <= 0:
-        return (0.0, 0.0, 0.0)
-    return (((lon1 - lon0) * 111320.0 * math.cos(math.radians(lat0))) / dt,
-            ((lat1 - lat0) * 111132.0) / dt,
-            (alt1 - alt0) / dt)
-
-
-def translation_share(vel_enu, direction, dist_m, omega_rad_s):
-    """Какую долю сдвига картинки создал перелёт дрона, а не поворот камеры.
-
-    Самокалибровка фокусного делит сдвиг кадра на угол поворота подвеса и
-    считает, что сдвиг весь от поворота. Пока дрон висит, так и есть; в полёте
-    к сдвигу добавляется параллакс: поворот двигает картинку на f·ω·dt, перелёт
-    поперёк луча — на f·v⊥·dt/D. Их отношение v⊥/(D·ω) не зависит ни от
-    фокусного, ни от базы пары, поэтому годится как фильтр до расчёта.
-    Луч в небо (дистанции нет) параллаксом не смещается.
-    """
-    if omega_rad_s <= 0:
-        return math.inf
-    if dist_m is None or not math.isfinite(dist_m) or dist_m <= 0:
-        return 0.0
-    along = sum(v * d for v, d in zip(vel_enu, direction))
-    speed2 = sum(v * v for v in vel_enu)
-    perp = math.sqrt(max(speed2 - along * along, 0.0))
-    return perp / (dist_m * omega_rad_s)
-
-
 MIN_ROT_RAD = math.radians(0.8)   # поворот подвеса, ниже которого делить не на что
 
 
-def pair_focal(sample, dem, shift_px, a, b):
+def pair_focal(sample, shift_px, a, b, min_rot_rad=0.0):
     """(фокусное в пикс., причина) по паре кадров [a, b]; при отказе фокусное None.
 
     sample(t, поле) — телеметрия в момент t; shift_px — сдвиг картинки (dx, dy)
     в пикселях полного кадра. Причины отказа: gap — провал телеметрии,
-    no_rot — подвес почти не повернулся, drone_move — сдвиг создан перелётом.
+    no_rot — подвес почти не повернулся, делить не на что. Порог поворота
+    задаёт вызывающий: у сплошного прохода по видео он свой, у пакетного
+    расчёта пары уже отобраны по величине поворота.
+
+    Метод считает весь сдвиг кадра следствием поворота подвеса. На зависании
+    так и есть; в полёте к сдвигу добавляется параллакс, и оценка врёт —
+    пределы метода и замер этого вклада в docs/focal-length-calibration.md.
     """
     yaw_a, yaw_b = sample(a, "gb_yaw"), sample(b, "gb_yaw")
     pitch_a, pitch_b = sample(a, "gb_pitch"), sample(b, "gb_pitch")
@@ -291,40 +267,18 @@ def pair_focal(sample, dem, shift_px, a, b):
     dx, dy = shift_px
     # рыскание двигает картинку по горизонтали (в проекции на горизонт кадра —
     # cos(pitch)), тангаж по вертикали; берём ось, где поворот заметнее
-    if abs(dyaw) > MIN_ROT_RAD and abs(dyaw) > 2 * abs(dpitch):
+    if abs(dyaw) > min_rot_rad and abs(dyaw) > 2 * abs(dpitch):
         f = -dx / (dyaw * math.cos(math.radians(pitch)))
-    elif abs(dpitch) > MIN_ROT_RAD and abs(dpitch) > 2 * abs(dyaw):
+    elif abs(dpitch) > min_rot_rad and abs(dpitch) > 2 * abs(dyaw):
         f = dy / dpitch
     else:
         return None, "no_rot"
-    if f <= 0:
-        return None, "no_rot"
-    if dem is None:
-        return f, "ok"
-    mid = (a + b) / 2
-    lat, lon, alt = sample(mid, "lat"), sample(mid, "lon"), sample(mid, "alt_m")
-    if not all(math.isfinite(v) for v in (lat, lon, alt)):
-        return None, "gap"
-    direction = ray_dir((yaw_a + yaw_b) / 2 % 360, pitch, 960, 540, 1920, 1080, f)
-    hit = cast(dem, lat, lon, alt, direction)
-    vel = velocity_enu(sample(a, "lat"), sample(a, "lon"), sample(a, "alt_m"),
-                       sample(b, "lat"), sample(b, "lon"), sample(b, "alt_m"), b - a)
-    omega = math.hypot(dyaw, dpitch) / (b - a)
-    if translation_share(vel, direction, hit[3] if hit else None, omega) > FOCAL_TRANS_MAX:
-        return None, "drone_move"
-    return f, "ok"
+    return (f, "ok") if f > 0 else (None, "no_rot")
 
 
-def focal_px(video: Path, t0: float, t1: float, dt: float = 0.25, dem=None):
-    """(оценки фокусного в пикс., счётчик причин отказа) на интервале [t0, t1].
-
-    Пары, где заметная часть сдвига кадра пришлась на перелёт дрона,
-    отбрасываются (см. translation_share): без этого фокусное, а с ним и все
-    размеры по ролику, врёт в разы.
-    """
+def focal_px(video: Path, t0: float, t1: float, dt: float = 0.25):
+    """(оценки фокусного в пикс., счётчик причин отказа) на интервале [t0, t1]."""
     rows = load_rows(video)
-    if dem is None:
-        dem = Dem()
     cap = cv2.VideoCapture(str(video))
     ests, why = [], {}
     t = t0
@@ -336,7 +290,8 @@ def focal_px(video: Path, t0: float, t1: float, dt: float = 0.25, dem=None):
         except ValueError:
             break
         (dx, dy), _resp = cv2.phaseCorrelate(ga, gb)
-        f, reason = pair_focal(lambda t, k: at(rows, t, k), dem, (dx * sa, dy * sa), a, b)
+        f, reason = pair_focal(lambda t, k: at(rows, t, k), (dx * sa, dy * sa), a, b,
+                               min_rot_rad=MIN_ROT_RAD)
         if f is None:
             why[reason] = why.get(reason, 0) + 1
         else:
@@ -455,8 +410,7 @@ def cmd_cast(args):
               "подтвердить параллаксом/подлётом или дальномером")
 
 
-WHY_FOCAL = {"gap": "провал телеметрии", "no_rot": "подвес почти не повернулся",
-             "drone_move": "сдвиг кадра от перелёта дрона"}
+WHY_FOCAL = {"gap": "провал телеметрии", "no_rot": "подвес почти не повернулся"}
 
 
 def cmd_focal(args):

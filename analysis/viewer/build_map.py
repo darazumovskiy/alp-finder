@@ -75,10 +75,27 @@ PROJ = ("геопроекция луча в рельеф, ±десятки ме�
 # у остальных GPS-точек поле view=[азимут, наклон] рисует ус направления взгляда.
 CRAY = "проекция центра кадра в рельеф (объект может быть смещён от центра кадра)"
 
+# Ступень лестницы надёжности координаты (скилл tochka-na-kartu-po-foto §5).
+# unc/alt_unc — погрешность ступени по умолчанию, м; точка переопределяет полями
+# unc=/alt_unc=. None означает «у ступени типовой погрешности нет, считать для
+# точки»: у трассировки это вилка DEM, у триангуляции — σ-эллипсоид из solve.
+# У ступени gps высота — высота дрона, а не объекта, поэтому alt_unc не задаётся.
+FIX = {
+    "lrf": dict(title="лазерный дальномер штаба", unc=10, alt_unc=5),
+    "triang": dict(title="триангуляция ≥2 ракурсов", unc=None, alt_unc=None),
+    "nadir": dict(title="надирный кадр (луч вниз)", unc=10, alt_unc=10),
+    "cast": dict(title="луч камеры в рельеф", unc=None, alt_unc=30),
+    "gps": dict(title="GPS дрона — точка съёмки, не объекта", unc=145,
+                alt_unc=None, drone_alt=True),
+}
+COORD_FIX = {GPS: "gps", LRF: "lrf", CRAY: "cast", PROJ: "cast"}
+
 POINTS = [
     # -- подтверждённые вещи --
     dict(kind="item", src="shtab", status="confirmed", conf="v", lat=39.482656, lon=73.586792, alt=4663,
-         name="Синий рюкзак Николая", coord=LRF, video="C0049.MP4 + DJI_20260813184253", tc="0:15–0:21",
+         name="Синий рюкзак Николая", coord=LRF,
+         size="99×72 см", size_unc="±10% (масштаб 0,14 см/пикс по дальномеру, ракурс 52°)",
+         video="C0049.MP4 + DJI_20260813184253", tc="0:15–0:21",
          desc="Опознан по фото «Эльбрус с Севера 2025». Склон 46°, зона зарождения лавины. "
               "Крупные планы (вертолёт C0048): красная стропа, зелёная бутылка, ручка второй палки. "
               "Дрон-ракурсы (та же кварцевая полоса): 184253 0:28–0:32, 163855 4:15 — "
@@ -102,7 +119,8 @@ POINTS = [
                "analysis/pilot/check_184253_t148_crop30s.jpg",
                "analysis/pilot/scan-163855/crops/t0131_04m15s.jpg"]),
     dict(kind="item", src="ai", status="open", conf=4, lat=39.48241, lon=73.58687, alt=4681,
-         name="Дуги палатки в чехле (под вопросом)",
+         name="Дуги палатки в чехле (под вопросом)", fix="cast",
+         size="0,9–3,1 м", size_unc="вилка фокусного втрое — считать неизмеренным",
          coord="трассировка луча (тангаж −21°, ступень 4 лестницы): дистанция 50 м, "
                "вилка фокусного 4026–14315 px двигает точку на 1.5 м, вилка DEM ±30 м — на 22 м",
          gps=[39.482509, 73.586347, 50], view=[102, -21], unc=22,
@@ -130,6 +148,7 @@ POINTS = [
                "analysis/pilot/scan-183004/crops/t0334_00m56s.jpg"]),
     dict(kind="item", src="shtab", status="confirmed", conf="v", lat=39.483144, lon=73.585443, alt=4531,
          name="Бирюзовая крышка/миска (+ синий фрагмент рядом)", coord=LRF,
+         size="17×14 см", size_unc="±10% (масштаб по дальномеру, одиночный снимок)",
          video="DJI_20260813183727_0015_Z", tc="3:32–3:38",
          desc="Складная миска, в 4 м от палки. Там же сизо-голубой угловатый фрагмент "
               "(скрин Вещи #1722; крупно на 3:38) — наша геопроекция кладёт его в 4–5 м от "
@@ -151,7 +170,8 @@ POINTS = [
          desc="Координата — GPS дрона у объекта (оговорка GPS-ловушки).",
          imgs=["docs/nakhodki/frames/DJI_20260813183004_0001_Z_03m40s.jpg"]),
     dict(kind="item", src="tg", status="confirmed", conf="v", lat=39.483203, lon=73.585272, alt=4545,
-         name="Оранжевый спальник Николая (позиция приблизительная)",
+         name="Оранжевый спальник Николая (позиция приблизительная)", fix="cast",
+         size="~1–3 м", size_unc="блоб ~100 пикс при GSD 2,6 см/пикс; фокусное с соседней панорамы",
          who="опознание: консенсус TG-волонтёров (#758, #820); отчёт штаба осторожнее: «спальник или куртка»; CC называет «курткой»",
          coord="две оценки расходятся на ~29 м — не выдавать как точку",
          video="C0044/C0045, DJI_20260813163855/183004/183727", tc="крупно 3:26–4:00",
@@ -184,6 +204,7 @@ POINTS = [
                "analysis/pilot/check_204542_t58.jpg"]),
     dict(kind="object", src="ai", status="open", conf=3, lat=39.47773, lon=73.59228, alt=5385,
          name="Поле 4–6 предметов с бороздами", coord=GPS, view=[186, 23],
+         size="0,2–1,3 м", size_unc="дистанция 15–60 м не уточнена: на дальней границе до 2,5 м",
          video="DJI_20260811202621_0002_Z (перескан)", tc="0:29–1:00",
          desc="Каждый предмет со своей бороздой-шлейфом; предметы ~0,2–1,3 м (геопроекция). Туман.",
          imgs=["analysis/scans-low/DJI_20260811202621_0002_Z/crops/t0025_00m44s.jpg",
@@ -218,7 +239,7 @@ POINTS = [
          desc="Бледно-зелёный прямоугольник с прямыми кромками на бурой осыпи; в ~40 м от палки/крышки.",
          imgs=["analysis/pilot/scan-183534/crops/t0237_00m54s.jpg"]),
     dict(kind="item", src="ai", status="open", conf=3, lat=39.48327, lon=73.58513, alt=4559,
-         name="Бирюзовое кольцо + оранжевый фрагмент (сведены 2 наблюдения)",
+         name="Бирюзовое кольцо + оранжевый фрагмент (сведены 2 наблюдения)", fix="cast", unc=30,
          coord="проекция центра кадра по телеметрии: наблюдения 1:23 и 2:41 "
                "с разных точек полёта сходятся в одну точку (±30 м DEM)",
          video="scan-163855", tc="1:23, 2:37–2:41",
@@ -304,7 +325,9 @@ POINTS = [
          desc="Тонкая светлая линия поперёк тёмной скалы.",
          imgs=["analysis/scans/DJI_20260812133415_0006_Z/crops/t0073_00m44s.jpg"]),
     dict(kind="rope", src="shtab", status="open", conf=4, lat=39.481591, lon=73.592787, alt=5073,
-         name="Верёвка на гребне (±48 м)", coord="оценка внешнего анализа (CSV CC)", video="DJI_20260811204542_0001_Z", tc="3:24",
+         name="Верёвка на гребне (±48 м)", fix="cast",
+         size="длина ~10 м, ширина ~3 см", size_unc="GSD 2,1 см/пикс (расчёт CC): ширина — предел разрешения",
+         coord="геопроекция луча в рельеф внешним расчётом CC (CSV kurumdy_candidates)", video="DJI_20260811204542_0001_Z", tc="3:24",
          who="нашли наблюдатели штаба (Подтверждённые #577, #838); геометрию измерила автоматика CC — этот снимок человеком в конвейере CC не отсматривался",
          desc="Нашли наблюдатели штаба, CC измерил: тонкая тёмная линия постоянной ширины (~10 м, "
               "~3 см — как верёвка 10 мм с размытием оптики) идёт через снег и скалу без излома — "
@@ -364,7 +387,8 @@ POINTS = [
          desc="Заявка волонтёра: «Координаты турика?» (Перепроверка #582). Вердикта в TG нет.",
          imgs=["data/telegram/dlya-pereproverki-dronom/582.jpg"]),
     dict(kind="object", src="cc", status="open", conf=2, lat=39.49154, lon=73.59807, alt=4851,
-         name="CC: тёмная «линза» 12×5 px на снегу", coord="позиция дрона; CC: «только азимут, точка не выдаётся»",
+         name="CC: тёмная «линза» 12×5 px на снегу", fix="gps",
+         coord="позиция дрона; CC: «только азимут, точка не выдаётся»",
          view=[168, -19],
          video="DJI_20260811160637_0001_Z", tc="1:14",
          who="автоматическая детекция и автоматическая проверка CC; человеком не отсмотрено (пометка самого CC)",
@@ -396,7 +420,8 @@ POINTS = [
          desc="Заявка волонтёра (Перепроверка #1255–#1256). Вердикта в TG нет.",
          imgs=["data/telegram/dlya-pereproverki-dronom/1255.jpg"]),
     dict(kind="object", src="cc", status="open", conf=2, lat=39.48171, lon=73.59279, alt=5116,
-         name="CC: тёмный объект 15–20 px на снегу", coord="позиция дрона; CC: «только азимут, точка не выдаётся»",
+         name="CC: тёмный объект 15–20 px на снегу", fix="gps",
+         coord="позиция дрона; CC: «только азимут, точка не выдаётся»",
          view=[15, -49],
          video="DJI_20260811204542_0001_Z", tc="3:52",
          who="автоматическая детекция и автоматическая проверка CC; человеком не отсмотрено (пометка самого CC)",
@@ -405,7 +430,8 @@ POINTS = [
          imgs=["docs/nezavisimyy-analiz/screens/20260811204542_00-03-52_1_single.png",
                "docs/nezavisimyy-analiz/screens/20260811204542_00-03-52_0_frame.jpg"]),
     dict(kind="object", src="cc", status="open", conf=1, lat=39.47528, lon=73.59176, alt=5589,
-         name="CC: тёмный объект 6 px с бороздой", coord="позиция дрона; координат нет и не будет (фокусное не измеримо)",
+         name="CC: тёмный объект 6 px с бороздой", fix="gps",
+         coord="позиция дрона; координат нет и не будет (фокусное не измеримо)",
          view=[178, 10],
          video="DJI_20260812141803_0001_Z", tc="0:14",
          who="автоматическая детекция и автоматическая проверка CC; человеком не отсмотрено (пометка самого CC)",
@@ -415,7 +441,8 @@ POINTS = [
                "docs/nezavisimyy-analiz/screens/20260812141803_00-00-14_0_frame.jpg"]),
 
     dict(kind="furrow", src="tg", status="open", conf=3, lat=39.482658, lon=73.585299, alt=4571,
-         name="Две крупные борозды у района вещей (TG #1752)",
+         name="Две крупные борозды у района вещей (TG #1752)", fix="cast",
+         size="ширина борозды 0,5–1 м", size_unc="GSD 3,2 см/пикс, вилка фокусного ±10%",
          coord="геопроекция луча через пиксель самих борозд в кадре 0:55 (рельеф с "
                "фотограмметрическими патчами, docs/dem-patches.md): дистанция 238 м, "
                "фокусное 7416, вилка фокусного ±10% даёт ±2 м, вилка DEM ±30 м — увод 8–22 м",
@@ -431,11 +458,12 @@ POINTS = [
                "analysis/fullframe/sledy-uchastok/t0055_ann.jpg",
                "analysis/fullframe/sledy-uchastok/t0055_zoom.jpg"]),
     dict(kind="furrow", src="ai", status="open", conf=3, lat=39.483395, lon=73.585518, alt=4611,
-         name="Полосы скольжения? + дорожка вмятин на снежнике выше рюкзака",
+         name="Полосы скольжения? + дорожка вмятин на снежнике выше рюкзака", fix="gps",
+         size="ширина полос 0,5–1 м", size_unc="GSD ~1,8 см/пикс при расчётной дистанции 113 м",
          coord="луч полого к склону — вилка DEM уводит расчётную точку до ~54 м, координатой "
                "не считать: точка на GPS дрона, пунктирный ус — направление камеры; расчётное "
                "пересечение 39.48322, 73.58674 (4649 м), дистанция ~113 м",
-         view=[107, 19], unc=60,
+         view=[107, 19],
          video="DJI_20260813163855_0001_Z", tc="9:51",
          who="наш целевой отсмотр следов участка вещей 14.08 "
              "(analysis/review/sledy-uchastok-veshchey.md); вердикта нет",
@@ -446,7 +474,7 @@ POINTS = [
          imgs=["analysis/fullframe/sledy-uchastok/t0591_ann.jpg",
                "analysis/fullframe/sledy-uchastok/t0591_zoom.jpg"]),
     dict(kind="furrow", src="tg", status="open", conf=3, lat=39.482990, lon=73.586591, alt=4646,
-         name="Две борозды на снежнике в ~40 м от рюкзака (личка Геннадия)",
+         name="Две борозды на снежнике в ~40 м от рюкзака (личка Геннадия)", fix="cast",
          coord="геопроекция луча в рельеф: дистанция 200 м, фокусное 6465 (самокалибровка, "
                "MAD 10%, вилка фокусного ±7 м); луч полого к склону — вилка DEM ±30 м уводит "
                "точку до ~44 м вдоль склона",
@@ -473,7 +501,8 @@ POINTS = [
                "data/telegram/novye-skrinshoty/1305.png",
                "data/telegram/novye-skrinshoty/1258.jpg"]),
     dict(kind="rope", src="tg", status="open", conf=3, lat=39.478188, lon=73.591529, alt=5294,
-         name="Верёвка над «надписью LOOK» (личка Геннадия)",
+         name="Верёвка над «надписью LOOK» (личка Геннадия)", fix="cast",
+         size="толщина 0,7–1,5 см, видимая длина ≥2 м", size_unc="1–2 пикс при GSD 0,7 см/пикс — на пределе разрешения",
          coord="геопроекция луча в рельеф с 20 м; пересчитано 14.08: фокусное 2915 "
                "самокалибровкой по двум качаниям подвеса (вилка фокусного <0.2 м), пиксели "
                "верёвки перенесены SIFT в кадр t=69 с неподвижным подвесом; луч полого "
@@ -492,7 +521,8 @@ POINTS = [
                "analysis/fullframe/gennadiy-124655/recheck/rope67_outline.png",
                "analysis/fullframe/gennadiy-124655/crop_t67_rope_zoom.png"], unc=16),
     dict(kind="object", src="tg", status="open", conf=2, lat=39.478305, lon=73.591435, alt=5271,
-         name="Тёмный предмет у «надписи LOOK» (личка Геннадия)",
+         name="Тёмный предмет у «надписи LOOK» (личка Геннадия)", fix="triang", alt_unc=5,
+         size="~30×10 см", size_unc="GSD 1,0 см/пикс на 30 м; ранняя оценка «~1 м» была ошибкой масштаба",
          coord="пересчитано 14.08: две независимые геометрии (кадры t=114 и t=119, поправка "
                "лага телеметрии −0.3 с, фокусное 2915 самокалибровкой) сходятся с расхождением "
                "1 м; вилки фокусного и DEM ±3 м — итого ±5 м с учётом GPS дрона",
@@ -558,13 +588,15 @@ POINTS = [
 
     # -- закрытые кандидаты --
     dict(kind="item", src="tg", status="closed", conf="x", lat=39.47875, lon=73.59309, alt=5257,
-         name="«Красный сегмент» — закрыт: скальные выходы", coord=PROJ, video="DJI_20260813131019_0002_Z", tc="~2:49",
+         name="«Красный сегмент» — закрыт: скальные выходы", fix="cast", unc=24,
+         coord=PROJ + "; пересчитано 15.08: дистанция 181 м, вилка DEM ±30 м уводит на 21–24 м",
+         video="DJI_20260813131019_0002_Z", tc="~2:49",
          desc="Не ткань/стропа (4/5): объект холодно-серый, «красность» — артефакт скрина; "
               "вердикт пиксельный, от геопривязки не зависит. Координата заявки (5318 м) была "
-              "GPS дрона — расчётная точка на ~170 м в стороне, сама ±десятки метров.",
+              "GPS дрона — расчётная точка на ~170 м в стороне.",
          imgs=["analysis/review/tg-2026-08-13-framecheck/red/aligned_170.00.png"]),
     dict(kind="object", src="tg", status="open", conf=2, lat=39.478305, lon=73.591435, alt=5271,
-         name="«Надпись LOOK» — спорная, ждёт облёта",
+         name="«Надпись LOOK» — спорная, ждёт облёта", fix="triang", unc=5, alt_unc=5,
          coord="пересчитано 14.08 вместе с «тёмным предметом» (та же деталь снега): две "
                "геометрии сходятся с расхождением 1 м, итого ±5 м",
          video="DJI_20260813124655_0003_Z", tc="1:59",
@@ -580,7 +612,8 @@ POINTS = [
 
     # -- кандидаты пакета «спасы 14/08» (вечер 14.08, автоотсмотр) --
     dict(kind="item", src="ai", status="open", conf=3, lat=39.480057, lon=73.592559, alt=5163,
-         name="Прямой стержень ~0,9 м (ледоруб/палка?)",
+         name="Прямой стержень ~0,9 м (ледоруб/палка?)", fix="cast",
+         size="~0,9 м", size_unc="26 пикс при GSD 3,4 см/пикс; фокусное из coverage",
          coord="трассировка луча в рельеф: дистанция 122 м, фокусное 3569 (coverage); "
                "вилка DEM ±30 м — увод ±25 м",
          gps=[39.479503, 73.592575, 122], view=[345, -66], unc=25,
@@ -593,9 +626,10 @@ POINTS = [
          imgs=["analysis/review/findings-2026-08-14-spasy/01_t39_ledorub_full.jpg",
                "analysis/review/findings-2026-08-14-spasy/01_t39_ledorub_crop.jpg"]),
     dict(kind="item", src="ai", status="open", conf=3, lat=39.4801, lon=73.5910, alt=5060,
-         name="Объект ~0,5 м с прямой «лямкой» на чистом снегу",
+         name="Объект ~0,5 м с прямой «лямкой» на чистом снегу", fix="lrf",
+         size="~0,5 м", size_unc="масштаб панорамы по LRF-вилке соседних тайлов — десятки процентов",
          coord="LRF-вилка соседних тайлов панорамы (прямой привязки пикселя нет), разброс ~±40 м",
-         gps=[39.481171, 73.590348, 65], unc=40,
+         gps=[39.481171, 73.590348, 65], unc=40, alt_unc=40,
          video="DJI_20260814203346_0013_SUPR (панорама 0009)", tc="фото 20:34",
          who="автоотсмотр пакета «спасы 14/08» 14.08; TG «Новые скриншоты» #2693; вердикта нет",
          desc="Тёмное компактное тело ~0.5 м + тонкий прямой отросток («лямка») + мелкий "
@@ -605,9 +639,13 @@ POINTS = [
          imgs=["analysis/review/findings-2026-08-14-spasy/06_supr13_lyamka_full.jpg",
                "analysis/review/findings-2026-08-14-spasy/06_supr13_lyamka_crop.jpg"]),
     dict(kind="rope", src="ai", status="open", conf=3, lat=39.481171, lon=73.590348, alt=5024,
-         name="«Нить» с провисом через седловину гребня (верёвка?)",
+         name="«Нить» с провисом через седловину гребня (верёвка?)", fix="gps",
+         size="провис ~5–6 м, толщина ~1 см", size_unc="считано на дистанцию 200 м; вилка 100–300 м меняет размер втрое",
          coord="привязки нет: LRF бил в ближний склон; точка — позиция дрона, объект на "
-               "гребне выше 5100 м по азимуту ~83°, дистанция ~100–300 м",
+               "гребне выше 5100 м по азимуту ~83°, дистанция ~100–300 м. Триангуляция "
+               "15.08 дала 39.4814, 73.5928, ~5118 м (±20 м) — точку не переносим до "
+               "решения человека: это может быть «верёвка на гребне 5073» реестра "
+               "(analysis/review/2026-08-15.md)",
          view=[83, 20], unc=300,
          video="DJI_20260814203500_0002_SUPR (панорама 0010)", tc="фото 20:35",
          who="автоотсмотр пакета «спасы 14/08» 14.08; TG «Новые скриншоты» #2695; вердикта нет",
@@ -628,7 +666,8 @@ POINTS = [
          imgs=["analysis/review/findings-2026-08-14-spasy/05_foto0003_tsepochka_full.jpg",
                "analysis/review/findings-2026-08-14-spasy/05_foto0003_tsepochka_crop.jpg"]),
     dict(kind="furrow", src="ai", status="open", conf=2, lat=39.478919, lon=73.588983, alt=5078,
-         name="Цепочка тёмных точек (место Б, высота верёвки 5073)",
+         name="Цепочка тёмных точек (место Б, высота верёвки 5073)", fix="cast",
+         size="вмятины 5–10 см", size_unc="GSD 1,0 см/пикс на 65 м",
          coord="трассировка луча в рельеф: дистанция 65 м, фокусное 6790 (coverage); "
                "вилка DEM ±30 м — увод ±13 м",
          gps=[39.479232, 73.588718, 65], view=[151, -53], unc=13,
@@ -639,7 +678,8 @@ POINTS = [
          imgs=["analysis/review/findings-2026-08-14-spasy/02_t117_tsepochka_full.jpg",
                "analysis/review/findings-2026-08-14-spasy/02_t117_tsepochka_crop.jpg"]),
     dict(kind="object", src="ai", status="open", conf=2, lat=39.482740, lon=73.583977, alt=4579,
-         name="Прямоугольный предмет 10–30 см западнее вещей",
+         name="Прямоугольный предмет 10–30 см западнее вещей", fix="nadir",
+         size="10–30 см", size_unc="GSD ~0,8 см/пикс; фокусное экстраполировано — вилка втрое",
          coord="трассировка луча почти в надир (вилка позиции мала); фокусное "
                "экстраполировано с 86-й сек — вилка масштаба",
          gps=[39.482696, 73.583873, 60], unc=15,
@@ -651,7 +691,7 @@ POINTS = [
          imgs=["analysis/review/findings-2026-08-14-spasy/03_t102_predmet_full.jpg",
                "analysis/review/findings-2026-08-14-spasy/03_t102_predmet_crop.jpg"]),
     dict(kind="rope", src="ai", status="open", conf=3, lat=39.47908, lon=73.59232, alt=5288,
-         name="Верёвки у LOOK: одна или две? (толстая + тонкая)",
+         name="Верёвки у LOOK: одна или две? (толстая + тонкая)", fix="gps",
          coord="надирные кадры, привязки пикселя нет; точка — позиция дрона, зона в радиусе "
                "~60 м под дроном (рельеф ~5230–5260 м)",
          view=[8, -65], unc=60,
@@ -666,10 +706,12 @@ POINTS = [
                "analysis/review/findings-2026-08-14-spasy/04_veryovki_t35_full.jpg"]),
     dict(kind="object", src="tg", status="rejected", conf="x", lat=39.481279, lon=73.592673, alt=5099,
          name="Три тёмных объекта цепочкой на склоне 5091–5107 м — не подтвердилось (камни)",
+         fix="triang", alt_unc=10, size="0,6×0,75 м; 6×7 см; 0,8×1,2 м",
+         size_unc="GSD ~2,0 см/пикс — интерпретация на пределе различимости",
          coord="триангуляция 3 лучей (зум-тайл + W-кадры панорам 0004/0005, базис ~100 м), "
-               "остатки 4–5 м, ±10 м; объединённая карточка трёх точек заявки: вертикальная "
+               "остатки 4–5 м; объединённая карточка трёх точек заявки: вертикальная "
                "цепочка ~20 м (5091, 5099 и 5107 м) между перилами 5119 и верёвкой на гребне 5073",
-         gps=[39.481534, 73.589034, 317], view=[96, -5], unc=15,
+         gps=[39.481534, 73.589034, 317], view=[96, -5], unc=10,
          video="DJI_20260814202448_0001_SUPR + DJI_20260814202504_0006_SUPR (панорамы 0002/0003)",
          tc="фото 20:24–20:25",
          who="заявка по SUPR-панорамам 14.08; закрыто облётом в упор 15.08 "
@@ -929,6 +971,41 @@ def samples_index():
     return out
 
 
+def resolve_fix(p):
+    """Ступень привязки точки: поле fix= или вывод из формулировки coord.
+
+    Типовая формулировка часто дополнена деталями («…; дистанция ~60 м»),
+    метод от этого не меняется — сверяем по началу строки.
+    """
+    fix = p.get("fix")
+    if not fix:
+        fix = next((v for k, v in COORD_FIX.items() if p["coord"].startswith(k)), None)
+    if fix not in FIX:
+        raise ValueError(f"{p['name']}: не задана ступень привязки (fix=), "
+                         f"а coord — свободный текст")
+    return fix
+
+
+def point_unc(p, fix):
+    """σ координаты, м. Числа без источника не выдаём: у трассировки и
+    триангуляции погрешность считается для конкретной точки, и её отсутствие —
+    ошибка карточки, а не повод показать штабу красивую цифру."""
+    unc = p.get("unc", FIX[fix]["unc"])
+    if unc is None:
+        raise ValueError(f"{p['name']}: ступень «{fix}» требует своей погрешности unc=")
+    return unc
+
+
+def point_alt_unc(p, fix):
+    """σ высоты, м; None у ступени gps — там высота дрона, а не объекта."""
+    if FIX[fix].get("drone_alt"):
+        return None
+    alt_unc = p.get("alt_unc", FIX[fix]["alt_unc"])
+    if alt_unc is None:
+        raise ValueError(f"{p['name']}: ступень «{fix}» требует своей погрешности alt_unc=")
+    return alt_unc
+
+
 def build():
     dem = Dem()
 
@@ -947,9 +1024,13 @@ def build():
         d_route = dist_to_line_m(p["lat"], p["lon"], track)
         d_desc = min(dist_to_line_m(p["lat"], p["lon"], line) for _, line in descents)
         imgs = [i for i in p.get("imgs", []) if (ROOT / i).exists()]
+        fix = resolve_fix(p)
         pts.append({**{k: v for k, v in p.items() if k != "imgs"},
                     "who": p["who"] if "who" in p else WHO[(p["src"], p["status"])],
                     "imgs": imgs, "srcs": source_paths(p.get("video", "")),
+                    "fix": fix, "fixTitle": FIX[fix]["title"],
+                    "unc": point_unc(p, fix), "altUnc": point_alt_unc(p, fix),
+                    "sizeUnc": p.get("size_unc"),
                     "dFall": round(d_fall), "dRoute": round(d_route), "dDesc": round(d_desc),
                     "dTraj": round(min(d_fall, d_desc))})
 
@@ -1012,11 +1093,33 @@ header a { color:#4da3ff; text-decoration:none; }
 #legendPop .lg-head button { background:none; border:none; color:var(--dim);
                              font-size:22px; line-height:1; cursor:pointer; }
 #legendPop .lg-head button:hover { color:var(--text); }
-#side h3 { margin:14px 0 4px; font-size:13px; color:var(--dim); text-transform:uppercase;
-           letter-spacing:.4px; }
-.grp { margin-bottom:4px; }
-.grp > label { display:flex; gap:8px; align-items:center; font-weight:600; cursor:pointer;
-               padding:4px 2px; }
+#legendPop .lg-hints { border:1px solid var(--line); border-radius:8px; background:#1f232a;
+                       padding:8px 12px; margin:4px 0 10px; }
+#legendPop .lg-hints div { font-size:12px; line-height:1.45; color:#c7cdd6; margin:5px 0;
+                           padding-left:14px; position:relative; }
+#legendPop .lg-hints div::before { content:'•'; position:absolute; left:0; color:#4da3ff; }
+.sec { border:1px solid var(--line); border-radius:10px; margin:0 0 10px;
+       background:#1a1d23; overflow:hidden; }
+.sec > summary { list-style:none; display:flex; align-items:center; padding:9px 12px;
+                 cursor:pointer; user-select:none; font-size:12px; font-weight:700;
+                 text-transform:uppercase; letter-spacing:.5px; color:#e3e8ef; }
+.sec > summary::-webkit-details-marker { display:none; }
+.sec > summary::after { content:'▸'; margin-left:auto; color:var(--dim);
+                        transition:transform .15s; }
+.sec[open] > summary::after { transform:rotate(90deg); }
+.sec .sec-body { padding:2px 12px 10px; }
+#side input[type=checkbox], #side input[type=radio] { accent-color:#4da3ff; }
+.pgrp { border:1px solid var(--line); border-radius:8px; margin:0 0 6px;
+        background:#1f232a; overflow:hidden; }
+.pgrp > summary { list-style:none; display:flex; gap:6px; align-items:baseline;
+                  font-weight:600; font-size:12.5px; padding:6px 10px; cursor:pointer;
+                  user-select:none; }
+.pgrp > summary::-webkit-details-marker { display:none; }
+.pgrp > summary::after { content:'▸'; margin-left:auto; color:var(--dim); font-size:11px;
+                         transition:transform .15s; }
+.pgrp[open] > summary::after { transform:rotate(90deg); }
+.pgrp .cnt { color:var(--dim); font-size:11px; font-weight:400; }
+.pgrp .pgrp-body { padding:0 6px 6px; }
 .item { display:flex; gap:6px; align-items:flex-start; padding:2px 0 2px 6px; cursor:pointer;
         border-radius:5px; }
 .item:hover { background:#262a31; }
@@ -1029,29 +1132,38 @@ header a { color:#4da3ff; text-decoration:none; }
 .c2{background:#455a64}.c1{background:#37474f}.cv{background:#1565c0}
 .cx{background:#5d4270}.cq{background:#37474f}
 .lyr { display:flex; gap:8px; align-items:center; padding:3px 2px; cursor:pointer; }
-#presets { display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 8px; }
-#presets button { background:#262a31; color:var(--text); border:1px solid var(--line);
-                  border-radius:14px; padding:3px 10px; font-size:12px; cursor:pointer; }
-#presets button:hover { background:#2f3540; }
-.facet { margin:0 0 8px; }
-.facet .fh { color:var(--dim); font-size:11px; text-transform:uppercase;
-             letter-spacing:.4px; margin:6px 0 2px; }
-.facet label { display:flex; gap:6px; align-items:center; padding:2px 2px; cursor:pointer;
-               font-size:12.5px; }
+#presets { display:flex; flex-wrap:wrap; gap:6px; margin:6px 0 10px; }
+#presets button { background:#243447; color:#cfe4ff; border:1px solid #33506e;
+                  border-radius:14px; padding:4px 11px; font-size:12px; cursor:pointer; }
+#presets button:hover { background:#2d4258; border-color:#4da3ff; }
+.facet { margin:0 0 10px; }
+.facet .fh { color:#aeb7c2; font-size:11px; text-transform:uppercase;
+             letter-spacing:.4px; margin:6px 0 3px; }
+.facet label { display:flex; gap:6px; align-items:center; padding:2px 4px; cursor:pointer;
+               font-size:12.5px; border-radius:5px; }
+.facet label:hover { background:#242932; }
 .facet .cnt { color:var(--dim); font-size:11px; }
 .numf { display:flex; gap:6px; align-items:center; font-size:12px; margin:2px 0; flex-wrap:wrap; }
 .numf input[type=number] { width:66px; background:#14161a; color:var(--text);
                            border:1px solid var(--line); border-radius:4px; padding:2px 4px; }
 .numf select { background:#14161a; color:var(--text); border:1px solid var(--line);
                border-radius:4px; padding:2px 4px; font-size:11.5px; }
-.gh { display:flex; gap:6px; align-items:baseline; font-weight:600; padding:5px 2px 2px; }
-.gh .cnt { color:var(--dim); font-size:11px; font-weight:400; }
 .popup { font:13px/1.45 -apple-system,"Segoe UI",Roboto,sans-serif; max-width:340px; }
 .popup b { font-size:13.5px; }
 .popup .meta { color:#555; font-size:12px; margin:3px 0; }
 .popup .src { color:#666; font-size:11px; font-family:ui-monospace,Menlo,monospace;
               word-break:break-all; margin:1px 0; user-select:all; }
 .popup .dist { font-size:12px; margin:4px 0; }
+.popup .nums { margin:5px 0; border:1px solid #dcdcdc; border-radius:6px; overflow:hidden; }
+.popup .nums .row { display:flex; flex-wrap:wrap; gap:2px 6px; padding:3px 7px; font-size:12.5px;
+                    border-top:1px solid #ececec; }
+.popup .nums .row:first-child { border-top:none; }
+.popup .nums .k { flex:0 0 74px; color:#666; }
+.popup .nums .v { font-weight:600; }
+.popup .nums .pm { color:#b23c17; font-weight:600; flex:1 1 120px; min-width:0; }
+.popup .nums .no { color:#888; font-weight:400; }
+.popup .nums .row.warn { background:#fff4ee; }
+.popup .strat { font-size:11.5px; color:#555; margin:3px 0 5px; }
 .popup .thumbs { display:flex; gap:6px; margin-top:6px; }
 .popup .thumbs img { height:92px; border-radius:5px; cursor:zoom-in; }
 .covlist { max-height:250px; overflow-y:auto; margin:6px 0; }
@@ -1106,22 +1218,27 @@ header a { color:#4da3ff; text-decoration:none; }
 </nav></header>
 <div id="wrap">
 <div id="side">
-  <p class="note">Клик по имени точки — перелёт к ней. У точек с привязкой «GPS дрона»
-  объект НЕ под точкой — смотри пунктирный ус направления камеры; точки с привязкой
-  «проекция центра кадра» пересажены в расчётное место объекта.</p>
-  <p class="note">ПКМ (долгое нажатие) по любому месту карты — какие ролики снимали
-  эту точку: день, различимый размер предмета, таймкод лучшего момента, ссылка на видео.</p>
-  <h3>Слои</h3><div id="layers"></div>
-  <h3>Фильтры точек</h3>
-  <div id="presets"></div>
-  <p class="note">Внутри блока условия складываются через «или», между блоками — «и».
-  Отклонённые и закрытые по умолчанию скрыты.</p>
-  <div id="filters"></div>
-  <h3>Точки</h3><div id="items"></div>
+  <details class="sec" open><summary>Слои</summary>
+    <div class="sec-body" id="layers"></div></details>
+  <details class="sec" open><summary>Фильтры точек</summary>
+    <div class="sec-body"><div id="presets"></div><div id="filters"></div></div></details>
+  <details class="sec" open><summary>Точки</summary>
+    <div class="sec-body" id="items"></div></details>
 </div>
 <div id="map"><button id="legendBtn" title="Как читать карту">i</button></div>
 <div id="legendOverlay"><div id="legendPop">
   <div class="lg-head"><b>Как читать карту</b><button id="legendClose" title="Закрыть">×</button></div>
+  <div class="lg-hints">
+    <div>Клик по имени точки в списке — перелёт к ней на карте.</div>
+    <div>Точка с привязкой «GPS дрона» стоит не на объекте: объект — в стороне
+      пунктирного уса. Точки «проекция центра кадра» пересажены в расчётное место объекта.</div>
+    <div>ПКМ (на телефоне — долгое нажатие) по любому месту карты — какие ролики
+      снимали это место: день, масштаб, таймкод лучшего момента, ссылка на видео.</div>
+    <div>Фильтры: внутри блока условия через «или», между блоками — «и».
+      Отклонённые и закрытые скрыты по умолчанию.</div>
+    <div>«Вторая карта поверх» кладёт вторую подложку полупрозрачным слоем
+      (спутник ↔ топокарта; основа переключается в правом верхнем углу карты).</div>
+  </div>
     <div class="lrow"><span class="sw" style="background:#00e5ff"></span>
       <b>Голубой пунктир</b> — плановый маршрут группы с карты штаба; кружки — лагеря.
       Группа спускалась от Camp2 к Camp1.</div>
@@ -1164,10 +1281,7 @@ header a { color:#4da3ff; text-decoration:none; }
       сеткой лучей с реальным фокусным момента; масштаб пересчитан на дистанцию
       каждого луча (дальний край кадра честно грубее ближнего); мёртвые зоны за
       перегибами рельефа внутри кадра не закрашиваются. Моменты, где фокусное
-      не измерить, дают только центр кадра с допуском 75 м (уровень «обзорно»).
-      <b>ПКМ (на телефоне — долгое нажатие) по любому месту
-      карты</b> — обратный вопрос: какие ролики снимали эту точку, с каким
-      масштабом, на каком таймкоде.</div>
+      не измерить, дают только центр кадра с допуском 75 м (уровень «обзорно»).</div>
     <div class="lrow"><span class="sw" style="background:#ffd54f"></span>
       <b>Янтарные тонкие</b> — изолинии высоты через 50 м; подписи подстраиваются под
       экран: видимые линии 200 м подписаны всегда, на крупном зуме подписываются
@@ -1357,9 +1471,9 @@ const coverRenderer = L.canvas({padding:0.4, pane:'cover'});
 // JSON хранит вклад каждого ролика отдельно — объединение делается здесь,
 // это даёт фильтры «день / ролик» без пересчёта данных.
 const COVER_TIERS = D.cover ? [
-  ['#00e676', `Осмотр: детальный — различим предмет от ${D.cover.detail_cm} см (крышка, ботинок)`],
-  ['#ffb300', `Осмотр: средний — различим предмет от ${D.cover.mid_cm/100} м (рюкзак, человек)`],
-  ['#78909c', 'Осмотр: обзорный — куда вообще попадал кадр'],
+  ['#00e676', `Осмотр детальный (от ${D.cover.detail_cm} см)`],
+  ['#ffb300', `Осмотр средний (от ${D.cover.mid_cm/100} м)`],
+  ['#78909c', 'Осмотр обзорный'],
 ] : [];
 const coverGroup = L.layerGroup();
 let coverOpacity = 0.4;
@@ -1466,13 +1580,33 @@ const SRC_TITLE = Object.fromEntries(D.srcs.map(s=>[s.id,s.title]));
 const STATUS_TITLE = Object.fromEntries(D.statuses.map(s=>[s.id,s.title]));
 const SRC_SHORT = {ai:'ИИ', tg:'TG', cc:'CC', shtab:'штаб'};
 
+// Три числа, ради которых карту читают: координата, размер, высота. У каждого —
+// своя погрешность; чего не измеряли, то говорим прямо, а не оставляем пустым.
+function numsHtml(p) {
+  const gps = p.fix === 'gps';
+  const rows = [];
+  rows.push(`<div class="row${gps?' warn':''}"><span class="k">Координаты</span>
+    <span class="v">${p.lat.toFixed(6)}, ${p.lon.toFixed(6)}</span>
+    <span class="pm">±${p.unc} м</span></div>`);
+  rows.push(`<div class="row"><span class="k">Размер</span>` + (p.size
+    ? `<span class="v">${p.size}</span><span class="pm">${p.sizeUnc||'вилка не считалась'}</span>`
+    : `<span class="no">не измерен</span>`) + `</div>`);
+  rows.push(`<div class="row${gps?' warn':''}"><span class="k">Высота</span>
+    <span class="v">${p.alt} м</span>` + (p.altUnc
+      ? `<span class="pm">±${p.altUnc} м</span>`
+      : `<span class="no">высота дрона, не объекта</span>`) + `</div>`);
+  return `<div class="nums">${rows.join('')}</div>`;
+}
+
 function popupHtml(p) {
   const conf = p.conf==='v' ? 'вещь' : (p.conf==='x' ? 'закрыт' : (p.conf==null ? 'ув. ?' : 'ув. '+p.conf));
   const thumbs = p.imgs.map(i=>`<img src="/${i}" loading="lazy">`).join('');
   const srcs = (p.srcs||[]).map(s=>`<div class="src">${s}</div>`).join('');
   return `<div class="popup"><b>${p.name}</b> <span class="conf ${confCls(p.conf)}">${conf}</span>
+  ${numsHtml(p)}
+  <div class="strat"><b>Как посчитано:</b> ${p.fixTitle} — ${p.coord}</div>
   <div class="meta">${KIND_TITLE[p.kind]} · ${SRC_TITLE[p.src]} · ${STATUS_TITLE[p.status]}<br>
-  ${p.video} ${p.tc||''} · ${p.alt} м<br>Привязка: ${p.coord}<br>
+  ${p.video} ${p.tc||''}<br>
   ${p.view ? `Камера: азимут ${p.view[0]}°, наклон ${p.view[1]}° — объект в стороне пунктирного уса, не под точкой<br>` : ''}
   ${p.gps ? `Снято с GPS дрона ${p.gps[0].toFixed(5)}, ${p.gps[1].toFixed(5)}, дистанция ~${p.gps[2]} м (серый пунктир)<br>` : ''}
   <b>Вердикт:</b> ${p.who}</div>
@@ -1508,7 +1642,9 @@ D.points.forEach(p => {
   const m = L.circleMarker([p.lat, p.lon],
     {radius: p.conf==='v'?7:6, color:'#111', weight:1.2, fillColor:color, fillOpacity:0.95});
   m.bindPopup(popupHtml(p), {maxWidth:360});
-  if (p.unc)
+  // круг неопределённости — только там, где точка стоит на месте объекта; у привязки
+  // «GPS дрона» объект не вокруг точки, а в стороне уса, и круг там врал бы
+  if (p.unc && p.fix !== 'gps')
     // interactive:false — иначе круг перехватывает клики по точкам под ним
     p._circle = L.circle([p.lat,p.lon], {radius:p.unc, color:color, weight:1, fillOpacity:0.07,
                                          dashArray:'3 4', interactive:false});
@@ -1606,7 +1742,7 @@ if (COVER_TIERS.length) {
   layersDiv.appendChild(fBox);
 
   const cvBox = document.createElement('div');
-  cvBox.innerHTML = `<label class="lyr" style="gap:6px">Плотность заливки осмотра:
+  cvBox.innerHTML = `<label class="lyr" style="gap:6px">Плотность заливки:
     <input type="range" min="5" max="90" value="${coverOpacity*100}" style="flex:1; min-width:0">
     <span class="cnt" style="min-width:34px; color:var(--dim); font-size:11px">${coverOpacity*100}%</span></label>`;
   const s = cvBox.querySelector('input'), pct = cvBox.querySelector('span');
@@ -1621,12 +1757,10 @@ if (COVER_TIERS.length) {
 }
 
 const ovBox = document.createElement('div');
-ovBox.innerHTML = `<label class="lyr" style="gap:6px">Вторая карта поверх:
+ovBox.innerHTML = `<label class="lyr" style="gap:6px"
+  title="Вторая подложка полупрозрачным слоем поверх основной; что именно — см. i">Вторая карта поверх:
   <input type="range" min="0" max="100" value="0" style="flex:1; min-width:0">
-  <span class="cnt" style="min-width:34px; color:var(--dim); font-size:11px">выкл</span></label>
-  <p class="note" style="margin-top:0">Кладёт вторую карту полупрозрачным слоем поверх основной
-  (основа — спутник → сверху топокарта, и наоборот; основа переключается в правом верхнем
-  углу карты). 100 — видна только вторая карта.</p>`;
+  <span class="cnt" style="min-width:34px; color:var(--dim); font-size:11px">выкл</span></label>`;
 const ovSlider = ovBox.querySelector('input');
 const ovPct = ovBox.querySelector('span');
 ovSlider.oninput = () => {
@@ -1677,10 +1811,10 @@ function renderFilters() {
     }
     filtersDiv.appendChild(box);
   };
-  radios('Уверенность (вещи проходят всегда)',
+  radios('Уверенность',
          [[0,'все'],[2,'≥2'],[3,'≥3'],[4,'≥4'],[5,'≥5']],
          ()=>FS.conf, v=>{FS.conf=v;});
-  radios('До траектории падения',
+  radios('До траектории',
          [[Infinity,'все'],[100,'≤100 м'],[200,'≤200 м'],[400,'≤400 м']],
          ()=>FS.dtraj, v=>{FS.dtraj=v;});
 
@@ -1725,9 +1859,11 @@ for (const k of D.kinds) {
   const pts = D.points.filter(p=>p.kind===k.id)
                       .sort((a,b)=>CONF_RANK(b.conf)-CONF_RANK(a.conf));
   if (!pts.length) continue;
-  const box = document.createElement('div');
-  box.className = 'grp';
-  box.innerHTML = `<div class="gh">${k.title} <span class="cnt" id="gcnt-${k.id}"></span></div>`;
+  const box = document.createElement('details');
+  box.className = 'pgrp';
+  box.innerHTML = `<summary>${k.title} <span class="cnt" id="gcnt-${k.id}"></span></summary>
+    <div class="pgrp-body"></div>`;
+  const body = box.querySelector('.pgrp-body');
   for (const p of pts) {
     const row = document.createElement('div');
     row.className = 'item';
@@ -1743,7 +1879,7 @@ for (const k of D.kinds) {
       p._marker.openPopup();
     };
     p._row = row;
-    box.appendChild(row);
+    body.appendChild(row);
   }
   itemsDiv.appendChild(box);
 }
