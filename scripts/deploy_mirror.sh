@@ -56,6 +56,9 @@ if [ ! -d "$MIRROR/.git" ]; then
   git -C "$MIRROR" read-tree HEAD
   # без этого скан 13 тыс. файлов (ls-files/add) занимает секунды вместо мгновений
   git -C "$MIRROR" config core.untrackedCache true
+  # системный rsync macOS бампает ctime всех файлов даже без изменений;
+  # если git сверяет ctime, он перечитывает весь dist при каждом прогоне
+  git -C "$MIRROR" config core.trustctime false
 fi
 
 rsync -a --delete --exclude=/.git "$DIST/" "$MIRROR/"
