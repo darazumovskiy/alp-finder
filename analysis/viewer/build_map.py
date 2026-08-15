@@ -82,12 +82,46 @@ POINTS = [
          desc="Опознан по фото «Эльбрус с Севера 2025». Склон 46°, зона зарождения лавины. "
               "Крупные планы (вертолёт C0048): красная стропа, зелёная бутылка, ручка второй палки. "
               "Дрон-ракурсы (та же кварцевая полоса): 184253 0:28–0:32, 163855 4:15 — "
-              "изначально значились отдельными кандидатами из-за GPS-смещения 90–230 м.",
+              "изначально значились отдельными кандидатами из-за GPS-смещения 90–230 м. "
+              "Дневной вылет 15.08 снял это место детальнее всех прежних (0,2–0,35 см/пикс) "
+              "и новых предметов не открыл — все кадры дублируют записи 13–14.08: раскрытый "
+              "клапан и зелёная бутылка, пробковая рукоять второй палки (heli-C0048 13.08, "
+              "121341 2:02–2:03), тёмная ткань микрокластера (121341 2:16–3:09), ярко-синие "
+              "рваные фрагменты (121341 2:17 и 3:24), синее кольцо/крышка с резьбой "
+              "(121341 3:11 + фото 121656_0009, координата дальномера 39.482610, 73.586851, "
+              "4671 м — она и остаётся рабочей). Микрокластер лежит в ~7 м от рюкзака и это "
+              "не нижний кластер палки/крышки: тот в 130 м ниже, 4529–4552 м.",
          imgs=["docs/nakhodki/frames/C0049_00m18s.png",
+               "analysis/review/findings-2026-08-15/k9_ryukzak_crop.jpg",
+               "analysis/review/findings-2026-08-15/k15_chernyy_crop.jpg",
+               "analysis/review/findings-2026-08-15/k7_biryuzovyy_full.jpg",
+               "analysis/review/findings-2026-08-15/k7_biryuzovyy_crop.jpg",
+               "analysis/review/findings-2026-08-15/k8_disk_crop.jpg",
                "analysis/scans/heli-C0048/crops/t0007_00m55s.jpg",
                "analysis/scans/heli-C0048/crops/t0003_00m52s.jpg",
                "analysis/pilot/check_184253_t148_crop30s.jpg",
                "analysis/pilot/scan-163855/crops/t0131_04m15s.jpg"]),
+    dict(kind="item", src="ai", status="open", conf=4, lat=39.48241, lon=73.58687, alt=4681,
+         name="Дуги палатки в чехле (под вопросом)",
+         coord="трассировка луча (тангаж −21°, ступень 4 лестницы): дистанция 50 м, "
+               "вилка фокусного 4026–14315 px двигает точку на 1.5 м, вилка DEM ±30 м — на 22 м",
+         gps=[39.482509, 73.586347, 50], view=[102, -21], unc=22,
+         video="DJI_20260815150808_0002_Z", tc="3:42–4:04 (лучший кадр 3:51)",
+         who="наш конвейер 15.08 (треки 25/62/74/81/93/117) и независимо TG: "
+             "Александра Муранова, «Новые скриншоты» #3415 (t.me/c/4466042035/248/3415) "
+             "и зум #3416 (t.me/c/4466042035/248/3416); Геннадий Беге, «Подтверждённые» "
+             "#3419/#3420 (t.me/c/4466042035/313/3419) — подпись «3:50, дуги от палатки». "
+             "Что это, точно не определились: обсуждение в TG (#4777–#5025) сходится на дугах, "
+             "но допускает палки и другое длинное снаряжение",
+         desc="Тёмный сегментированный стержень на кромке снежника: прямая ось, ровный сбег, "
+              "поперечные стыки, у нижнего конца зелёная и красная метки. Лежит поверх грунта, "
+              "воронки камнепада нет. В 28 м от рюкзака, выше по склону. "
+              "Размер не измерен: предмета известного размера в кадре нет, паспортная вилка "
+              "фокусного даёт длину 0,9–3,1 м — разброс втрое; мерить дальномером при облёте.",
+         imgs=["analysis/review/findings-2026-08-15/k5_sterzhen_full.jpg",
+               "analysis/review/findings-2026-08-15/k5_sterzhen_crop.jpg",
+               "data/telegram/novye-skrinshoty/3415.jpg",
+               "data/telegram/novye-skrinshoty/3416.jpg"]),
     dict(kind="item", src="shtab", status="confirmed", conf="v", lat=39.483176, lon=73.585463, alt=4529,
          name="Палка Komperdell №1", coord=LRF, video="DJI_20260813183140_0012_Z.JPG", tc="фото",
          desc="Пробковая ручка. Рядом палка второй пары — на её древке читается бренд «CAMP».",
@@ -300,6 +334,49 @@ POINTS = [
          imgs=["data/telegram/podtverzhdennye/732.jpg",
                "data/telegram/podtverzhdennye/731.jpg",
                "data/telegram/podtverzhdennye/419.jpg"]),
+
+    # -- доп. поиск (запрос штаба 15.08): посекундные проекции центра кадра окна 3:30–3:40 --
+    # координаты — geoproject.py cast <t> 960 540 3968; лучи полого к склону,
+    # вилка DEM ±30 м уводит до ~36 м (unc). Все 10 секунд дают разные координаты.
+    *[dict(kind="extra", src="ai", status="open", conf=2, lat=lat, lon=lon, alt=alt,
+           name=f"Доп. поиск {tc} (центр кадра)",
+           coord=f"трассировка центра кадра в DEM: дистанция {dist} м, фокусное 3968 "
+                 "(самокалибровка); луч полого к склону — вилка DEM ±30 м уводит до ~36 м",
+           gps=[dlat, dlon, dist], unc=36,
+           video="DJI_20260811204542_0001_Z", tc=tc,
+           who="посекундная разбивка окна 3:30–3:40 по запросу штаба 15.08; "
+               "человеком не перепроверялось",
+           desc=desc,
+           **({"imgs": ["analysis/fullframe/DJI_20260811204542_0001_Z/t330-340/pair_full.jpg",
+                        "analysis/fullframe/DJI_20260811204542_0001_Z/t330-340/pair_crop.jpg"]}
+              if tc == "3:34" else {}))
+      for tc, lat, lon, alt, dlat, dlon, dist, desc in [
+          ("3:30", 39.481515, 73.592769, 5081, 39.480624, 73.592517, 164,
+           "Куда смотрел центр кадра на этой секунде окна; в кадре гребень с перилами."),
+          ("3:31", 39.481545, 73.592775, 5079, 39.480645, 73.592521, 166,
+           "Куда смотрел центр кадра на этой секунде окна; в кадре гребень с перилами."),
+          ("3:32", 39.481585, 73.592807, 5077, 39.480674, 73.592526, 169,
+           "Куда смотрел центр кадра на этой секунде окна; в кадре гребень с перилами."),
+          ("3:33", 39.481633, 73.592842, 5074, 39.480707, 73.592532, 172,
+           "В левой части кадра появляется пара тёмных объектов (карточка 3:34)."),
+          ("3:34", 39.481674, 73.592850, 5072, 39.480743, 73.592539, 173,
+           "Ключевая секунда окна: пара изолированных тёмных форм вплотную (~0,6 м друг "
+           "от друга) на границе снега и скального пояса — округлая ~1,2 м + вытянутая "
+           "~1,5 м при GSD 3,8 см/пикс, человеческий масштаб; сама пара — в 39.481459, "
+           "73.592629 (луч в её пиксель, вилка ±28 м), ~20 м от верёвки 3:24. Против: "
+           "округлая форма угловатая, похожа на глыбу; обе на естественной линии "
+           "скопления камней. Стабильны в кадрах f011–f017."),
+          ("3:35", 39.481687, 73.592848, 5072, 39.480784, 73.592546, 168,
+           "Пара объектов ещё в кадре (карточка 3:34)."),
+          ("3:36", 39.481702, 73.592845, 5071, 39.480828, 73.592552, 162,
+           "Пара объектов уходит из кадра (карточка 3:34)."),
+          ("3:37", 39.481718, 73.592842, 5071, 39.480876, 73.592560, 157,
+           "Куда смотрел центр кадра на этой секунде окна; чистый снежный склон."),
+          ("3:38", 39.481736, 73.592860, 5070, 39.480926, 73.592570, 151,
+           "Куда смотрел центр кадра на этой секунде окна; чистый снежный склон."),
+          ("3:39", 39.481754, 73.592893, 5069, 39.480981, 73.592582, 146,
+           "Куда смотрел центр кадра на этой секунде окна; чистый снежный склон."),
+      ]],
 
     # -- следы/рельеф ув. 2 --
     dict(kind="trace", src="ai", status="open", conf=2, lat=39.482724, lon=73.593120, alt=5036,
@@ -543,6 +620,119 @@ POINTS = [
               "могли написать с верёвки, а потом подниматься. До надписи надо дойти/долететь.",
          imgs=["analysis/review/tg-2026-08-13-framecheck/slope/aligned_118.00.png",
                "analysis/fullframe/gennadiy-124655/crop_t114_zoom.png"]),
+
+    # -- кандидаты пакета «спасы 14/08» (вечер 14.08, автоотсмотр) --
+    dict(kind="item", src="ai", status="open", conf=3, lat=39.480057, lon=73.592559, alt=5163,
+         name="Прямой стержень ~0,9 м (ледоруб/палка?)",
+         coord="трассировка луча в рельеф: дистанция 122 м, фокусное 3569 (coverage); "
+               "вилка DEM ±30 м — увод ±25 м",
+         gps=[39.479503, 73.592575, 122], view=[345, -66], unc=25,
+         video="DJI_20260814153347_0008_Z", tc="0:01",
+         who="автоотсмотр пакета «спасы 14/08» 14.08 (детектор + ИИ + перепроверка); "
+             "TG «Новые скриншоты» #2691; вердикта нет",
+         desc="Тёмный прямой стержень: GSD 3.4 см/пикс, длина ~26 пикс ≈ 0.9 м — масштаб "
+              "ледоруба/палки. Ровные края, равномерная толщина, торчит из-под глыбы на снег. "
+              "В этом же кадре ниже по осыпи видна верёвка. Альтернатива — плитчатый скол.",
+         imgs=["analysis/review/findings-2026-08-14-spasy/01_t39_ledorub_full.jpg",
+               "analysis/review/findings-2026-08-14-spasy/01_t39_ledorub_crop.jpg"]),
+    dict(kind="item", src="ai", status="open", conf=3, lat=39.4801, lon=73.5910, alt=5060,
+         name="Объект ~0,5 м с прямой «лямкой» на чистом снегу",
+         coord="LRF-вилка соседних тайлов панорамы (прямой привязки пикселя нет), разброс ~±40 м",
+         gps=[39.481171, 73.590348, 65], unc=40,
+         video="DJI_20260814203346_0013_SUPR (панорама 0009)", tc="фото 20:34",
+         who="автоотсмотр пакета «спасы 14/08» 14.08; TG «Новые скриншоты» #2693; вердикта нет",
+         desc="Тёмное компактное тело ~0.5 м + тонкий прямой отросток («лямка») + мелкий "
+              "фрагмент рядом, лежит в лунке на чистом снегу; виден с двух ракурсов (тайлы "
+              "0012 и 0013, пиксель 3150,400). Рядом высота подтверждённой верёвки 5073 м. "
+              "Альтернатива — камень с трещиной-тенью.",
+         imgs=["analysis/review/findings-2026-08-14-spasy/06_supr13_lyamka_full.jpg",
+               "analysis/review/findings-2026-08-14-spasy/06_supr13_lyamka_crop.jpg"]),
+    dict(kind="rope", src="ai", status="open", conf=3, lat=39.481171, lon=73.590348, alt=5024,
+         name="«Нить» с провисом через седловину гребня (верёвка?)",
+         coord="привязки нет: LRF бил в ближний склон; точка — позиция дрона, объект на "
+               "гребне выше 5100 м по азимуту ~83°, дистанция ~100–300 м",
+         view=[83, 20], unc=300,
+         video="DJI_20260814203500_0002_SUPR (панорама 0010)", tc="фото 20:35",
+         who="автоотсмотр пакета «спасы 14/08» 14.08; TG «Новые скриншоты» #2695; вердикта нет",
+         desc="Тонкая светлая линия с катенарным провисом между скальными выступами: небо с "
+              "обеих сторон, читается и на фоне скалы — не кромка ребра и не шов SUPR-склейки. "
+              "При дистанции 200 м провис ~5–6 м, толщина ~1 см — совместимо с верёвкой. "
+              "Нужен второй ракурс гребня (сектор ВСВ от точки висения).",
+         imgs=["analysis/review/findings-2026-08-14-spasy/07_supr10_nit_full.jpg",
+               "analysis/review/findings-2026-08-14-spasy/07_supr10_nit_crop.jpg"]),
+    dict(kind="furrow", src="ai", status="open", conf=3, lat=39.47925, lon=73.59240, alt=5234,
+         name="Цепочка вмятин ~40–50 м (место А, у LOOK)",
+         coord=LRF + " — лазер в центр кадра, ±10 м",
+         video="DJI_20260814152327_0003_Z.JPG", tc="фото 15:23",
+         who="автоотсмотр пакета «спасы 14/08» 14.08; TG «Новые скриншоты» #2697; вердикта нет",
+         desc="Ровная цепочка бугорков/вмятин длиной ~40–50 м на чистом снегу, 136 м от точки "
+              "LOOK; похоже на присыпанную снегом дорожку следов. Альтернатива — камнепадная "
+              "дорожка (у скал рядом параллельные линии сброса).",
+         imgs=["analysis/review/findings-2026-08-14-spasy/05_foto0003_tsepochka_full.jpg",
+               "analysis/review/findings-2026-08-14-spasy/05_foto0003_tsepochka_crop.jpg"]),
+    dict(kind="furrow", src="ai", status="open", conf=2, lat=39.478919, lon=73.588983, alt=5078,
+         name="Цепочка тёмных точек (место Б, высота верёвки 5073)",
+         coord="трассировка луча в рельеф: дистанция 65 м, фокусное 6790 (coverage); "
+               "вилка DEM ±30 м — увод ±13 м",
+         gps=[39.479232, 73.588718, 65], view=[151, -53], unc=13,
+         video="DJI_20260814150800_0001_Z", tc="0:21",
+         who="автоотсмотр пакета «спасы 14/08» 14.08; TG «Новые скриншоты» #2697; вердикта нет",
+         desc="Цепочка тёмных точек/вмятин по диагонали: GSD 1.0 см/пикс, вмятины ~5–10 см. "
+              "Высота совпадает с подтверждённой верёвкой 5073 м. Альтернатива — камнепад.",
+         imgs=["analysis/review/findings-2026-08-14-spasy/02_t117_tsepochka_full.jpg",
+               "analysis/review/findings-2026-08-14-spasy/02_t117_tsepochka_crop.jpg"]),
+    dict(kind="object", src="ai", status="open", conf=2, lat=39.482740, lon=73.583977, alt=4579,
+         name="Прямоугольный предмет 10–30 см западнее вещей",
+         coord="трассировка луча почти в надир (вилка позиции мала); фокусное "
+               "экстраполировано с 86-й сек — вилка масштаба",
+         gps=[39.482696, 73.583873, 60], unc=15,
+         video="DJI_20260814212520_0003_Z", tc="0:51",
+         who="автоотсмотр пакета «спасы 14/08» 14.08; TG «Новые скриншоты» #2701; вердикта нет",
+         desc="Одиночный тёмный предмет: GSD ~0.8 см/пикс — размер 10–30 см (с учётом вилки "
+              "фокусного). Форма «баула» со скруглёнными углами, контрастен к склону; 250 м "
+              "западнее рюкзака — зона возможного уноса вещей. Скорее валун.",
+         imgs=["analysis/review/findings-2026-08-14-spasy/03_t102_predmet_full.jpg",
+               "analysis/review/findings-2026-08-14-spasy/03_t102_predmet_crop.jpg"]),
+    dict(kind="rope", src="ai", status="open", conf=3, lat=39.47908, lon=73.59232, alt=5288,
+         name="Верёвки у LOOK: одна или две? (толстая + тонкая)",
+         coord="надирные кадры, привязки пикселя нет; точка — позиция дрона, зона в радиусе "
+               "~60 м под дроном (рельеф ~5230–5260 м)",
+         view=[8, -65], unc=60,
+         video="DJI_20260814152347_0006_Z", tc="0:25 и 0:32",
+         who="автоотсмотр пакета «спасы 14/08» 14.08; TG «Новые скриншоты» #2703; вердикта нет",
+         desc="На 0:25 толстый серый шнур петлями в камнях, на 0:32 тонкая верёвка с читаемой "
+              "оплёткой — фактуры и диаметр различаются, возможно верёвок две. По положению — "
+              "известные верёвки LOOK/5073; штабу сверить. Примета для опознания: фиолетовая "
+              "метка на светлой верёвке (0:27). Верёвка видна также в 153347_0008 (0:00–0:04, "
+              "0:21) и 152640_0007 (1:22–1:24).",
+         imgs=["analysis/review/findings-2026-08-14-spasy/04_veryovki_t31_full.jpg",
+               "analysis/review/findings-2026-08-14-spasy/04_veryovki_t35_full.jpg"]),
+    dict(kind="object", src="tg", status="rejected", conf="x", lat=39.481279, lon=73.592673, alt=5099,
+         name="Три тёмных объекта цепочкой на склоне 5091–5107 м — не подтвердилось (камни)",
+         coord="триангуляция 3 лучей (зум-тайл + W-кадры панорам 0004/0005, базис ~100 м), "
+               "остатки 4–5 м, ±10 м; объединённая карточка трёх точек заявки: вертикальная "
+               "цепочка ~20 м (5091, 5099 и 5107 м) между перилами 5119 и верёвкой на гребне 5073",
+         gps=[39.481534, 73.589034, 317], view=[96, -5], unc=15,
+         video="DJI_20260814202448_0001_SUPR + DJI_20260814202504_0006_SUPR (панорамы 0002/0003)",
+         tc="фото 20:24–20:25",
+         who="заявка по SUPR-панорамам 14.08; закрыто облётом в упор 15.08 "
+             "(зависания 38–42 м, 0.6–0.9 см/пикс) и ручной сверкой ракурсов",
+         desc="Три компактных объекта на панорамах 14.08 (GSD ~2,0 см/пикс): тёмная ниша "
+              "~0,6×0,75 м с сине-фиолетовым элементом, розоватое пятно ~6×7 см у кромки "
+              "снега, тёмная масса ~0,8×1,2 м с зелёной точкой и красноватой полосой. "
+              "Пересъёмка в упор 15.08 (DJI_20260815111704_0001_Z и соседние зависания) "
+              "и попиксельная сверка ракурсов вручную закрыли все три: скальные выходы и "
+              "камни в снегу; «цветные» пятна — шум зума панорамной съёмки низкого "
+              "разрешения при интерпретации на пределе GSD.",
+         imgs=["docs/nakhodki/frames/sverka-supr-oblet-1.png",
+               "docs/nakhodki/frames/sverka-supr-oblet-2.png",
+               "docs/nakhodki/frames/sverka-supr-oblet-3.png",
+               "analysis/fullframe/supr0003-t0006/annotated_full.jpg",
+               "analysis/fullframe/supr0003-t0006/p3_two_views.jpg",
+               "analysis/fullframe/supr0003-t0006/p3_zoom.jpg",
+               "analysis/fullframe/supr0003-t0006/p4_zoom.jpg",
+               "analysis/fullframe/supr0003-t0006/annotated_pano2.jpg",
+               "analysis/fullframe/supr0003-t0006/p5_two_views.jpg"]),
 ]
 
 KINDS = [
@@ -551,6 +741,7 @@ KINDS = [
     ("furrow", "Борозды / следы скольжения"),
     ("trace", "Следы падения / рельеф"),
     ("object", "Объекты без интерпретации"),
+    ("extra", "Доп. поиск"),
 ]
 SRCS = [
     ("ai", "Наш конвейер (детектор + ИИ)"),
@@ -582,6 +773,7 @@ DESCENT_STARTS = [
     ("от Г-образного 5443", 39.47732, 73.59203),
     ("от борозд 5395", 39.47764, 73.59227),
     ("от перил 5119", 39.480794, 73.592573),
+    ("от объектов 5115", 39.481355, 73.591425),
 ]
 
 ZONE_RECT = [[39.4768, 73.5920], [39.4777, 73.5923]]           # зона интереса
@@ -771,6 +963,16 @@ def flights_index():
     return out
 
 
+def samples_index():
+    """Сэмплы плеера (analysis/slope_sample.py): flights/samples/*.json."""
+    out = []
+    for sp in sorted((OUT / "flights/samples").glob("*.json")):
+        m = json.loads(sp.read_text())
+        out.append(dict(id=m["id"], title=m["title"], dur=m["dur"],
+                        n=len(m["clips"]), file=f"flights/samples/{sp.name}"))
+    return out
+
+
 def build():
     dem = Dem()
 
@@ -811,6 +1013,7 @@ def build():
         cover=json.loads(COVER_JSON.read_text()) if COVER_JSON.exists() else None,
         drive=drive_ids(),
         flights=flights_index(),
+        samples=samples_index(),
     )
     html = TEMPLATE.replace("__DATA__", json.dumps(data, ensure_ascii=False, separators=(",", ":")))
     (OUT / "map.html").write_text(html, "utf-8")
@@ -1038,7 +1241,9 @@ header a { color:#4da3ff; text-decoration:none; }
   нет — фокусное этого момента не измерено (дрон висел без панорам): показаны только
   пунктир направления и крест. Полоса под кадром окрашена по детальности момента
   (зелёный — виден предмет от 20 см, янтарный — от 1 м, серый — обзорно), клик по ней —
-  перемотка.</p>
+  перемотка. «Сэмплы» в списке — пред-собранные подборки клипов из разных роликов
+  (например, склон возможного срыва в среднем/слабом зуме); жёлтый пунктир на карте —
+  полоса, по которой собран сэмпл, риски на полосе времени — границы клипов.</p>
 </div>
 </div>
 <div id="lightbox"><img alt=""></div>
@@ -1580,7 +1785,11 @@ refresh();
 // кадры fNNNN.jpg раз в frame_step с. Часы плеера непрерывные (rAF): кадр
 // сменяется раз в frame_step полётного времени, а дрон/полигон на карте
 // обновляются каждым сэмплом — панорамы на карте не прыгают.
+// Сэмплы (analysis/slope_sample.py) — пред-собранные плейлисты из клипов разных
+// роликов; проигрываются той же машинерией: FL/flT всегда локальны текущему
+// клипу, SMP хранит плейлист и номер клипа, глобальное время — smpGlobal().
 const FLIGHT_BY_NAME = new Map(D.flights.map(f => [f.name, f]));
+const SMP_BY_ID = new Map(D.samples.map(s => [s.id, s]));
 const flPane = document.getElementById('flight');
 const flSel = document.getElementById('flSel');
 const flImg = document.getElementById('flImg');
@@ -1600,9 +1809,20 @@ const flCtr = L.circleMarker([0,0], {radius:4, color:'#fff', weight:2, fillColor
                                      fillOpacity:1, interactive:false}).addTo(flLayer);
 const flDrone = L.circleMarker([0,0], {radius:7, color:'#fff', weight:2, fillColor:'#1565c0',
                                        fillOpacity:1, interactive:false}).addTo(flLayer);
+const smpBand = L.polygon([], {color:'#ffca28', weight:1.5, dashArray:'4 6', fill:false,
+                               interactive:false}).addTo(flLayer);
 
 let FL = null, flName = null, flT = 0, flPlaying = false, flSpeed = 10, flLastTs = null;
 let flFrameIdx = -1;
+let SMP = null, smpIdx = 0;
+let flSeq = 0;   // поколение загрузки: устаревшие await-продолжения отбрасываются
+const METAS = new Map();
+async function metaGet(name) {
+  if (!METAS.has(name))
+    METAS.set(name, await (await fetch(`flights/${name}/meta.json`)).json());
+  return METAS.get(name);
+}
+const smpGlobal = () => SMP.offs[smpIdx] + (flT - SMP.clips[smpIdx][1]);
 
 const flDay = document.getElementById('flDay');
 const fmtDay = d => d.slice(8,10) + '.' + d.slice(5,7);
@@ -1612,11 +1832,17 @@ flDay.innerHTML = '<option value="all">все дни</option>' +
 function flFillSel() {
   const day = flDay.value;
   const vs = D.flights.filter(f => day === 'all' || f.date === day);
+  const smps = D.samples.length ?
+    '<optgroup label="Сэмплы">' + D.samples.map(s =>
+      `<option value="smp:${s.id}">${s.title} · ${fmtTc(s.dur)} · клипов ${s.n}</option>`
+    ).join('') + '</optgroup>' : '';
   flSel.innerHTML = '<option value="" disabled selected>— выбрать ролик —</option>' +
+    smps +
     vs.map(f => `<option value="${f.name}">` +
       `${f.name.slice(12,18).replace(/(..)(..)(..)/,'$1:$2:$3')} · ${fmtTc(f.dur)}` +
       `${day === 'all' ? ' · ' + fmtDay(f.date) : ''} · ${f.name}</option>`).join('');
-  if (flName && vs.some(f => f.name === flName)) flSel.value = flName;
+  if (SMP) flSel.value = 'smp:' + SMP.id;
+  else if (flName && vs.some(f => f.name === flName)) flSel.value = flName;
 }
 flFillSel();
 flDay.onchange = flFillSel;
@@ -1626,19 +1852,32 @@ const lerpYaw = (a, b, f) => a + (((b - a + 540) % 360) - 180) * f;
 
 function flSample(i) { return FL.samples[Math.max(0, Math.min(i, FL.samples.length - 1))]; }
 
+const o8Color = o8 => o8 == null ? '#546e7a'
+              : o8 <= 20 ? '#00e676' : o8 <= 100 ? '#ffb300' : '#78909c';
+
 function flDrawTimeline() {
   if (!FL) return;
   const w = flTl.width = flTl.clientWidth, h = flTl.height;
   const g = flTl.getContext('2d');
   g.clearRect(0, 0, w, h);
-  const n = FL.samples.length;
-  for (let i = 0; i < n; i++) {
-    const s = FL.samples[i], o8 = s[7];
-    g.fillStyle = o8 == null ? (s[8] ? '#546e7a' : '#37474f')
-                : o8 <= 20 ? '#00e676' : o8 <= 100 ? '#ffb300' : '#78909c';
-    g.fillRect(Math.floor(i / n * w), 3, Math.ceil(w / n) + 1, h - 6);
+  if (SMP) {
+    const n = SMP.tl.length;
+    for (let i = 0; i < n; i++) {
+      g.fillStyle = o8Color(SMP.tl[i]);
+      g.fillRect(Math.floor(i / n * w), 3, Math.ceil(w / n) + 1, h - 6);
+    }
+    g.fillStyle = '#14161a';
+    for (let k = 1; k < SMP.offs.length; k++)
+      g.fillRect(Math.round(SMP.offs[k] / SMP.dur * w) - 1, 0, 2, h);
+  } else {
+    const n = FL.samples.length;
+    for (let i = 0; i < n; i++) {
+      const s = FL.samples[i], o8 = s[7];
+      g.fillStyle = o8 == null && !s[8] ? '#37474f' : o8Color(o8);
+      g.fillRect(Math.floor(i / n * w), 3, Math.ceil(w / n) + 1, h - 6);
+    }
   }
-  const x = Math.round(flT / FL.dur * w);
+  const x = Math.round((SMP ? smpGlobal() / SMP.dur : flT / FL.dur) * w);
   g.fillStyle = '#fff';
   g.fillRect(x - 1, 0, 3, h);
 }
@@ -1670,8 +1909,11 @@ function flRender() {
   flPoly.setLatLngs(s[9] || []);
   if (s[8]) flCtr.setLatLng([s[8][0], s[8][1]]).setStyle({opacity:1, fillOpacity:1});
   else flCtr.setStyle({opacity:0, fillOpacity:0});
-  flTc.textContent = fmtTc(flT) + ' / ' + fmtTc(FL.dur);
+  flTc.textContent = SMP ? fmtTc(smpGlobal()) + ' / ' + fmtTc(SMP.dur)
+                         : fmtTc(flT) + ' / ' + fmtTc(FL.dur);
   flMeta.innerHTML =
+    (SMP ? `клип <b>${smpIdx + 1}/${SMP.clips.length}</b> · ${flName} · ` +
+           `${fmtTc(flT)} ролика<br>` : '') +
     `дрон <b>${s[1].toFixed(6)}, ${s[2].toFixed(6)}</b> · выс <b>${Math.round(s[3])} м</b>` +
     (s[4] != null ? ` (над рельефом ${s[4]} м)` : '') +
     `<br>камера: азимут <b>${Math.round(s[5])}°</b>, наклон <b>${s[6]}°</b>` +
@@ -1687,8 +1929,24 @@ function flStop() {
 }
 function flTick(ts) {
   if (!flPlaying) return;
-  flT = Math.min(flT + (ts - flLastTs) / 1000 * flSpeed, FL.dur);
+  const dt = (ts - flLastTs) / 1000 * flSpeed;
   flLastTs = ts;
+  if (SMP) {
+    const end = SMP.clips[smpIdx][2];
+    if (flT + dt >= end) {
+      if (smpIdx + 1 >= SMP.clips.length) { flT = end; flRender(); flStop(); return; }
+      smpSeek(SMP.offs[smpIdx + 1]).then(() => {
+        flLastTs = performance.now();
+        if (flPlaying) requestAnimationFrame(flTick);
+      });
+      return;
+    }
+    flT += dt;
+    flRender();
+    requestAnimationFrame(flTick);
+    return;
+  }
+  flT = Math.min(flT + dt, FL.dur);
   flRender();
   if (flT >= FL.dur) flStop();
   else requestAnimationFrame(flTick);
@@ -1705,17 +1963,58 @@ function flPing() {
 }
 
 async function flLoad(name, t0) {
+  const seq = ++flSeq;
   flStop();
+  SMP = null;
+  smpBand.setLatLngs([]);
   flName = name;
   const fi = FLIGHT_BY_NAME.get(name);
   if (flDay.value !== 'all' && fi && fi.date !== flDay.value) flDay.value = fi.date;
   flFillSel();
   flFrameIdx = -1;
-  FL = await (await fetch(`flights/${name}/meta.json`)).json();
+  const meta = await metaGet(name);
+  if (seq !== flSeq) return;
+  FL = meta;
   flTrack.setLatLngs(FL.samples.map(s => [s[1], s[2]]));
   map.fitBounds(flTrack.getBounds().pad(0.25));
   flT = Math.max(0, Math.min(t0 || 0, FL.dur));
   flRender();
+  flPing();
+}
+
+async function smpSeek(tg) {
+  const seq = flSeq;
+  tg = Math.max(0, Math.min(tg, SMP.dur - 0.01));
+  let k = SMP.offs.length - 1;
+  while (k > 0 && tg < SMP.offs[k]) k--;
+  smpIdx = k;
+  const [v, t0, t1] = SMP.clips[k];
+  if (v !== flName || !FL) {
+    flName = v;
+    flFrameIdx = -1;
+    const meta = await metaGet(v);
+    if (seq !== flSeq) return;
+    FL = meta;
+  }
+  flTrack.setLatLngs(FL.samples
+    .filter(s => s[0] >= t0 - 1 && s[0] <= t1 + 1).map(s => [s[1], s[2]]));
+  flT = t0 + (tg - SMP.offs[k]);
+  if (k + 1 < SMP.clips.length) metaGet(SMP.clips[k + 1][0]);  // прогрев
+  flRender();
+}
+
+async function smpLoad(id, t0) {
+  const seq = ++flSeq;
+  flStop();
+  const si = SMP_BY_ID.get(id);
+  const smp = await (await fetch(si.file)).json();
+  if (seq !== flSeq) return;
+  SMP = smp;
+  smpIdx = 0;
+  flFillSel();
+  smpBand.setLatLngs(SMP.band);
+  map.fitBounds(smpBand.getBounds().pad(0.15));
+  await smpSeek(t0 || 0);
   flPing();
 }
 
@@ -1725,7 +2024,7 @@ function flOpen(name, t0) {
     map.invalidateSize();
     flLayer.addTo(map);
   }
-  if (name && name !== flName) flLoad(name, t0);
+  if (name && (name !== flName || SMP)) flLoad(name, t0);
   else if (name != null && t0 != null) { flT = Math.min(t0, FL.dur); flStop(); flRender(); flPing(); }
   else if (!FL && D.flights.length) flLoad(D.flights[0].name, 0);
 }
@@ -1741,12 +2040,16 @@ document.getElementById('flightBtn').onclick = e => {
   flPane.classList.contains('on') ? flClose() : flOpen();
 };
 document.getElementById('flClose').onclick = flClose;
-flSel.onchange = () => flLoad(flSel.value, 0);
+flSel.onchange = () => {
+  const v = flSel.value;
+  v.startsWith('smp:') ? smpLoad(v.slice(4), 0) : flLoad(v, 0);
+};
 document.getElementById('flSpeed').onchange = e => flSpeed = +e.target.value;
-flPlayBtn.onclick = () => {
+flPlayBtn.onclick = async () => {
   if (!FL) return;
   if (flPlaying) return flStop();
-  if (flT >= FL.dur) flT = 0;
+  if (SMP) { if (smpGlobal() >= SMP.dur - 0.05) await smpSeek(0); }
+  else if (flT >= FL.dur) flT = 0;
   flPlaying = true;
   flPlayBtn.textContent = '⏸';
   flLastTs = performance.now();
@@ -1755,6 +2058,14 @@ flPlayBtn.onclick = () => {
 function flStep(dir) {
   if (!FL) return;
   flStop();
+  if (SMP) {
+    const [, t0, t1] = SMP.clips[smpIdx];
+    const t = (Math.round(flT / FL.frame_step) + dir) * FL.frame_step;
+    if (t > t1 && smpIdx + 1 < SMP.clips.length) smpSeek(SMP.offs[smpIdx + 1]);
+    else if (t < t0 && smpIdx > 0) smpSeek(SMP.offs[smpIdx] - 0.1);
+    else { flT = Math.max(t0, Math.min(t, t1)); flRender(); }
+    return;
+  }
   const idx = Math.max(0, Math.min(Math.round(flT / FL.frame_step) + dir, FL.n_frames - 1));
   flT = Math.min(idx * FL.frame_step, FL.dur);
   flRender();
@@ -1773,7 +2084,9 @@ flImg.onclick = () => {
 function flSeekEv(e) {
   if (!FL) return;
   const r = flTl.getBoundingClientRect();
-  flT = Math.max(0, Math.min((e.clientX - r.left) / r.width, 1)) * FL.dur;
+  const frac = Math.max(0, Math.min((e.clientX - r.left) / r.width, 1));
+  if (SMP) { smpSeek(frac * SMP.dur); return; }
+  flT = frac * FL.dur;
   flRender();
 }
 flTl.addEventListener('pointerdown', e => {
