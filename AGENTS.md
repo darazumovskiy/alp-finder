@@ -119,7 +119,10 @@ scripts/
   drive_cron.sh         — ежечасный повтор докачки Drive (квоты Google); стоит в crontab
   tg_export.py          — выгрузка TG-группы (Telethon; сессия .tg_session — секрет, не публиковать)
   tg_cron.sh            — итерация докачки TG; стоит в crontab раз в минуту
-  deploy_mirror.sh      — публикация dist/ просмотрщика в ветку gh-pages (зеркало для РФ/РБ)
+  deploy_mirror.sh      — публикация dist/ просмотрщика в ветку gh-pages (зеркало для РФ/РБ);
+                          инкрементально через постоянный клон analysis/viewer/.mirror/
+                          (сломался — удалить каталог, пересоздастся сам); историю gh-pages
+                          держит в одном коммите force-push'ем
 ```
 
 ## Данные

@@ -33,6 +33,8 @@ analysis/stitch/
 
 # Сборка публичного просмотрщика (регенерируется analysis/viewer/build_dist.py)
 analysis/viewer/dist/
+# Постоянный клон gh-pages для инкрементального деплоя зеркала (scripts/deploy_mirror.sh)
+analysis/viewer/.mirror/
 # Кеш плеера полётов: кадры и мета (регенерируется analysis/flight_cache.py)
 analysis/viewer/flights/
 # Кэш wrangler (деплой Cloudflare Pages)

@@ -324,17 +324,29 @@ POINTS = [
          video="DJI_20260812133415_0006_Z", tc="0:44",
          desc="Тонкая светлая линия поперёк тёмной скалы.",
          imgs=["analysis/scans/DJI_20260812133415_0006_Z/crops/t0073_00m44s.jpg"]),
-    dict(kind="rope", src="shtab", status="open", conf=4, lat=39.481591, lon=73.592787, alt=5073,
-         name="Верёвка на гребне (±48 м)", fix="cast",
-         size="длина ~10 м, ширина ~3 см", size_unc="GSD 2,1 см/пикс (расчёт CC): ширина — предел разрешения",
-         coord="геопроекция луча в рельеф внешним расчётом CC (CSV kurumdy_candidates)", video="DJI_20260811204542_0001_Z", tc="3:24",
+    dict(kind="rope", src="shtab", status="open", conf=4, lat=39.481055, lon=73.592627, alt=5104,
+         name="Верёвка, лежащая на снегу (гребень)", fix="cast", unc=35, alt_unc=30,
+         size="длина 15–25 м, ширина ~3 см",
+         size_unc="GSD 2,6–3,1 см/пикс; вдоль скользящего луча масштаб плывёт — длина с вилкой",
+         coord="пересчитано 15.08 по пикселю самой верёвки в кадре 3:24 (телеметрия ролика "
+               "исправлена — до этого углы после 67-й секунды были испорчены провалом): "
+               "нижний конец 39.481055, 73.592627 (дистанция 131 м, вилка DEM ±30 м — увод 28 м), "
+               "верхний 39.481268, 73.592700, 5092 м (154 м, увод 37 м — формально не координата). "
+               "Прежняя оценка CC 39.481591, 73.592787, 5073 м ±48 м — в 36 м севернее, обе в "
+               "пределах вилок друг друга",
+         video="DJI_20260811204542_0001_Z", tc="3:24",
          who="нашли наблюдатели штаба (Подтверждённые #577, #838); геометрию измерила автоматика CC — этот снимок человеком в конвейере CC не отсматривался",
-         desc="Нашли наблюдатели штаба, CC измерил: тонкая тёмная линия постоянной ширины (~10 м, "
-              "~3 см — как верёвка 10 мм с размытием оптики) идёт через снег и скалу без излома — "
-              "рельеф так не умеет. Видна в одиночном кадре без обработки. Проверить, не одна ли "
-              "это система перил с линией 5146.",
-         imgs=["docs/nezavisimyy-analiz/screens/20260811204542_00-03-24_1_single.png",
-               "docs/nezavisimyy-analiz/screens/20260811204542_00-03-24_0_frame.jpg"], unc=48),
+         desc="Тонкая тёмная линия постоянной ширины идёт вниз по снегу через скалу без излома — "
+              "рельеф так не умеет. Лежит на склоне, а не висит: это НЕ верёвка через седловину "
+              "(вердикт человека 15.08 по кадрам — там линия натянута в провале над небом). "
+              "От той верёвки эта тянется в 17 м (верхний конец) — 41 м (нижний, эта точка), "
+              "то есть ближе, чем вилки обеих привязок; одна ли это система перил — вопрос "
+              "открыт, как и связь с линией 5146. "
+              "Второго ракурса нет: на утренних кадрах 15.08 с 46–89 м верёвка не читается — "
+              "скорее всего засыпана снегопадом 13–14.08, поэтому триангуляция невозможна.",
+         imgs=["analysis/review/findings-2026-08-15/k1b_veryovka_na_snegu_204542_t204_crop.jpg",
+               "analysis/review/findings-2026-08-15/k1b_veryovka_na_snegu_204542_t204_full.jpg",
+               "docs/nezavisimyy-analiz/screens/20260811204542_00-03-24_1_single.png"]),
     dict(kind="furrow", src="tg", status="confirmed", conf="v", lat=39.48181, lon=73.59288, alt=5097,
          name="След срыва (калибровочный, известный)", coord=GPS, view=[163, -8],
          video="DJI_20260812135426_0001_Z", tc="0:41",
@@ -638,23 +650,27 @@ POINTS = [
               "Альтернатива — камень с трещиной-тенью.",
          imgs=["analysis/review/findings-2026-08-14-spasy/06_supr13_lyamka_full.jpg",
                "analysis/review/findings-2026-08-14-spasy/06_supr13_lyamka_crop.jpg"]),
-    dict(kind="rope", src="ai", status="open", conf=3, lat=39.481171, lon=73.590348, alt=5024,
-         name="«Нить» с провисом через седловину гребня (верёвка?)", fix="gps",
-         size="провис ~5–6 м, толщина ~1 см", size_unc="считано на дистанцию 200 м; вилка 100–300 м меняет размер втрое",
-         coord="привязки нет: LRF бил в ближний склон; точка — позиция дрона, объект на "
-               "гребне выше 5100 м по азимуту ~83°, дистанция ~100–300 м. Триангуляция "
-               "15.08 дала 39.4814, 73.5928, ~5118 м (±20 м) — точку не переносим до "
-               "решения человека: это может быть «верёвка на гребне 5073» реестра "
-               "(analysis/review/2026-08-15.md)",
-         view=[83, 20], unc=300,
-         video="DJI_20260814203500_0002_SUPR (панорама 0010)", tc="фото 20:35",
-         who="автоотсмотр пакета «спасы 14/08» 14.08; TG «Новые скриншоты» #2695; вердикта нет",
-         desc="Тонкая светлая линия с катенарным провисом между скальными выступами: небо с "
-              "обеих сторон, читается и на фоне скалы — не кромка ребра и не шов SUPR-склейки. "
-              "При дистанции 200 м провис ~5–6 м, толщина ~1 см — совместимо с верёвкой. "
-              "Нужен второй ракурс гребня (сектор ВСВ от точки висения).",
-         imgs=["analysis/review/findings-2026-08-14-spasy/07_supr10_nit_full.jpg",
-               "analysis/review/findings-2026-08-14-spasy/07_supr10_nit_crop.jpg"]),
+    dict(kind="rope", src="ai", status="open", conf=4, lat=39.4814, lon=73.5928, alt=5118,
+         name="Верёвка, натянутая через провал седловины", fix="triang", unc=20, alt_unc=20,
+         size="пролёт 9–17 м, толщина 2–5 см",
+         size_unc="1–2 пикс на 40–80 м; фокусные самокалибровкой, квартили широкие",
+         coord="триангуляция трёх ракурсов: панорама 14.08 (SUPR 0010) и два зависания утра "
+               "15.08 (112305 @116 с, азимут 58–74°; 112532 @7–10 с, азимут ~110°). Рельеф "
+               "в расчёт не входит, поэтому вилка DEM тут ни при чём",
+         gps=[39.481171, 73.590348, 200],
+         video="DJI_20260814203500_0002_SUPR + DJI_20260815112305_0003_Z + DJI_20260815112532_0004_Z",
+         tc="фото 20:35 · 1:56 · 0:07–0:10",
+         who="автоотсмотр «спасы 14/08» (#2695) + утро 15.08; ракурсы сведены человеком 15.08 — "
+             "объект признан тем же самым на всех трёх кадрах; вердикта штаба нет",
+         desc="Тонкая линия с провисом натянута через провал седловины между скальными "
+              "жандармами: небо с обеих сторон, при панорамировании держится за одни и те же "
+              "точки рельефа — не кромка ребра и не шов склейки. Провис и толщина совместимы "
+              "с верёвкой. Это НЕ верёвка, лежащая на снегу (кадр 11.08) — та лежит на склоне; "
+              "но её верхний конец всего в 17 м отсюда (нижний — в 41 м), ближе вилок обеих "
+              "привязок, так что одной системой перил быть могут.",
+         imgs=["analysis/review/findings-2026-08-15/k1_veryovka_crop.jpg",
+               "analysis/review/findings-2026-08-14-spasy/07_supr10_nit_crop.jpg",
+               "analysis/review/findings-2026-08-14-spasy/07_supr10_nit_full.jpg"]),
     dict(kind="furrow", src="ai", status="open", conf=3, lat=39.47925, lon=73.59240, alt=5234,
          name="Цепочка вмятин ~40–50 м (место А, у LOOK)",
          coord=LRF + " — лазер в центр кадра, ±10 м",
@@ -1132,6 +1148,14 @@ header a { color:#4da3ff; text-decoration:none; }
 .c2{background:#455a64}.c1{background:#37474f}.cv{background:#1565c0}
 .cx{background:#5d4270}.cq{background:#37474f}
 .lyr { display:flex; gap:8px; align-items:center; padding:3px 2px; cursor:pointer; }
+.covsel { border:1px solid #33506e; background:#1f2836; border-radius:8px;
+          padding:8px 10px 9px; margin:4px 0 10px; }
+.covsel .fh { color:#aeb7c2; font-size:11px; text-transform:uppercase;
+              letter-spacing:.4px; margin:0 0 4px; }
+.covsel select { width:100%; background:#14161a; color:var(--text); border:1px solid var(--line);
+                 border-radius:6px; padding:6px 8px; font-size:13px; margin:3px 0 0;
+                 cursor:pointer; }
+.covsel select:hover { border-color:#4da3ff; }
 #presets { display:flex; flex-wrap:wrap; gap:6px; margin:6px 0 10px; }
 #presets button { background:#243447; color:#cfe4ff; border:1px solid #33506e;
                   border-radius:14px; padding:4px 11px; font-size:12px; cursor:pointer; }
@@ -1725,8 +1749,8 @@ if (COVER_TIERS.length) {
   const fmt = d => d.slice(8, 10) + '.' + d.slice(5, 7);
   const dates = [...new Set(D.cover.videos.map(v => v.date))].sort();
   const fBox = document.createElement('div');
-  fBox.innerHTML = `<div class="numf" style="padding-left:6px">осмотр за
-    <select></select> <select style="max-width:168px"></select></div>`;
+  fBox.className = 'covsel';
+  fBox.innerHTML = `<div class="fh">Осмотр за</div><select></select><select></select>`;
   const [dateSel, vidSel] = fBox.querySelectorAll('select');
   dateSel.innerHTML = '<option value="all">все дни</option>' +
     dates.map(d => `<option value="${d}">${fmt(d)}</option>`).join('');
@@ -1739,7 +1763,7 @@ if (COVER_TIERS.length) {
   fillVideos();
   dateSel.onchange = () => { coverDate = dateSel.value; fillVideos(); coverRecompute(); redrawCover(); };
   vidSel.onchange = () => { coverVideo = vidSel.value; coverRecompute(); redrawCover(); };
-  layersDiv.appendChild(fBox);
+  layersDiv.prepend(fBox);
 
   const cvBox = document.createElement('div');
   cvBox.innerHTML = `<label class="lyr" style="gap:6px">Плотность заливки:
