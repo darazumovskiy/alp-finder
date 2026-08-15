@@ -327,8 +327,13 @@ def cast(dem: Dem, lat, lon, alt, direction):
     de, dn, du = direction
     m_per_deg_lat = 111132.0
     m_per_deg_lon = 111320.0 * math.cos(math.radians(lat))
-    prev = None
-    above = False        # луч уже был над поверхностью
+    # старт над поверхностью считается «уже над» — иначе пересечение ближе
+    # первого шага марша (крутой луч у склона) пропускается как подземный участок
+    try:
+        above = alt > dem.elev(lat, lon)
+    except ValueError:
+        above = False
+    prev = 0.0
     d = RAY_STEP_M
     while d <= RAY_MAX_M:
         la = lat + dn * d / m_per_deg_lat

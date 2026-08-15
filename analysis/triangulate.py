@@ -202,11 +202,16 @@ def parse_spec(s):
     raise SystemExit(f"не понял спеку: {s}")
 
 
-def cmd_solve(args):
+def solve_rays(specs):
+    """Пересечение лучей наименьшими квадратами.
+
+    Возвращает dict: lat, lon, alt, rays=[(tag, дистанция, остаток, σ_угла°)],
+    sigma=(полуоси σ-эллипсоида, м, по возрастанию), worst=худший остаток, м.
+    Используется и CLI ниже, и пересчётом карточек карты (point_recalc.py)."""
     import numpy as np
     rays = []
     lat0 = lon0 = alt0 = None
-    for spec in args.specs:
+    for spec in specs:
         meta, px, py, f, w, h, sigma_px, tag = parse_spec(spec)
         if lat0 is None:
             lat0, lon0, alt0 = meta["la"], meta["lo"], meta["al"]
@@ -220,7 +225,7 @@ def cmd_solve(args):
                       (meta["la"] - lat0) * M_LAT, meta["al"] - alt0])
         rays.append((o, d, math.degrees(sigma_px / f), tag))
     if len(rays) < 2:
-        raise SystemExit("нужно ≥2 лучей с разных позиций")
+        raise ValueError("нужно ≥2 лучей с разных позиций")
     A = np.zeros((3, 3))
     b = np.zeros(3)
     for o, d, _, _ in rays:
@@ -228,27 +233,34 @@ def cmd_solve(args):
         A += P
         b += P @ o
     p = np.linalg.solve(A, b)
-    la = lat0 + p[1] / M_LAT
-    lo = lon0 + p[0] / m_lon(lat0)
-    al = alt0 + p[2]
-    print(f"координата: {la:.6f}, {lo:.6f}, {al:.0f} м")
+    out_rays = []
     dists = []
     for o, d, sig_ang, tag in rays:
         P = np.eye(3) - np.outer(d, d)
         resid = float(np.linalg.norm(P @ (p - o)))
         dist = float(np.linalg.norm(p - o))
         dists.append(dist)
-        print(f"  {tag[-70:]}: дистанция {dist:.0f} м, остаток {resid:.1f} м, "
-              f"σ_угла {sig_ang:.3f}°")
+        out_rays.append((tag, dist, resid, sig_ang))
     # формальная σ позиции: угловой шум × дистанция, через геометрию (A^-1)
     sig = np.mean([math.radians(s) * d for (_, _, s, _), d in zip(rays, dists)])
     cov = np.linalg.inv(A) * (sig ** 2) * len(rays)
     eig = np.sqrt(np.linalg.eigvalsh(cov))
+    return dict(lat=lat0 + p[1] / M_LAT, lon=lon0 + p[0] / m_lon(lat0),
+                alt=alt0 + p[2], rays=out_rays,
+                sigma=tuple(float(e) for e in eig),
+                worst=max(r[2] for r in out_rays))
+
+
+def cmd_solve(args):
+    r = solve_rays(args.specs)
+    print(f"координата: {r['lat']:.6f}, {r['lon']:.6f}, {r['alt']:.0f} м")
+    for tag, dist, resid, sig_ang in r["rays"]:
+        print(f"  {tag[-70:]}: дистанция {dist:.0f} м, остаток {resid:.1f} м, "
+              f"σ_угла {sig_ang:.3f}°")
+    eig = r["sigma"]
     print(f"σ позиции (полуоси эллипсоида): {eig[0]:.1f} / {eig[1]:.1f} / {eig[2]:.1f} м")
-    worst = max(float(np.linalg.norm((np.eye(3) - np.outer(d, d)) @ (p - o)))
-                for o, d, _, _ in rays)
-    print("вердикт:", "ok" if worst < 10 else
-          f"ПЛОХО: остаток {worst:.0f} м — проверь пиксели/кадры (не тот объект?)")
+    print("вердикт:", "ok" if r["worst"] < 10 else
+          f"ПЛОХО: остаток {r['worst']:.0f} м — проверь пиксели/кадры (не тот объект?)")
 
 
 def main():
