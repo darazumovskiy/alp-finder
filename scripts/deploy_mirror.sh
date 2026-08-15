@@ -54,6 +54,8 @@ if [ ! -d "$MIRROR/.git" ]; then
   git clone -q --filter=blob:none --no-checkout --depth 1 --branch gh-pages \
     "$URL" "$MIRROR"
   git -C "$MIRROR" read-tree HEAD
+  # без этого скан 13 тыс. файлов (ls-files/add) занимает секунды вместо мгновений
+  git -C "$MIRROR" config core.untrackedCache true
 fi
 
 rsync -a --delete --exclude=/.git "$DIST/" "$MIRROR/"
