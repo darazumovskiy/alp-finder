@@ -47,7 +47,8 @@ flush() {
 }
 while IFS= read -r -d '' f; do
   batch+=("$f")
-  size=$((size + $(stat -f%z "$TMP/$f" 2>/dev/null || stat -c%s "$TMP/$f")))
+  # удалённые файлы попадают в ls-files -m, но на диске их нет — размер 0
+  size=$((size + $(stat -f%z "$TMP/$f" 2>/dev/null || stat -c%s "$TMP/$f" 2>/dev/null || echo 0)))
   if [ "$size" -ge "$BATCH_BYTES" ]; then flush; fi
 done < <(git -C "$TMP" ls-files -o -m --exclude-standard -z)
 flush
