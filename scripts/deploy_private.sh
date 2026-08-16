@@ -22,5 +22,8 @@ WORKER="$ROOT/analysis/viewer/_worker.js"   # код воркера (Basic Auth)
 cp "$WORKER" "$DIST/_worker.js"
 trap 'rm -f "$DIST/_worker.js"' EXIT
 
-npx wrangler pages deploy "$DIST" --project-name alp-finder-team
+# --branch main: прод-деплой независимо от текущей git-ветки (в режиме
+# приватности работаем в team-only, а wrangler по умолчанию берёт её имя
+# и делает Preview-деплой — прод-алиас остаётся на старой версии)
+npx wrangler pages deploy "$DIST" --project-name alp-finder-team --branch main --commit-dirty=true
 echo "готово: https://alp-finder-team.pages.dev"
