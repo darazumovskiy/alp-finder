@@ -52,6 +52,9 @@ srt-drone-part3.zip
 # Локальные памятки — не публикуются
 *.local.md
 
+# Воркер Basic Auth тим-версии: содержит пароль (см. docs/zakrytaya-zona.local.md)
+analysis/viewer/_worker.js
+
 .DS_Store
 
 # Слой следов и отбор кадров участка: тяжёлые артефакты прогонов не коммитятся
