@@ -121,8 +121,9 @@ header a { color:#4da3ff; text-decoration:none; }
 .popup .nums .no { color:#888; font-weight:400; }
 .popup .nums .row.warn { background:#fff4ee; }
 .popup .strat { font-size:11.5px; color:#555; margin:3px 0 5px; }
-.popup .thumbs { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
-.popup .thumbs img { height:92px; border-radius:5px; cursor:zoom-in; }
+.popup .thumbs { display:flex; flex-wrap:wrap; gap:6px; margin:6px 0 8px; }
+.popup .thumbs:empty { display:none; }
+.popup .thumbs img { height:78px; border-radius:5px; cursor:zoom-in; }
 .covlist { max-height:250px; overflow-y:auto; margin:6px 0; }
 .covrow { display:flex; gap:7px; padding:4px 0; border-top:1px solid #e3e3e3; font-size:12px; }
 .covrow .sw { flex:0 0 10px; height:10px; margin-top:3px; border-radius:2px; }
@@ -563,6 +564,7 @@ function popupHtml(p) {
   <div class="phead"><b>${p.name}</b> <span class="conf ${confCls(p.conf)}">${conf}</span></div>
   <div class="pbody">
   ${numsHtml(p)}
+  <div class="thumbs">${thumbs}</div>
   <div class="strat"><b>Как посчитано:</b> ${p.fixTitle} — ${p.coord}</div>
   <div class="meta">${KIND_TITLE[p.kind]} · ${SRC_TITLE[p.src]} · ${STATUS_TITLE[p.status]}<br>
   ${p.video} ${p.tc||''}<br>
@@ -571,8 +573,7 @@ function popupHtml(p) {
   <b>Вердикт:</b> ${p.who}</div>
   ${srcs}
   <div>${p.desc}</div>
-  <div class="dist">до траектории падения <b>${p.dTraj} м</b> (линия падения ${p.dFall} м, линии спуска из зоны ${p.dDesc} м) · до маршрута <b>${p.dRoute} м</b></div>
-  <div class="thumbs">${thumbs}</div></div></div>`;
+  <div class="dist">до траектории падения <b>${p.dTraj} м</b> (линия падения ${p.dFall} м, линии спуска из зоны ${p.dDesc} м) · до маршрута <b>${p.dRoute} м</b></div></div></div>`;
 }
 
 // Фасетные фильтры: внутри фасета «или», между фасетами «и».
