@@ -75,6 +75,10 @@ def find_video(token):
     if not hits:
         raise ValueError(f"видео по токену «{token}» с телеметрией не найдено")
     if len(hits) > 1:
+        # дубликаты вида *_fixed.MP4: предпочесть файл, чьё имя кончается ровно токеном
+        exact = [h for h in hits if h.stem.endswith(token)]
+        if len(exact) == 1:
+            return exact[0]
         raise ValueError(f"токен «{token}» неоднозначен: {[h.name for h in hits]}")
     return hits[0]
 

@@ -40,6 +40,7 @@ PANOS = {
     "analysis/stitch/pano-veshchi-full/pano": "pano/veshchi",
     "analysis/stitch/merged-ryukzak-14/pano": "pano/ryukzak-14",
     "analysis/stitch/merged-zona/pano": "pano/zona",
+    "analysis/stitch/pano-183932/pano": "pano/183932",
 }
 
 # Ловим и литеральные src="/analysis/...", и пути в JS-данных ("analysis/.../x.jpg")
