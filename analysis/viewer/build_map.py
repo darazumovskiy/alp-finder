@@ -1437,6 +1437,16 @@ header a { color:#4da3ff; text-decoration:none; }
                border-radius:4px; padding:2px 4px; font-size:11.5px; }
 .popup { font:13px/1.45 -apple-system,"Segoe UI",Roboto,sans-serif; max-width:340px; }
 .popup b { font-size:13.5px; }
+/* Карточки находок длинные (расчёт + доводы + вердикт). Заголовок закреплён,
+   остальное листается внутри попапа, чтобы он не перерастал экран. */
+.popup .phead { padding-right:14px; border-bottom:1px solid #e6e6e6; padding-bottom:5px; }
+.popup .pbody { max-height:min(46vh,360px); overflow-y:auto; overflow-x:hidden;
+                overscroll-behavior:contain; padding:6px 8px 0 0; }
+.popup .pbody::-webkit-scrollbar { width:8px; }
+.popup .pbody::-webkit-scrollbar-track { background:#f1f1f1; border-radius:4px; }
+.popup .pbody::-webkit-scrollbar-thumb { background:#c2c2c2; border-radius:4px; }
+.popup .pbody::-webkit-scrollbar-thumb:hover { background:#a8a8a8; }
+.popup .pbody { scrollbar-width:thin; scrollbar-color:#c2c2c2 #f1f1f1; }
 .popup .meta { color:#555; font-size:12px; margin:3px 0; }
 .popup .src { color:#666; font-size:11px; font-family:ui-monospace,Menlo,monospace;
               word-break:break-all; margin:1px 0; user-select:all; }
@@ -1451,7 +1461,7 @@ header a { color:#4da3ff; text-decoration:none; }
 .popup .nums .no { color:#888; font-weight:400; }
 .popup .nums .row.warn { background:#fff4ee; }
 .popup .strat { font-size:11.5px; color:#555; margin:3px 0 5px; }
-.popup .thumbs { display:flex; gap:6px; margin-top:6px; }
+.popup .thumbs { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
 .popup .thumbs img { height:92px; border-radius:5px; cursor:zoom-in; }
 .covlist { max-height:250px; overflow-y:auto; margin:6px 0; }
 .covrow { display:flex; gap:7px; padding:4px 0; border-top:1px solid #e3e3e3; font-size:12px; }
@@ -1889,7 +1899,9 @@ function popupHtml(p) {
   const conf = p.conf==='v' ? 'вещь' : (p.conf==='x' ? 'закрыт' : (p.conf==null ? 'ув. ?' : 'ув. '+p.conf));
   const thumbs = p.imgs.map(i=>`<img src="/${i}" loading="lazy">`).join('');
   const srcs = (p.srcs||[]).map(s=>`<div class="src">${s}</div>`).join('');
-  return `<div class="popup"><b>${p.name}</b> <span class="conf ${confCls(p.conf)}">${conf}</span>
+  return `<div class="popup">
+  <div class="phead"><b>${p.name}</b> <span class="conf ${confCls(p.conf)}">${conf}</span></div>
+  <div class="pbody">
   ${numsHtml(p)}
   <div class="strat"><b>Как посчитано:</b> ${p.fixTitle} — ${p.coord}</div>
   <div class="meta">${KIND_TITLE[p.kind]} · ${SRC_TITLE[p.src]} · ${STATUS_TITLE[p.status]}<br>
@@ -1900,7 +1912,7 @@ function popupHtml(p) {
   ${srcs}
   <div>${p.desc}</div>
   <div class="dist">до траектории падения <b>${p.dTraj} м</b> (линия падения ${p.dFall} м, линии спуска из зоны ${p.dDesc} м) · до маршрута <b>${p.dRoute} м</b></div>
-  <div class="thumbs">${thumbs}</div></div>`;
+  <div class="thumbs">${thumbs}</div></div></div>`;
 }
 
 // Фасетные фильтры: внутри фасета «или», между фасетами «и».
