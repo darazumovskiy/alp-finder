@@ -18,6 +18,7 @@
 """
 
 import argparse
+import bisect
 import math
 from pathlib import Path
 
@@ -37,6 +38,10 @@ ROT_MIN, ROT_MAX = 0.4, 8.0   # суммарный поворот подвеса
 F_BAND = (1000.0, 20000.0)    # оценки фокусного вне этой полосы - брак
 F_WINDOW = 20.0      # окно поиска оценок фокусного вокруг сэмпла, с
 F_MIN_ESTS = 3       # минимум оценок в окне, иначе фокусное «неизвестно»
+F_STEP_MAX = 1.5     # медианы полуокон (по ≥3 оценок) расходятся больше —
+                     # ступенька зума в окне, фокусное «неизвестно»; порог и
+                     # требование ≥3 на половину держат шум самокалибровки
+                     # (MAD оценок 10–57%) от ложных срабатываний
 THRESH_PX = 8        # порог различимости из стенда врезок
 OBJECTS = (("ryukzak", 1.00), ("kurtka", 0.60), ("kryshka", 0.17))
 
@@ -96,25 +101,52 @@ def focal_series(video: Path, tr):
     return ests, why
 
 
-def focal_at(ests, t):
-    """Медиана оценок фокусного в окне ±F_WINDOW вокруг t или None."""
-    near = [f for tf, f in ests if abs(tf - t) <= F_WINDOW]
-    if len(near) < F_MIN_ESTS:
+def focal_at(ests, t, zoom_changes=None):
+    """Медиана оценок фокусного в окне ±F_WINDOW вокруг t или None.
+
+    Защита от смены зума в окне (кейс 17.08: медиана окна смешивала
+    фокусные до и после наезда — значение занижалось в разы):
+    - если известны моменты смен зума из SRT (`zoom_changes`, отсортированы),
+      в медиану идут только оценки С ТОГО ЖЕ ПЛАТО зума, что и t (между
+      оценкой и t нет ни одного флага смены) — зависания живут за счёт
+      панорам своего плато, середина наезда честно пустеет;
+    - бэкстоп без SRT (и против замирания SRT): если медианы полуокон
+      «до t» / «после t» (по ≥3 оценок каждое) расходятся больше
+      F_STEP_MAX — ступенька, фокусное «неизвестно». Медианы, а не max/min:
+      одиночные выбросы шумной самокалибровки ступеньку не имитируют
+      (ревью 17.08 №2: max/min-гейт выжигал 80–100% честных моментов).
+    """
+    if zoom_changes:
+        def same_plateau(tf):
+            lo, hi = (tf, t) if tf <= t else (t, tf)
+            i = bisect.bisect_left(zoom_changes, lo)
+            return i >= len(zoom_changes) or zoom_changes[i] > hi
+        near_pairs = [(tf, f) for tf, f in ests
+                      if abs(tf - t) <= F_WINDOW and same_plateau(tf)]
+    else:
+        near_pairs = [(tf, f) for tf, f in ests if abs(tf - t) <= F_WINDOW]
+    if len(near_pairs) < F_MIN_ESTS:
         return None
-    return float(np.median(near))
+    before = [f for tf, f in near_pairs if tf <= t]
+    after = [f for tf, f in near_pairs if tf > t]
+    if len(before) >= 3 and len(after) >= 3:
+        mb, ma = float(np.median(before)), float(np.median(after))
+        if max(mb, ma) / min(mb, ma) > F_STEP_MAX:
+            return None
+    return float(np.median(before + after))
 
 
-# --- SRT-фокусное как заполнитель провалов самокалибровки (17.08) -------------
+# --- SRT-фокусное: перенос самокалибровки через отношения зума (17.08) --------
 #
 # SRT несёт focal_len×dzoom покадрово, но в миллиметрах; перевод в пиксели
-# калибруется ПО САМОКАЛИБРОВКЕ ЭТОГО ЖЕ РОЛИКА (медиана отношения, MAD).
-# Без своих панорам берётся глобальная константа камеры Z (первая сверка SRT
-# с самокалибровкой на M30T: 7699 px при 120.3 мм, MAD 4% —
-# docs/video-analysis.md, кейс 183932). Семантика docs/focal-length-calibration.md
-# не нарушается: SRT-миллиметры на веру не берутся — множитель везде проверен
-# самокалибровкой. Заполняются только моменты, где своих оценок нет
-# (зависания без панорам — прежний «no_focal», из-за которого в плеере
-# пропадала рамка кадра).
+# калибруется ПО САМОКАЛИБРОВКЕ ЭТОГО ЖЕ РОЛИКА (медиана отношения на
+# моментах со стабильным зумом, MAD-гейт). При валидном множителе фокусное
+# каждого сэмпла берётся как K × мм(t) — это точный перенос калиброванного
+# значения через известное отношение зумов, он работает и в зависаниях без
+# панорам, и в середине наезда зума, где медиана самокалибровки в окне
+# ±20 с заведомо смазана. Семантика docs/focal-length-calibration.md не
+# нарушается: SRT-миллиметры на веру не берутся — множитель проверен
+# самокалибровкой этого же ролика.
 
 # Глобальной fallback-константы мм→px НЕТ (ревью 17.08): два задокументированных
 # замера дают K от −8% до +20% от номинала 1920/36 (наблюдения «SRT-фокусное»
@@ -127,7 +159,7 @@ SRT_MAX_DT = 1.0        # допуск сопоставления рядов п�
 
 
 def srt_focal_series(video: Path):
-    """[(t, мм_экв)] из сайдкара <видео>.focal.tsv (scripts/dji_srt_focal.py)."""
+    """[(t, мм_экв, смена_зума)] из сайдкара <видео>.focal.tsv."""
     side = video.parent / (video.name + ".focal.tsv")
     if not side.exists():
         return []
@@ -136,10 +168,23 @@ def srt_focal_series(video: Path):
         p = line.split("\t")
         if len(p) >= 4 and p[0] and p[3]:
             try:
-                out.append((float(p[0]), float(p[3])))
+                out.append((float(p[0]), float(p[3]),
+                            len(p) >= 5 and p[4].strip() == "1"))
             except ValueError:
                 continue
     return out
+
+
+SRT_STABLE_WIN_S = 0.7   # зум «стабилен», если рядом нет флагов смены
+
+
+def srt_stable(srt, t):
+    """Нет смен зума в окне ±SRT_STABLE_WIN_S вокруг t (для калибровочных пар)."""
+    ts = [row[0] for row in srt]
+
+    lo = bisect.bisect_left(ts, t - SRT_STABLE_WIN_S)
+    hi = bisect.bisect_right(ts, t + SRT_STABLE_WIN_S)
+    return not any(srt[i][2] for i in range(lo, hi))
 
 
 def srt_mm_at(srt, t):
@@ -156,12 +201,40 @@ def srt_mm_at(srt, t):
     return best[1] if best else None
 
 
+SRT_AGREE_WIN_S = 90.0   # окно поиска контрольной оценки для кросс-чека
+SRT_AGREE_TOL = 0.25     # допуск расхождения K×мм с контрольной оценкой
+
+
+def srt_agrees(ests, srt, k, t):
+    """Кросс-чек замирания SRT: ближайшая по времени оценка самокалибровки
+    (в пределах SRT_AGREE_WIN_S) согласуется с K×мм её момента. Замёрзший
+    SRT-ряд рядом с живой панорамой расходится с ней в разы и режется здесь;
+    замирание в длинном зависании без единой панорамы остаётся невидимым —
+    такие моменты честно уходят в фолбэк (обычно no_focal)."""
+    best = None
+    for tf, f_est in ests:
+        d = abs(tf - t)
+        if d <= SRT_AGREE_WIN_S and (best is None or d < best[0]):
+            best = (d, tf, f_est)
+    if best is None:
+        return False
+    mm_ref = srt_mm_at(srt, best[1])
+    if not mm_ref:
+        return False
+    return abs(k * mm_ref / best[2] - 1.0) <= SRT_AGREE_TOL
+
+
 def srt_calibrate(video: Path, ests, srt, width):
     """(K px/мм в НАТИВНЫХ пикселях ролика, метка источника) или (None, причина)."""
     if not srt:
         return None, "нет focal.tsv"
     ratios = []
     for t_est, f_est in ests:
+        # пары только на стабильном зуме: самокалибровка на 20-кадровой базе
+        # через смену зума заведомо испорчена и раздувает MAD (кейс 17.08:
+        # у зумящих роликов MAD 10–57% без фильтра)
+        if not srt_stable(srt, t_est):
+            continue
         mm = srt_mm_at(srt, t_est)
         if mm:
             ratios.append(f_est / mm)
@@ -188,17 +261,31 @@ def scan_video(video: Path, dem: Dem, step: float):
 
     srt = srt_focal_series(video)
     srt_k, srt_note = srt_calibrate(video, ests, srt, w)
+    zoom_changes = sorted(t0 for t0, _mm, ch in srt if ch)
     n_srt_fill = 0
 
     samples = []
     t = float(tr["t"][0])
     while t <= float(tr["t"][-1]):
-        f = focal_at(ests, t)
-        if f is None and srt_k is not None:
+        # при валидном множителе SRT-перенос первичен: зум по SRT известен
+        # покадрово, а медиана самокалибровки в окне ±20 с смазывается через
+        # смены зума (кейс 17.08, наезд зума 11:54 подхода: фокусное занижено
+        # в разы, полигон кадра раздут). Ограничения (ревью 17.08 №2):
+        # F_BAND действует и на перенос — порог 8 px не валидирован на
+        # экстремальном цифровом зуме, и ложная «детальность 0 см» в слое
+        # хуже честного «неизвестно»; плюс кросс-чек замирания — SRT-ряд
+        # у M30T может замерзать без флагов (кейс t=617/633), поэтому
+        # перенос применяется, только если ближайшая по времени оценка
+        # самокалибровки согласуется с K×мм в этот момент.
+        f = None
+        if srt_k is not None:
             mm = srt_mm_at(srt, t)
-            if mm and F_BAND[0] <= srt_k * mm * 1920.0 / w <= F_BAND[1]:
+            if mm and F_BAND[0] <= srt_k * mm * 1920.0 / w <= F_BAND[1] \
+                    and srt_agrees(ests, srt, srt_k, t):
                 f = srt_k * mm
                 n_srt_fill += 1
+        if f is None:
+            f = focal_at(ests, t, zoom_changes)
         row = dict(t=t, f=f, dist=None, gsd=None, sky=False, gap=False)
         pose = [interp(tr, t, k) for k in ("lat", "lon", "alt_m", "gb_yaw", "gb_pitch")]
         if not all(math.isfinite(v) for v in pose):
@@ -215,7 +302,7 @@ def scan_video(video: Path, dem: Dem, step: float):
         t += step
     if srt:
         print(f"  SRT-фокусное {video.name}: множитель — {srt_note}; "
-              f"заполнено {n_srt_fill} моментов без панорам")
+              f"SRT-перенос применён в {n_srt_fill} сэмплах")
     return dict(video=video, n_ests=len(ests), why=why, samples=samples, width=w)
 
 

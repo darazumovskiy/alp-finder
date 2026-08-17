@@ -4,7 +4,7 @@ t	f_px	dist_m	gsd_cm	obj8px_cm	status
 4.0	15003	75	0.5	4	ok
 6.0	15003	77	0.5	4	ok
 8.0	15003	79	0.5	4	ok
-10.0	15003	78	0.5	4	ok
+10.0					no_focal
 12.0	15003	78	0.5	4	ok
 14.0	15003	81	0.5	4	ok
 16.0	14565	78	0.5	4	ok
@@ -16,8 +16,8 @@ t	f_px	dist_m	gsd_cm	obj8px_cm	status
 28.0	15003	2376	15.8	127	ok
 30.0	14989	1638	10.9	87	ok
 32.0	14186	181	1.3	10	ok
-34.0	14157	53	0.4	3	ok
-36.0	8804	45	0.5	4	ok
+34.0					no_focal
+36.0					no_focal
 38.0	3423	31	0.9	7	ok
 40.0	5078	28	0.6	4	ok
 42.0	5078	27	0.5	4	ok
@@ -26,17 +26,17 @@ t	f_px	dist_m	gsd_cm	obj8px_cm	status
 48.0	5078	22	0.4	3	ok
 50.0	5078	22	0.4	3	ok
 52.0	3423	22	0.6	5	ok
-54.0	3423	20	0.6	5	ok
-56.0	6734	21	0.3	2	ok
-58.0	6955	21	0.3	2	ok
+54.0					no_focal
+56.0					no_focal
+58.0					no_focal
 60.0	6772	21	0.3	2	ok
 62.0	6974	21	0.3	2	ok
 64.0	7175	21	0.3	2	ok
 66.0	7451	21	0.3	2	ok
-68.0	7357	25	0.3	3	ok
-70.0	7538	30	0.4	3	ok
-72.0	7538	30	0.4	3	ok
-74.0	7633	30	0.4	3	ok
+68.0					no_focal
+70.0					no_focal
+72.0					no_focal
+74.0					no_focal
 76.0	7633	39	0.5	4	ok
 78.0	7728	25	0.3	3	ok
 80.0	7796	25	0.3	3	ok
@@ -47,8 +47,8 @@ t	f_px	dist_m	gsd_cm	obj8px_cm	status
 90.0	7887	29	0.4	3	ok
 92.0	7979	28	0.4	3	ok
 94.0	7979	28	0.3	3	ok
-96.0	8446	29	0.3	3	ok
-98.0	8913	31	0.3	3	ok
+96.0					no_focal
+98.0					no_focal
 100.0	9042	32	0.4	3	ok
 102.0	9171	32	0.4	3	ok
 104.0	9815	32	0.3	3	ok
@@ -83,11 +83,11 @@ t	f_px	dist_m	gsd_cm	obj8px_cm	status
 162.0	15199	13	0.1	1	ok
 164.0	14959	12	0.1	1	ok
 166.0	14719	12	0.1	1	ok
-168.0	14386	12	0.1	1	ok
-170.0	14793	12	0.1	1	ok
-172.0	14386	12	0.1	1	ok
-174.0	3509	12	0.3	3	ok
-176.0	2985	12	0.4	3	ok
+168.0					no_focal
+170.0					no_focal
+172.0					no_focal
+174.0					no_focal
+176.0					no_focal
 178.0	2852	5	0.2	1	ok
 180.0	2463				above_horizon
 182.0	2720				above_horizon
@@ -110,9 +110,9 @@ t	f_px	dist_m	gsd_cm	obj8px_cm	status
 216.0	2747				above_horizon
 218.0	2747				above_horizon
 220.0	2916				above_horizon
-222.0	2747				above_horizon
-224.0	2578				above_horizon
-226.0	2578				above_horizon
+222.0					no_focal
+224.0					no_focal
+226.0					no_focal
 228.0	2578	4997	193.9	1551	ok
 230.0	2519				above_horizon
 232.0	2519				above_horizon
@@ -162,7 +162,7 @@ t	f_px	dist_m	gsd_cm	obj8px_cm	status
 320.0	1508				above_horizon
 322.0	1508				above_horizon
 324.0	2110				above_horizon
-326.0	2110				above_horizon
+326.0					no_focal
 328.0	2953				above_horizon
 330.0	2953				above_horizon
 332.0	2953				above_horizon
@@ -211,16 +211,16 @@ t	f_px	dist_m	gsd_cm	obj8px_cm	status
 418.0	7441				above_horizon
 420.0	7441				above_horizon
 422.0	7441				above_horizon
-424.0	5884				above_horizon
-426.0	5884				above_horizon
-428.0	5884				above_horizon
+424.0					no_focal
+426.0					no_focal
+428.0					no_focal
 430.0	7441				above_horizon
 432.0	7441				above_horizon
 434.0	7441				above_horizon
 436.0	4328				above_horizon
 438.0	4328				above_horizon
 440.0	4328				above_horizon
-442.0	4375				above_horizon
+442.0					no_focal
 444.0	4422				above_horizon
 446.0	4422				above_horizon
 448.0	4422				above_horizon
