@@ -39,10 +39,16 @@ import cv2  # noqa: E402
 import numpy as np  # noqa: E402
 
 from geoproject import Dem, HMA_PATH, _bilinear  # noqa: E402
-from build_map import CAMPS, parse_gpx  # noqa: E402
+from build_map import CAMPS, KINDS, POINTS, parse_gpx  # noqa: E402
 
 OUT = HERE / "polyot-3d.html"
 TEMPLATE = HERE / "polyot3d_template.html"
+COVER_JSON = ROOT / "analysis/coverage/coverage-map-cells.json"
+
+STATUSES = [dict(id="confirmed", title="Подтверждено"),
+            dict(id="open", title="Открыто"),
+            dict(id="rejected", title="Отклонено"),
+            dict(id="closed", title="Закрыто")]
 
 # Рамка полёта: район операции с запасом (внутри рамки HMA-сетки)
 LAT0, LAT1 = 39.450, 39.528
@@ -126,13 +132,72 @@ def line3d(dem, pts, zmin, every=1):
     return out
 
 
+def coverage_grid(w, h):
+    """acov движка (0 или 1..3, 3 = детально) из сетки покрытия конвейера."""
+    cov = json.loads(COVER_JSON.read_text())
+    lat0, lon0 = cov["lat0"], cov["lon0"]
+    dlat, dlon = cov["dlat"], cov["dlon"]
+    ni = max(max(c[0] for c in v["cells"]) for v in cov["videos"]) + 1
+    nj = max(max(c[1] for c in v["cells"]) for v in cov["videos"]) + 1
+    tier = np.full((ni, nj), 9, np.uint8)       # ряды с юга на север
+    for v in cov["videos"]:
+        for i, j, t, *_ in v["cells"]:
+            if t < tier[i, j]:
+                tier[i, j] = t
+    ys, xs = np.mgrid[0:h, 0:w]
+    lat = LAT1 - (ys + 0.5) * BX / MLA
+    lon = LON0 + (xs + 0.5) * BX / MLO
+    ci = np.floor((lat - lat0) / dlat).astype(int)
+    cj = np.floor((lon - lon0) / dlon).astype(int)
+    inside = (ci >= 0) & (ci < ni) & (cj >= 0) & (cj < nj)
+    t = np.where(inside, tier[np.clip(ci, 0, ni - 1), np.clip(cj, 0, nj - 1)], 9)
+    return np.where(t <= 2, 3 - t, 0).astype(np.uint8)
+
+
+def thumb(path, max_side=320):
+    """Миниатюра-кадр как data URI, None если файла нет."""
+    img = cv2.imread(str(ROOT / path))
+    if img is None:
+        return None
+    k = max_side / max(img.shape[:2])
+    if k < 1:
+        img = cv2.resize(img, None, fx=k, fy=k, interpolation=cv2.INTER_AREA)
+    ok, enc = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, 72])
+    return "data:image/jpeg;base64," + base64.b64encode(enc).decode() if ok else None
+
+
+def registry_points(dem, zmin, w, h):
+    """apts движка из реестра карты: все точки со статусами и кадрами."""
+    apts = []
+    for p in POINTS:
+        x, y = to_xy(p["lat"], p["lon"])
+        if not (0 <= x < w and 0 <= y < h):
+            continue
+        bits = []
+        if p.get("video"):
+            bits.append(p["video"] + (f" {p['tc']}" if p.get("tc") else ""))
+        if p.get("unc"):
+            bits.append(f"±{p['unc']} м")
+        if p.get("size"):
+            bits.append(f"размер {p['size']}")
+        d = p.get("desc", "")
+        if bits:
+            d = " · ".join(bits) + "\n" + d
+        imgs = [i for i in p.get("imgs", []) if (ROOT / i).exists()]
+        apts.append(dict(
+            x=x, y=y, l=round((p["alt"] - zmin) / BZ),
+            n=p["name"], d=d, k=p["kind"], s=p["status"], c=str(p["conf"]),
+            th=thumb(imgs[0]) if imgs else None, f=imgs))
+    return apts
+
+
 def build():
     dem = Dem(HMA_PATH)
     z, w, h = terrain(dem)
     zmin = math.floor(z.min() / BZ) * BZ
     lev = np.round((z - zmin) / BZ).astype(np.uint16)
     shade, slope, meta = layers(z)
-    acov = np.zeros(z.shape, np.uint8)          # этап 2: покрытие съёмкой
+    acov = coverage_grid(w, h)                  # покрытие съёмкой, 3 уровня
 
     camps, wpts = [], []
     for name, lat, lon, _alt in CAMPS:
@@ -148,22 +213,28 @@ def build():
     lines = dict(route=line3d(dem, track, zmin, every=2),
                  fall=[], prio=[], corridor=[])
 
+    apts = registry_points(dem, zmin, w, h)
+
     payload = dict(
         W=w, H=h, BX=BX, BZ=BZ, zmin=zmin,
         LAT0=LAT0, LAT1=LAT1, LON0=LON0, LON1=LON1, MLA=MLA, MLO=MLO,
         lev=b64(lev), shade=b64(shade), slope=b64(slope),
         meta=b64(meta), acov=b64(acov),
         tex_a="", tex_b="",
-        apts=[], kinds=[], statuses=[], lines=lines,
+        apts=apts,
+        kinds=[dict(id=k, title=t) for k, t in KINDS],
+        statuses=STATUSES, lines=lines,
         camps=camps, wpts=wpts,
         items=[], finds=[], shel=[], cams=[], fan=[])
 
     html = TEMPLATE.read_text("utf-8").replace(
         "__PAYLOAD__", json.dumps(payload, ensure_ascii=False, separators=(",", ":")))
     OUT.write_text(html, "utf-8")
+    covered = float((acov > 0).mean())
     print(f"{OUT.name}: {OUT.stat().st_size / 2**20:.1f} МБ, сетка {w}x{h}, "
-          f"высоты {z.min():.0f}-{z.max():.0f} м, лагерей {len(camps)}, "
-          f"маршрут {len(lines['route'])} тчк")
+          f"высоты {z.min():.0f}-{z.max():.0f} м, точек {len(apts)} "
+          f"(с кадрами {sum(1 for a in apts if a['th'])}), покрытие {covered:.0%} "
+          f"рамки, лагерей {len(camps)}, маршрут {len(lines['route'])} тчк")
 
 
 if __name__ == "__main__":
