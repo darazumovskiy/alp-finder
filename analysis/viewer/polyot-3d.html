@@ -109,6 +109,9 @@ body.hidepanels #toggle{display:block}
 
     <h2 style="margin-top:12px">Объекты</h2>
     <label><input type="checkbox" id="L-alp" checked><span class="sw" style="background:#ff3b30"></span>точки реестра (<span id="n-alp"></span>)</label>
+    <input id="pt-q" type="search" placeholder="поиск по точкам…"
+           style="width:100%;margin:4px 0;background:#132132;color:#e8eef5;
+                  border:1px solid #2f5a8d;border-radius:5px;padding:4px 7px;font:inherit;font-size:12px">
     <div id="ptlist"></div>
     <label>размер точек
       <input type="range" id="S-msize" min="0.6" max="7" step="0.2" value="3"
@@ -634,6 +637,8 @@ function selectPoint(o,row){
   document.querySelectorAll('#ptlist .pt.on').forEach(x=>x.classList.remove('on'));
   if(row)row.classList.add('on');
   flyTo(o);}
+const fold=t=>t.toLowerCase().replace(/ё/g,'е').replace(/й/g,'и');
+const kindCbs=[];
 (function(){
   const box=el('ptlist');
   for(const k of P.kinds){
@@ -643,8 +648,12 @@ function selectPoint(o,row){
     const det=document.createElement('details');
     const sum=document.createElement('summary');
     const cb=document.createElement('input');cb.type='checkbox';cb.checked=true;
+    cb.dataset.kind=k.id;kindCbs.push(cb);
     cb.onclick=e=>e.stopPropagation();
-    cb.onchange=()=>{kindOn[k.id]=cb.checked;buildAlp();
+    cb.onchange=()=>{kindOn[k.id]=cb.checked;
+      // мастер-галка отражает состояние групп: есть включённые — включена
+      O.alp.checked=kindCbs.some(c=>c.checked);
+      buildAlp();
       if(SEL&&SEL.k===k.id&&!cb.checked)SEL=null;
       dirty=true;};
     sum.appendChild(cb);
@@ -653,9 +662,26 @@ function selectPoint(o,row){
     for(const o of pts){
       const row=document.createElement('div');row.className='pt';
       row.textContent=o.n.length>52?o.n.slice(0,51)+'…':o.n;
+      row.dataset.q=fold(o.n);
       row.onclick=()=>selectPoint(o,row);
       det.appendChild(row);}
     box.appendChild(det);}
+  // мастер-галка управляет всеми группами
+  O.alp.addEventListener('change',()=>{
+    for(const cb of kindCbs){cb.checked=O.alp.checked;kindOn[cb.dataset.kind]=O.alp.checked;}
+    if(!O.alp.checked)SEL=null;
+    buildAlp();dirty=true;});
+  // поиск: е=ё, и=й; группы с совпадениями раскрываются
+  el('pt-q').addEventListener('input',()=>{
+    const q=fold(el('pt-q').value.trim());
+    for(const det of box.querySelectorAll('details')){
+      let vis=0;
+      for(const row of det.querySelectorAll('.pt')){
+        const hit=!q||row.dataset.q.includes(q);
+        row.style.display=hit?'':'none';
+        if(hit)vis++;}
+      det.style.display=vis?'':'none';
+      if(q&&vis)det.open=true;}});
 })();
 const uT={};['uVP','uEye','uGrid','uFog','uOn','uOn2','uSky','uYS'].forEach(n=>uT[n]=gl.getUniformLocation(PT,n));
 const uMV=gl.getUniformLocation(PM,'uVP'),uMS=gl.getUniformLocation(PM,'uScale');
