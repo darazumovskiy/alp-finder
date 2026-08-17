@@ -1222,6 +1222,16 @@ function flStep(dir) {
 document.getElementById('flPrev').onclick = () => flStep(-1);
 document.getElementById('flNext').onclick = () => flStep(1);
 
+// диплинк из «Полёт 3D» и отчётов: map.html#flight=<ролик>[&t=<сек>]
+(() => {
+  const m = location.hash.match(/^#flight=([^&]+)(?:&t=([\d.]+))?$/);
+  if (!m) return;
+  const name = decodeURIComponent(m[1]);
+  if (!FLIGHT_BY_NAME.has(name)) return;
+  flOpen();
+  flLoad(name, m[2] ? +m[2] : 0);
+})();
+
 // клик по кадру — живой лайтбокс: проигрывание продолжается, управление своё
 flImg.onclick = () => {
   if (!flImg.currentSrc) return;

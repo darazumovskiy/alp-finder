@@ -191,6 +191,44 @@ def registry_points(dem, zmin, w, h):
     return apts
 
 
+def drone_layer(dem, zmin, w, h):
+    """(cams, fan) из кэша плеера: позиция старта каждого ролика + лучи взгляда.
+
+    cams: [x, y, l, токен-время, высота, url плеера] — E открывает ролик
+    в плеере «Полёт» карты (map.html#flight=…). fan: сегменты дрон→точка,
+    куда смотрел центр кадра (сэмплы кэша flight_cache, прорежены).
+    """
+    cams, fan = [], []
+    for mp in sorted((HERE / "flights").glob("*/meta.json")):
+        meta = json.loads(mp.read_text())
+        samples = meta.get("samples") or []
+        if not samples:
+            continue
+        t0 = samples[0]
+        x, y = to_xy(t0[1], t0[2])
+        if not (0 <= x < w and 0 <= y < h):
+            continue
+        name = mp.parent.name                     # DJI_20260811153236_0001_Z
+        token = name.split("_")[1] if "_" in name else name
+        lv = round((t0[3] - zmin) / BZ)
+        cams.append([x, y, lv, token, round(t0[3]),
+                     f"map.html#flight={name}"])
+        step = max(1, len(samples) // 16)
+        for s in samples[::step]:
+            tgt = s[8] if len(s) > 8 else None
+            if not tgt:
+                continue
+            x1, y1 = to_xy(s[1], s[2])
+            x2, y2 = to_xy(tgt[0], tgt[1])
+            if not (0 <= x2 < w and 0 <= y2 < h and 0 <= x1 < w and 0 <= y1 < h):
+                continue
+            # tgt[2] — дистанция до склона, высоту конца луча берём из рельефа
+            l1 = round((s[3] - zmin) / BZ, 1)
+            l2 = round((dem.elev(tgt[0], tgt[1]) - zmin) / BZ, 1)
+            fan.append([x1, l1, y1, x2, l2, y2])
+    return cams, fan
+
+
 def build():
     dem = Dem(HMA_PATH)
     z, w, h = terrain(dem)
@@ -214,6 +252,7 @@ def build():
                  fall=[], prio=[], corridor=[])
 
     apts = registry_points(dem, zmin, w, h)
+    cams, fan = drone_layer(dem, zmin, w, h)
 
     payload = dict(
         W=w, H=h, BX=BX, BZ=BZ, zmin=zmin,
@@ -225,7 +264,7 @@ def build():
         kinds=[dict(id=k, title=t) for k, t in KINDS],
         statuses=STATUSES, lines=lines,
         camps=camps, wpts=wpts,
-        items=[], finds=[], shel=[], cams=[], fan=[])
+        items=[], finds=[], shel=[], cams=cams, fan=fan)
 
     html = TEMPLATE.read_text("utf-8").replace(
         "__PAYLOAD__", json.dumps(payload, ensure_ascii=False, separators=(",", ":")))
@@ -234,7 +273,8 @@ def build():
     print(f"{OUT.name}: {OUT.stat().st_size / 2**20:.1f} МБ, сетка {w}x{h}, "
           f"высоты {z.min():.0f}-{z.max():.0f} м, точек {len(apts)} "
           f"(с кадрами {sum(1 for a in apts if a['th'])}), покрытие {covered:.0%} "
-          f"рамки, лагерей {len(camps)}, маршрут {len(lines['route'])} тчк")
+          f"рамки, полётов {len(cams)}, лучей {len(fan)}, лагерей {len(camps)}, "
+          f"маршрут {len(lines['route'])} тчк")
 
 
 if __name__ == "__main__":

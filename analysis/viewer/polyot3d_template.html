@@ -503,7 +503,8 @@ P.finds.forEach(o=>PICK.push({x:o.x,y:yOf(o.l)+1.7,z:o.y,n:o.n,d:o.d,
   th:o.th,f:o.f,fb:o.fb||null,c:'#ff9a4a'}));
 P.items.forEach(o=>PICK.push({x:o.x,y:yOf(o.l)+0.8,z:o.y,n:o.n,d:o.d,th:o.th,f:o.f,c:'#ffd23f'}));
 P.cams.forEach(o=>PICK.push({x:o[0],y:yOf(o[2]),z:o[1],
-  n:'съёмка '+o[3],d:'кадров: '+o[4],th:null,f:null,c:'#8fc8ff'}));
+  n:'полёт '+o[3],d:'дрон на '+o[4]+' м\nE — открыть этот ролик в плеере карты',
+  th:null,f:null,url:o[5]||null,c:'#8fc8ff'}));
 // опорная точка для расстояний — подтверждённый штабом рюкзак
 const BPK=PICK.find(o=>o.c==='alp'&&/Синий рюкзак/i.test(o.n))||null;
 
@@ -534,13 +535,14 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyT'&&P.cams.length){const c=P.cams.find(c=>c[3].startsWith('20260815'))||P.cams[0];
     cam.x=c[0];cam.z=c[1];cam.y=yOf(c[2]);}
   if(e.code==='KeyF'){cam.y=Math.max(cam.y,ground(cam.x,cam.z)+140);cam.pitch=-1.25;}
-  if(e.code==='KeyE'&&cur&&(cur.fb||cur.f))openBig(cur);
+  if(e.code==='KeyE'&&cur&&(cur.fb||cur.f||cur.url))openBig(cur);
   if(e.code==='KeyH')document.body.classList.toggle('hidepanels');
   if(['Space','ShiftLeft','KeyW','KeyA','KeyS','KeyD'].includes(e.code))e.preventDefault();});
 addEventListener('keyup',e=>keys[e.code]=0);
 // fb — кадр, вшитый прямо в страницу (работает и по ссылке, где нет папки кадров);
 // f — путь к полноразмерному файлу рядом; th — миниатюра как последний запас
-function openBig(o){const src=o.fb||o.f||o.th; if(!src)return;
+function openBig(o){if(o.url){window.open(o.url,'_blank');return;}
+  const src=o.fb||o.f||o.th; if(!src)return;
   el('big-img').src=src;el('big-cap').textContent=o.n+'\n'+(o.d||'');
   el('big').style.display='flex';}
 el('big').onclick=()=>el('big').style.display='none';
