@@ -24,7 +24,6 @@ scores = {s["author"]: s for s in
 for a in agg:
     s = scores.get(a["author"])
     a["discussion"] = s["discussion"] if s else None
-    a["usefulness"] = s["usefulness"] if s else None
     a["comment"] = s["comment"] if s else ""
 
 silent = [m for m in participants if m["messages"] == 0]
@@ -123,9 +122,9 @@ html = """<!doctype html>
 хэшем (dHash), кластер засчитан самому раннему подателю кандидата; если кадр в «Подтвержденных»
 не находит поданного кандидата, он засчитывается запостившему (модераторам это может
 приписывать чужие находки, поданные вне выгруженных тем).</li>
-<li><b>Обсуждения / Полезность</b> (0–10) — эвристическая LLM-оценка по дайджесту всех
-сообщений автора (только авторы с &ge;15 сообщениями): вовлечённость в диалог и
-аргументированность/конкретика соответственно. Это субъективная оценка, не рейтинг людей.</li>
+<li><b>Обсуждения</b> (0–10) — эвристическая LLM-оценка вовлечённости в диалог по дайджесту
+всех сообщений автора (только авторы с &ge;15 сообщениями). Это субъективная оценка,
+не рейтинг людей.</li>
 </ul>
 </div>
 
@@ -141,7 +140,6 @@ html = """<!doctype html>
 <th data-k="candidates" data-t="n">Кандидаты (фото)</th>
 <th data-k="accepted" data-t="n">Принято</th>
 <th data-k="discussion" data-t="n">Обсуждения</th>
-<th data-k="usefulness" data-t="n">Полезность</th>
 <th data-k="comment" data-t="s">Комментарий (LLM)</th>
 </tr></thead>
 <tbody></tbody>
@@ -186,7 +184,6 @@ function renderT1(rows) {
     <td class="num">${a.candidates || '<span class="m">·</span>'}</td>
     <td class="num">${a.accepted || '<span class="m">·</span>'}</td>
     <td class="num">${scoreCell(a.discussion)}</td>
-    <td class="num">${scoreCell(a.usefulness)}</td>
     <td class="comment">${esc(a.comment)}</td>
   </tr>`).join('');
 }
@@ -240,7 +237,7 @@ html = (html
         .replace("__AUTHORS__", json.dumps(
             [{k: a[k] for k in ("author", "messages", "days_active", "est_hours",
                                 "candidates", "accepted", "discussion",
-                                "usefulness", "comment")} for a in agg],
+                                "comment")} for a in agg],
             ensure_ascii=False))
         .replace("__SILENT__", json.dumps(
             [{k: m[k] for k in ("name", "username", "joined")} for m in silent],
