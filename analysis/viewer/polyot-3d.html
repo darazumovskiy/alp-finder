@@ -102,6 +102,12 @@ body.hidepanels #toggle{display:block}
       отрицательных уклонов нет, трещины 1–5 м не видны. Кулуары —
       вогнутость &gt;4 м на 90 м при уклоне &gt;28°.</div>
 
+    <h2 style="margin-top:12px">Фото со съёмки</h2>
+    <label><input type="checkbox" id="L-photo"><span class="sw" style="background:#7ce0c3"></span>обои: реальный склон из кадров</label>
+    <div class="note" id="photo-note">Ортомозаика из всех роликов: рельеф
+      обтянут настоящими кадрами там, где дрон снимал. При подлёте близко
+      подгружается сантиметровая деталь вокруг прицела.</div>
+
     <h2 style="margin-top:12px">Покрытие съёмкой (87 роликов)</h2>
     <label><input type="checkbox" id="L-cov3"><span class="sw" style="background:#38d972"></span>детально — предмет ≤ 20 см</label>
     <label><input type="checkbox" id="L-cov2"><span class="sw" style="background:#d9c23f"></span>средне — предмет ≤ 1 м</label>
@@ -324,12 +330,12 @@ const PT=prog(`#version 300 es
 precision highp float;
 layout(location=0) in vec3 aPos;layout(location=1) in vec4 aCol;layout(location=2) in vec4 aMeta;
 uniform mat4 uVP;uniform vec3 uEye;uniform float uYS;
-out vec3 vCol;out float vCls;out float vAcov;out float vDist;out vec2 vUV;
+out vec3 vCol;out float vCls;out float vAcov;out float vDist;out vec2 vUV;out vec2 vXZ;
 void main(){
   // Y хранится в уровнях по 5 м, X/Z — в блоках по 15 м: приводим к одному масштабу,
   // иначе рельеф выглядел бы втрое круче, чем он есть
   vec3 p=vec3(aPos.x,aPos.y*uYS,aPos.z);
-  vCol=aCol.rgb;vCls=aMeta.x;vAcov=aMeta.z;vDist=length(p-uEye);
+  vCol=aCol.rgb;vCls=aMeta.x;vAcov=aMeta.z;vDist=length(p-uEye);vXZ=p.xz;
   int f=int(aMeta.y+0.5);
   if(f==0)      vUV=p.xz;
   else if(f==1) vUV=vec2(p.z,p.y);
@@ -337,11 +343,26 @@ void main(){
   gl_Position=uVP*vec4(p,1.0);}`,
 `#version 300 es
 precision highp float;
-in vec3 vCol;in float vCls;in float vAcov;in float vDist;in vec2 vUV;
+in vec3 vCol;in float vCls;in float vAcov;in float vDist;in vec2 vUV;in vec2 vXZ;
 uniform int uGrid,uFog;uniform vec4 uOn;uniform vec4 uOn2;uniform vec3 uSky;
+uniform int uPhoto;uniform sampler2D uOB,uOW1,uOW2;
+uniform vec4 uBBox,uW1Box,uW2Box;   // (x0, z0, 1/w, 1/h) окна в блоках сетки
+uniform vec2 uWFar;                 // дальность применения окон W1/W2
 out vec4 o;
 void main(){
   vec3 c=vCol;
+  if(uPhoto==1){
+    // фото-обои: детальное окно у прицела -> среднее -> базовый ковёр;
+    // прозрачность (a=0) = «тут не снято», остаётся обычная раскраска
+    vec4 t=vec4(0.0);vec2 q;
+    if(vDist<uWFar.y){q=(vXZ-uW2Box.xy)*uW2Box.zw;
+      if(q.x>0.001&&q.x<0.999&&q.y>0.001&&q.y<0.999){vec4 s=texture(uOW2,q);if(s.a>0.5)t=s;}}
+    if(t.a<0.5&&vDist<uWFar.x){q=(vXZ-uW1Box.xy)*uW1Box.zw;
+      if(q.x>0.001&&q.x<0.999&&q.y>0.001&&q.y<0.999){vec4 s=texture(uOW1,q);if(s.a>0.5)t=s;}}
+    if(t.a<0.5){q=(vXZ-uBBox.xy)*uBBox.zw;
+      if(q.x>0.001&&q.x<0.999&&q.y>0.001&&q.y<0.999){vec4 s=texture(uOB,q);if(s.a>0.5)t=s;}}
+    if(t.a>0.5)c=t.rgb;
+  }
   int m=int(vCls+0.5);
   int k=m&7;                       // класс покрытия из ручного KML
   bool contour=(m&8)!=0;           // горизонталь через 100 м
@@ -621,8 +642,9 @@ addEventListener('wheel',e=>{
 
 const O={};['gap','run','fine','coarse','find','thing','spot','shel','cam','fan','grid','fog',
   'steep','coul','cont','acov','alp','route','fall','corr','prio','camp','ring',
-  'cov1','cov2','cov3']
+  'cov1','cov2','cov3','photo']
   .forEach(k=>O[k]=el('L-'+k));
+if(location.hash.indexOf('photo')>=0)O.photo.checked=true;  // ссылка сразу с обоями
 el('n-alp').textContent=P.apts.length;
 function flyTo(o){
   // камера с северной (нижней по долине) стороны, гарантированно над рельефом
@@ -693,7 +715,122 @@ const kindCbs=[];
       det.style.display=vis?'':'none';
       if(q&&vis)det.open=true;}});
 })();
-const uT={};['uVP','uEye','uGrid','uFog','uOn','uOn2','uSky','uYS'].forEach(n=>uT[n]=gl.getUniformLocation(PT,n));
+const uT={};['uVP','uEye','uGrid','uFog','uOn','uOn2','uSky','uYS','uPhoto',
+  'uOB','uOW1','uOW2','uBBox','uW1Box','uW2Box','uWFar']
+  .forEach(n=>uT[n]=gl.getUniformLocation(PT,n));
+
+// ---------- фото-обои: ортомозаика из кадров съёмки ----------
+// Тайлы analysis/build_ortho.py: веб-меркатор XYZ, тайл 512 px в сетке gz
+// (эффективный зум gz+1). Базовый ковёр — один webp на весь район; вокруг
+// точки, куда смотрит прицел, два «окна» из тайлов: среднее (gz 18, ~23 см/пикс)
+// и детальное (gz 21, ~3 см/пикс — ботинок 20 см = 7 пикселей).
+const ORTHO={ready:false,base:null,win:[null,null],box:[[0,0,1,1],[0,0,1,1]],
+  bbox:[0,0,1,1],cache:new Map(),busy:[false,false],
+  cx:[1e9,1e9],cz:[1e9,1e9],canvas:[null,null]};
+const OW_GZ=[18,21];        // сетки окон
+const OW_PX=2048;           // размер текстуры окна
+const OW_FAR=[600,140];     // дальность применения окна, блоков сетки (×BX м)
+const OTILE=512;
+function llgrid(lat,lon){return [(lon-P.LON0)*P.MLO/BX,(P.LAT1-lat)*P.MLA/BX];}
+function gridll(x,z){return [P.LAT1-z*BX/P.MLA,P.LON0+x*BX/P.MLO];}
+function mercPx(lat,lon,gz){const s=OTILE*Math.pow(2,gz);
+  return [(lon+180)/360*s,
+          (1-Math.asinh(Math.tan(lat*Math.PI/180))/Math.PI)/2*s];}
+function mercLL(px,py,gz){const s=OTILE*Math.pow(2,gz);
+  return [Math.atan(Math.sinh(Math.PI*(1-2*py/s)))*180/Math.PI, px/s*360-180];}
+function mkTex(){const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  // прозрачная заглушка 1x1, пока не загрузилось
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,
+    new Uint8Array([0,0,0,0]));
+  return t;}
+// тайлы упакованы в суперблоки (лимит числа файлов хостинга); размер блока
+// поразумерный: meta.blockz[gz] либо meta.block (заполняется в orthoInit)
+let OBLKZ={};
+const blkOf=gz=>OBLKZ[gz]||8;
+function orthoBlock(gz,sx,sy){
+  const k=gz+'/'+sx+'_'+sy;
+  if(ORTHO.cache.has(k)){const v=ORTHO.cache.get(k);
+    ORTHO.cache.delete(k);ORTHO.cache.set(k,v);return v;}
+  const p=new Promise(res=>{const im=new Image();
+    im.onload=()=>res(im);im.onerror=()=>res(null);
+    im.src='ortho/'+gz+'/'+sx+'_'+sy+'.webp';});
+  ORTHO.cache.set(k,p);
+  if(ORTHO.cache.size>40){ORTHO.cache.delete(ORTHO.cache.keys().next().value);}
+  return p;}
+// точка, куда смотрит прицел: марш взгляда до рельефа (как occluded), даёт
+// центр окон — деталь грузится там, куда смотришь, а не под камерой
+function lookAt(){
+  const d=dir();let x=cam.x,y=cam.y,z=cam.z;
+  for(let i=0;i<400;i++){x+=d[0]*3;y+=d[1]*3;z+=d[2]*3;
+    if(y<=ground(x,z))return [x,z];
+    if(x<-50||z<-50||x>W+50||z>H+50||y>1200)break;}
+  return [cam.x,cam.z];}
+function updWindow(i){
+  if(ORTHO.busy[i])return;
+  const [lx,lz]=lookAt();
+  const gz=OW_GZ[i];
+  // окно пересобираем, если прицел ушёл от центра больше чем на четверть окна
+  const [lat,lon]=gridll(lx,lz);
+  const [mcx,mcy]=mercPx(lat,lon,gz);
+  const half=OW_PX/2;
+  const mx0=Math.round(mcx-half),my0=Math.round(mcy-half);
+  const res=2*Math.PI*6378137*Math.cos(lat*Math.PI/180)/(OTILE*Math.pow(2,gz));
+  const moved=Math.hypot(lx-ORTHO.cx[i],lz-ORTHO.cz[i])*BX;
+  if(moved<OW_PX*res/4)return;
+  ORTHO.busy[i]=true;ORTHO.cx[i]=lx;ORTHO.cz[i]=lz;
+  const bpx=OTILE*blkOf(gz);
+  const b0=Math.floor(mx0/bpx),b1=Math.floor((mx0+OW_PX)/bpx);
+  const c0=Math.floor(my0/bpx),c1=Math.floor((my0+OW_PX)/bpx);
+  const jobs=[];
+  for(let sx=b0;sx<=b1;sx++)for(let sy=c0;sy<=c1;sy++)
+    jobs.push(Promise.resolve(orthoBlock(gz,sx,sy)).then(im=>({im,sx,sy})));
+  Promise.all(jobs).then(list=>{
+    if(!ORTHO.canvas[i]){ORTHO.canvas[i]=document.createElement('canvas');
+      ORTHO.canvas[i].width=OW_PX;ORTHO.canvas[i].height=OW_PX;}
+    const g2=ORTHO.canvas[i].getContext('2d');
+    g2.clearRect(0,0,OW_PX,OW_PX);
+    let any=false;
+    for(const {im,sx,sy} of list){if(!im)continue;any=true;
+      g2.drawImage(im,sx*bpx-mx0,sy*bpx-my0);}
+    // рамка окна в блоках сетки: точные углы, внутри окна меркатор ~линеен
+    const [latN,lonW]=mercLL(mx0,my0,gz);
+    const [latS,lonE]=mercLL(mx0+OW_PX,my0+OW_PX,gz);
+    const [x0,z0]=llgrid(latN,lonW),[x1,z1]=llgrid(latS,lonE);
+    ORTHO.box[i]=[x0,z0,1/(x1-x0),1/(z1-z0)];
+    gl.bindTexture(gl.TEXTURE_2D,ORTHO.win[i]);
+    if(any)gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,ORTHO.canvas[i]);
+    else gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,
+      new Uint8Array([0,0,0,0]));
+    ORTHO.busy[i]=false;touch();
+  });}
+function orthoInit(){
+  // текстуры создаются заранее (прозрачные 1x1): сэмплеры шейдера всегда
+  // привязаны к валидным текстурам, даже если мозаика не выложена
+  ORTHO.base=mkTex();ORTHO.win[0]=mkTex();ORTHO.win[1]=mkTex();
+  fetch('ortho/meta.json').then(r=>r.ok?r.json():null).then(meta=>{
+    if(!meta||!meta.base){el('photo-note').textContent=
+      'Мозаика не выложена в эту сборку.';return;}
+    const bd=meta.block||8;
+    for(let z=10;z<=26;z++)OBLKZ[z]=bd;
+    if(meta.blockz)for(const z in meta.blockz)OBLKZ[+z]=meta.blockz[z];
+    const im=new Image();
+    im.onload=()=>{
+      gl.bindTexture(gl.TEXTURE_2D,ORTHO.base);
+      gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,im);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);
+      gl.generateMipmap(gl.TEXTURE_2D);
+      const b=meta.base;
+      const [x0,z0]=llgrid(b.lat_n,b.lon_w),[x1,z1]=llgrid(b.lat_s,b.lon_e);
+      ORTHO.bbox=[x0,z0,1/(x1-x0),1/(z1-z0)];
+      ORTHO.ready=true;touch();};
+    im.onerror=()=>{el('photo-note').textContent='Не загрузился базовый ковёр.';};
+    im.src='ortho/base.webp';
+  }).catch(()=>{});}
+orthoInit();
 const uMV=gl.getUniformLocation(PM,'uVP'),uMS=gl.getUniformLocation(PM,'uScale');
 const uLV=gl.getUniformLocation(PL,'uVP'),uLC=gl.getUniformLocation(PL,'uCol');
 const SKY=[0.44,0.58,0.74];
@@ -764,6 +901,19 @@ function loop(now){
   gl.uniform4f(uT.uOn,O.coarse.checked?1:0,O.fine.checked?1:0,O.run.checked?1:0,O.gap.checked?1:0);
   gl.uniform4f(uT.uOn2,(O.cov1.checked?1:0)+(O.cov2.checked?2:0)+(O.cov3.checked?4:0),O.steep.checked?1:0,O.coul.checked?1:0,O.cont.checked?1:0);
   gl.uniform3f(uT.uSky,SKY[0],SKY[1],SKY[2]);
+  const photoOn=O.photo.checked&&ORTHO.ready;
+  gl.uniform1i(uT.uPhoto,photoOn?1:0);
+  if(photoOn){
+    gl.uniform2f(uT.uWFar,OW_FAR[0],OW_FAR[1]);
+    gl.uniform4f(uT.uBBox,ORTHO.bbox[0],ORTHO.bbox[1],ORTHO.bbox[2],ORTHO.bbox[3]);
+    gl.uniform4f(uT.uW1Box,ORTHO.box[0][0],ORTHO.box[0][1],ORTHO.box[0][2],ORTHO.box[0][3]);
+    gl.uniform4f(uT.uW2Box,ORTHO.box[1][0],ORTHO.box[1][1],ORTHO.box[1][2],ORTHO.box[1][3]);
+    gl.uniform1i(uT.uOB,0);gl.uniform1i(uT.uOW1,1);gl.uniform1i(uT.uOW2,2);
+    gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,ORTHO.win[0]);
+    gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,ORTHO.win[1]);
+    gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,ORTHO.base);
+    updWindow(0);updWindow(1);
+  }
   gl.bindVertexArray(vaoT);
   planes(VP);
   let drawn=0,tris=0;

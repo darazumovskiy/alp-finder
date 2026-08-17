@@ -52,6 +52,9 @@ OUT_DIR = ROOT / "analysis/viewer/ortho"
 WORK_DIR = ROOT / "analysis/ortho-work"
 TILES_DIR = WORK_DIR / "tiles"
 BLOCK = 8             # тайлов в стороне суперблока (8×512 = 4096 px)
+# верхние зумы — 3/4 всех блоков: там блок крупнее, чтобы влезать в лимит
+# 20 тыс. файлов Cloudflare Pages вместе с кадрами плеера
+BLOCK_BY_GZ = {21: 16, 22: 16, 23: 16}
 
 W, H = 1920, 1080     # система координат кадра и фокусного (coverage tsv)
 FRAME_STEP = 5.0      # шаг кадров, с (как в кеше «Полёта»)
@@ -482,6 +485,7 @@ def pack_blocks():
     import shutil
     n_blocks = 0
     for gz in range(GZ_MIN - 1, GZ_MAX + 1):
+        blk = BLOCK_BY_GZ.get(gz, BLOCK)
         out_z = OUT_DIR / str(gz)
         if out_z.exists():
             shutil.rmtree(out_z)
@@ -490,14 +494,14 @@ def pack_blocks():
             continue
         blocks = {}
         for _, tx, ty in tiles:
-            blocks.setdefault((tx // BLOCK, ty // BLOCK), []).append((tx, ty))
+            blocks.setdefault((tx // blk, ty // blk), []).append((tx, ty))
         for (sx, sy), members in sorted(blocks.items()):
-            img = np.zeros((TILE * BLOCK, TILE * BLOCK, 4), np.uint8)
+            img = np.zeros((TILE * blk, TILE * blk, 4), np.uint8)
             for tx, ty in members:
                 t = _read_bgra(TILES_DIR / str(gz) / str(tx) / f"{ty}.webp")
                 if t is None:
                     continue
-                ox, oy = (tx - sx * BLOCK) * TILE, (ty - sy * BLOCK) * TILE
+                ox, oy = (tx - sx * blk) * TILE, (ty - sy * blk) * TILE
                 img[oy:oy + TILE, ox:ox + TILE] = t
             if not (img[:, :, 3] > 0).any():
                 continue
@@ -527,7 +531,9 @@ def write_meta():
             lat_s = math.degrees(math.atan(math.sinh(math.pi * (1 - 2 * (max(ys) + 1) * TILE / s))))
             b = [round(lat_s, 5), round(lon_w, 5), round(lat_n, 5), round(lon_e, 5)]
     n_blocks = pack_blocks()
-    meta = dict(tile=TILE, block=BLOCK, minz=zs[0], maxz=zs[-1], bounds=b,
+    meta = dict(tile=TILE, block=BLOCK,
+                blockz={str(gz): n for gz, n in BLOCK_BY_GZ.items()},
+                minz=zs[0], maxz=zs[-1], bounds=b,
                 tiles=n_tiles, blocks=n_blocks, base=build_base())
     (OUT_DIR / "meta.json").write_text(json.dumps(meta))
     print(f"пирамида: зумы {zs[0]}..{zs[-1]}, тайлов {n_tiles} "
@@ -551,6 +557,8 @@ def main():
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--finalize", action="store_true",
                     help="только пирамида и мета, без укладки")
+    ap.add_argument("--pack", action="store_true",
+                    help="только блоки и мета (пирамида уже собрана)")
     args = ap.parse_args()
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -558,7 +566,7 @@ def main():
     done_path = WORK_DIR / "done.json"
     done = json.loads(done_path.read_text()) if done_path.exists() else {}
 
-    if not args.finalize:
+    if not args.finalize and not args.pack:
         if args.all:
             videos = sorted(p.with_suffix("").with_suffix("")
                             for p in DATA.rglob("*.MP4.gps.tsv"))
@@ -576,7 +584,8 @@ def main():
                 print(f"{v.stem}: ОШИБКА {e}", file=sys.stderr)
         store.flush()
 
-    build_pyramid()
+    if not args.pack:
+        build_pyramid()
     write_meta()
 
 

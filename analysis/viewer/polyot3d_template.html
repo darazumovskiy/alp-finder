@@ -747,8 +747,10 @@ function mkTex(){const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);
   gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,
     new Uint8Array([0,0,0,0]));
   return t;}
-// тайлы упакованы в суперблоки OBLK×OBLK тайлов (лимит числа файлов хостинга)
-const OBLK=8;
+// тайлы упакованы в суперблоки (лимит числа файлов хостинга); размер блока
+// поразумерный: meta.blockz[gz] либо meta.block (заполняется в orthoInit)
+let OBLKZ={};
+const blkOf=gz=>OBLKZ[gz]||8;
 function orthoBlock(gz,sx,sy){
   const k=gz+'/'+sx+'_'+sy;
   if(ORTHO.cache.has(k)){const v=ORTHO.cache.get(k);
@@ -757,7 +759,7 @@ function orthoBlock(gz,sx,sy){
     im.onload=()=>res(im);im.onerror=()=>res(null);
     im.src='ortho/'+gz+'/'+sx+'_'+sy+'.webp';});
   ORTHO.cache.set(k,p);
-  if(ORTHO.cache.size>60){ORTHO.cache.delete(ORTHO.cache.keys().next().value);}
+  if(ORTHO.cache.size>40){ORTHO.cache.delete(ORTHO.cache.keys().next().value);}
   return p;}
 // точка, куда смотрит прицел: марш взгляда до рельефа (как occluded), даёт
 // центр окон — деталь грузится там, куда смотришь, а не под камерой
@@ -780,7 +782,7 @@ function updWindow(i){
   const moved=Math.hypot(lx-ORTHO.cx[i],lz-ORTHO.cz[i])*BX;
   if(moved<OW_PX*res/4)return;
   ORTHO.busy[i]=true;ORTHO.cx[i]=lx;ORTHO.cz[i]=lz;
-  const bpx=OTILE*OBLK;
+  const bpx=OTILE*blkOf(gz);
   const b0=Math.floor(mx0/bpx),b1=Math.floor((mx0+OW_PX)/bpx);
   const c0=Math.floor(my0/bpx),c1=Math.floor((my0+OW_PX)/bpx);
   const jobs=[];
@@ -812,6 +814,9 @@ function orthoInit(){
   fetch('ortho/meta.json').then(r=>r.ok?r.json():null).then(meta=>{
     if(!meta||!meta.base){el('photo-note').textContent=
       'Мозаика не выложена в эту сборку.';return;}
+    const bd=meta.block||8;
+    for(let z=10;z<=26;z++)OBLKZ[z]=bd;
+    if(meta.blockz)for(const z in meta.blockz)OBLKZ[+z]=meta.blockz[z];
     const im=new Image();
     im.onload=()=>{
       gl.bindTexture(gl.TEXTURE_2D,ORTHO.base);

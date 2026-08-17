@@ -1766,7 +1766,9 @@ L.control.scale({imperial:false}).addTo(map);
 // Появляется в списке слоёв, только если тайлы выложены рядом с картой.
 fetch('ortho/meta.json').then(r => r.ok ? r.json() : null).then(m => {
   if (!m) return;
-  const BL = m.block || 8, TS = m.tile || 512, blockCache = new Map();
+  const TS = m.tile || 512, blockCache = new Map();
+  // размер блока поразумерный: у верхних зумов блоки крупнее (лимит файлов)
+  const BLz = gz => (m.blockz && m.blockz[gz]) || m.block || 8;
   function orthoBlock(gz, sx, sy) {
     const k = gz+'/'+sx+'_'+sy;
     if (blockCache.has(k)) { const v = blockCache.get(k);
@@ -1786,6 +1788,7 @@ fetch('ortho/meta.json').then(r => r.ok ? r.json() : null).then(m => {
       const zs = Math.min(gz, m.maxz), f = 1 << (gz - zs);   // растяжка сверх нативного
       if (gz < m.minz) { setTimeout(() => done(null, tile), 0); return tile; }
       const tx = Math.floor(coords.x / f), ty = Math.floor(coords.y / f);
+      const BL = BLz(zs);
       orthoBlock(zs, Math.floor(tx / BL), Math.floor(ty / BL)).then(im => {
         if (im) {
           const ctx = tile.getContext('2d');
@@ -1804,6 +1807,7 @@ fetch('ortho/meta.json').then(r => r.ok ? r.json() : null).then(m => {
     bounds:[[m.bounds[0],m.bounds[1]],[m.bounds[2],m.bounds[3]]],
     attribution:'ортомозаика alp-finder'});
   layersCtl.addOverlay(ortho, 'Фото со съёмки (орто)');
+  if (location.hash.indexOf('ortho') >= 0) ortho.addTo(map);  // ссылка сразу со слоем
 }).catch(()=>{});
 
 // --- наложение второй карты (спутник и топокарта одновременно) ---
