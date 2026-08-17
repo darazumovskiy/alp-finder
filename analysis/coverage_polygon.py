@@ -308,6 +308,161 @@ def _in_bbox(hit, bbox):
     return bbox[0] <= hit[0] <= bbox[1] and bbox[2] <= hit[1] <= bbox[3]
 
 
+# --- строгая печать кадра (пересчёт 17.08 после кейса сцены 16.08) -------------
+#
+# Прежний метод закрашивал ячейку, если её центр в 21–40 м от попадания луча:
+# детальность кадра могла «дотянуться» до места в 40 м от реально снятого
+# склона (ячейка сцены 16.08 стала «детальной 5 см» по кадрам осыпи в 42 м
+# ниже сцены — analysis/viewer/otchet-2026-08-17-koshki-pokrytie.html).
+# Строгий метод: там, где кадр претендует на масштаб (детально/средне),
+# сетка лучей адаптивно сгущается квадродеревом до шага ≤ FP_STRICT_GAP_M
+# на местности, и радиус закраски попадания ограничен FP_STRICT_R_MAX_M —
+# закраска не выходит за фактически измеренные лучи дальше, чем на шаг
+# интерполяции между соседними лучами. Грубые попадания (различим только
+# предмет > FP_STRICT_OBJ_CM) и моменты без фокусного остаются на прежних
+# правилах — их уровень и так лишь «обзорно».
+
+FP_STRICT_GAP_M = 8.0      # целевой шаг соседних лучей на местности
+FP_STRICT_R_MIN_M = 6.0    # радиус закраски строгого попадания
+FP_STRICT_R_MAX_M = 10.0   # (меньше полудиагонали ячейки 15 м — не «мостит»)
+FP_STRICT_OBJ_CM = 150     # порог «претендует на масштаб» → строгий путь
+FP_STRICT_DEPTH = 7        # глубина квадродерева
+FP_STRICT_RAY_BUDGET = 3000  # потолок лучей на сэмпл (защита от разноса)
+
+
+def video_footprint_hits_strict(video, dem, step, bbox):
+    """[(lat, lon, obj8px_cm | nan, t_s, paint_r_m)] — строгая проекция рамки.
+
+    Отличия от video_footprint_hits: попадания с масштабом детально/средне
+    (obj8px ≤ FP_STRICT_OBJ_CM) закрашивают не дальше FP_STRICT_R_MAX_M от
+    реального луча, а сетка лучей в таких зонах сгущается квадродеревом до
+    шага FP_STRICT_GAP_M — детальность приписывается только реально снятой
+    земле. Мёртвые зоны за перегибами не закрашиваются (лучи независимы).
+    """
+    rows = load_rows(video)
+    if not rows or "gb_yaw" not in rows[0]:
+        return []
+    t_arr = np.array([r["time_s"] for r in rows])
+    fields = {k: np.array([r.get(k, math.nan) for r in rows])
+              for k in ("lat", "lon", "alt_m", "gb_pitch")}
+    yaw = unwrap_deg([r.get("gb_yaw", math.nan) for r in rows])
+    moments = moment_table(video.name)
+
+    pxs = (np.arange(FP_GRID_X) + 0.5) * 1920 / FP_GRID_X
+    pys = (np.arange(FP_GRID_Y) + 0.5) * 1080 / FP_GRID_Y
+
+    stretch_cache = {}
+
+    def stretch_at(lat, lon, dirv):
+        key = (round(lat * 1e4), round(lon * 1e4))
+        v = stretch_cache.get(key)
+        if v is None:
+            v = _slope_stretch(dem, lat, lon, dirv)
+            stretch_cache[key] = v
+        return v
+
+    hits = []
+    t = float(t_arr[0])
+    while t <= float(t_arr[-1]):
+        la = interp_gap(t, t_arr, fields["lat"])
+        lo = interp_gap(t, t_arr, fields["lon"])
+        al = interp_gap(t, t_arr, fields["alt_m"])
+        yw = interp_gap(t, t_arr, yaw)
+        pt = interp_gap(t, t_arr, fields["gb_pitch"])
+        if not all(math.isfinite(v) for v in (la, lo, al, yw, pt)):
+            t += step
+            continue
+        yw %= 360
+        m = moments.get(round(t, 1)) if moments else None
+
+        if m is None:
+            hit = cast(dem, la, lo, al, ray_dir(yw, pt, 960, 540, 1920, 1080, 1000))
+            if hit is not None and _in_bbox(hit, bbox):
+                hits.append((hit[0], hit[1], math.nan, t, FP_CENTER_R_M))
+            t += step
+            continue
+
+        o8, f, dist0 = m
+        try:
+            under_dem = dem.elev(la, lo) > al
+        except ValueError:
+            under_dem = True
+
+        n_rays = 0
+        cache = {}     # (px, py) округлённые -> hit | None
+
+        def shoot(px, py):
+            nonlocal n_rays
+            key = (round(px, 1), round(py, 1))
+            if key in cache:
+                return cache[key]
+            n_rays += 1
+            d = ray_dir(yw, pt, px, py, 1920, 1080, f)
+            h = cast(dem, la, lo, al, d)
+            if h is not None and under_dem:
+                h = (h[0], h[1], h[2], math.nan)   # дистанции не доверяем
+            cache[key] = (h, d)
+            return cache[key]
+
+        def o8_at(h, d):
+            if h is None or not math.isfinite(h[3]):
+                return math.nan
+            return o8 * h[3] / dist0 * stretch_at(h[0], h[1], d)
+
+        def gdist(h1, h2):
+            return math.hypot((h1[0] - h2[0]) * M_PER_DEG_LAT,
+                              (h1[1] - h2[1]) * m_per_deg_lon(h1[0]))
+
+        emitted = set()
+
+        def emit(px, py, h, d, spacing):
+            key = (round(px, 1), round(py, 1))
+            if key in emitted or h is None or not _in_bbox(h, bbox):
+                return
+            emitted.add(key)
+            o8h = o8_at(h, d)
+            if math.isfinite(o8h) and o8h <= FP_STRICT_OBJ_CM:
+                r = min(max(0.75 * spacing, FP_STRICT_R_MIN_M), FP_STRICT_R_MAX_M)
+            else:
+                r = min(max(0.6 * spacing, FP_R_MIN_M), FP_R_MAX_M)
+            hits.append((h[0], h[1], o8h, t, r))
+
+        def quad(p00, p11, depth):
+            """Квадрат кадра в пикселях: (x0,y0), (x1,y1) — рекурсивное сгущение."""
+            (x0, y0), (x1, y1) = p00, p11
+            corners = [shoot(x0, y0), shoot(x1, y0), shoot(x0, y1), shoot(x1, y1)]
+            hs = [c for c in corners if c[0] is not None]
+            if not hs:
+                return
+            ext = max((gdist(a[0], b[0]) for a in hs for b in hs), default=0.0)
+            best_o8 = min((o8_at(h, d) for h, d in hs
+                           if math.isfinite(o8_at(h, d))), default=math.inf)
+            partial = len(hs) < 4
+            need = (ext > FP_STRICT_GAP_M and best_o8 <= FP_STRICT_OBJ_CM
+                    and depth < FP_STRICT_DEPTH and n_rays < FP_STRICT_RAY_BUDGET
+                    and min(x1 - x0, y1 - y0) > 2.0)
+            if partial:
+                need = need and depth < 2   # кромку рамки уточняем неглубоко
+            if need:
+                xm, ym = (x0 + x1) / 2, (y0 + y1) / 2
+                quad((x0, y0), (xm, ym), depth + 1)
+                quad((xm, y0), (x1, ym), depth + 1)
+                quad((x0, ym), (xm, y1), depth + 1)
+                quad((xm, ym), (x1, y1), depth + 1)
+            else:
+                spacing = ext if ext > 0 else FP_STRICT_GAP_M
+                for (h, d), (px, py) in zip(
+                        corners, [(x0, y0), (x1, y0), (x0, y1), (x1, y1)]):
+                    if h is not None:
+                        emit(px, py, h, d, spacing)
+
+        for gi in range(FP_GRID_X - 1):
+            for gj in range(FP_GRID_Y - 1):
+                quad((pxs[gi], pys[gj]), (pxs[gi + 1], pys[gj + 1]), 0)
+        t += step
+    return hits
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("poly", help="JSON-файл [[lat, lon], ...]")

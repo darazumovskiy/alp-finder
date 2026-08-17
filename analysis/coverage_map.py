@@ -36,7 +36,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from coverage_polygon import (  # noqa: E402
-    DATA, M_PER_DEG_LAT, m_per_deg_lon, video_footprint_hits,
+    DATA, M_PER_DEG_LAT, m_per_deg_lon, video_footprint_hits_strict,
 )
 from geoproject import Dem  # noqa: E402
 
@@ -46,7 +46,9 @@ OUT = HERE / "coverage" / "coverage-map-cells.json"
 LAT0, LAT1 = 39.455, 39.525
 LON0, LON1 = 73.565, 73.635
 
-CELL_M = 30.0      # шаг сетки
+CELL_M = 15.0      # шаг сетки (до 17.08 было 30 м: на крутом склоне ячейка 30 м
+                   # растягивается по вертикали на ~40 м и прячет неосмотренные
+                   # углы — кейс сцены 16.08; см. otchet-2026-08-17)
 STEP_S = 2.0       # шаг сэмплов телеметрии
 TIER_DETAIL_CM = 20   # предмет ≤ 20 см различим
 TIER_MID_CM = 100     # предмет ≤ 1 м различим
@@ -69,7 +71,7 @@ def main():
     best = {}       # (i, j) -> лучший obj8px_cm по всем роликам (для сводки)
     vid_out = []    # повидеовый вклад — фильтры по дате/ролику на карте
     for v in videos:
-        hits = video_footprint_hits(v, dem, STEP_S, bbox)
+        hits = video_footprint_hits_strict(v, dem, STEP_S, bbox)
         n_gsd = 0
         vbest = {}     # (i, j) -> (лучший obj8px_cm, таймкод этого прохода)
         vcells_t = {}  # (i, j) -> набор таймкодов сэмплов, задевших ячейку
@@ -117,6 +119,7 @@ def main():
     data = dict(lat0=LAT0, lon0=LON0, dlat=round(dlat, 8), dlon=round(dlon, 8),
                 cell_m=CELL_M,
                 detail_cm=TIER_DETAIL_CM, mid_cm=TIER_MID_CM,
+                method="strict-2026-08-17",
                 videos=vid_out)
     OUT.write_text(json.dumps(data, separators=(",", ":")))
 
