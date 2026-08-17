@@ -1013,7 +1013,10 @@ POINTS = [
          gps=[39.482762, 73.584981, 85],
          unc=11, alt_unc=10,
          view=[106, -4],
-         video="DJI_20260816114520_0001_Z", tc="фото 11:57:16–11:57:29",
+         video="DJI_20260816114520_0001_Z; крупный план с воздуха — "
+               "DJI_20260816141704_0001_Z 13:06–16:30 (лучшие кадры 13:45, 13:54, "
+               "дист. 98 м) и DJI_20260816143344_0005_Z целиком (98→52 м); "
+               "подход — сэмпл плеера «Подход к сцене»", tc="фото 11:57:16–11:57:29",
          who="прицельная съёмка (папка polanski, SashaSmirnov), приём 16.08; вердикта штаба нет",
          desc="Группа предметов на снежном кулуаре: ботинок с тёмной гамашей и рыжим "
               "рантом подошвы, на подошве ряд зубьев — вероятно надетая кошка; зелёный "
@@ -1021,7 +1024,9 @@ POINTS = [
               "цилиндр с ярко-оранжевым низом — возможно голень в гамаше, уходит в снег. "
               "Размеры по GSD 0,84 мм/пикс (LRF 85 м × EXIF 958 мм экв.): ботинок ~37 см, "
               "древко ~48 см, «голень» 24×34 см видимой части.",
-         imgs=["analysis/review/findings-2026-08-16-polanski/A-botinok-verh_full.jpg",
+         imgs=["analysis/review/findings-2026-08-17-leo/podkhod_t1324_full.jpg",
+               "analysis/review/findings-2026-08-17-leo/podkhod_t1354_full.jpg",
+               "analysis/review/findings-2026-08-16-polanski/A-botinok-verh_full.jpg",
                "analysis/review/findings-2026-08-16-polanski/A-botinok-verh_crop.jpg",
                "analysis/review/findings-2026-08-16-polanski/B-ledorub_crop.jpg",
                "analysis/review/findings-2026-08-16-polanski/D-sinyaya-golen_crop.jpg",
@@ -1037,7 +1042,10 @@ POINTS = [
          gps=[39.482765, 73.584981, 86],
          unc=11, alt_unc=10,
          view=[108, -5],
-         video="DJI_20260816114520_0001_Z", tc="фото 11:57:37–11:57:38",
+         video="DJI_20260816114520_0001_Z; крупный план с воздуха — "
+               "DJI_20260816141704_0001_Z 13:06–16:30 (лучшие кадры 13:45, 13:54, "
+               "дист. 98 м) и DJI_20260816143344_0005_Z целиком (98→52 м); "
+               "подход — сэмпл плеера «Подход к сцене»", tc="фото 11:57:37–11:57:38",
          who="прицельная съёмка (папка polanski, SashaSmirnov), приём 16.08; вердикта штаба нет",
          desc="В ~2 м ниже группы 1: оранжево-чёрный ботинок (металлическая пряжка "
               "читается на зум-кадрах видео), лежит на боку, ~30×18 см; зелёный шнур; "
@@ -1060,7 +1068,10 @@ POINTS = [
          gps=[39.482762, 73.584982, 87],
          unc=11, alt_unc=10,
          view=[108, -5],
-         video="DJI_20260816114520_0001_Z", tc="фото 11:57:01, 11:57:54–11:58:10",
+         video="DJI_20260816114520_0001_Z; крупный план с воздуха — "
+               "DJI_20260816141704_0001_Z 13:06–16:30 (лучшие кадры 13:45, 13:54, "
+               "дист. 98 м) и DJI_20260816143344_0005_Z целиком (98→52 м); "
+               "подход — сэмпл плеера «Подход к сцене»", tc="фото 11:57:01, 11:57:54–11:58:10",
          who="прицельная съёмка (папка polanski, SashaSmirnov), приём 16.08; вердикта штаба нет",
          desc="Обзорный кадр сцены (0018, зум 1.18×) и три предельных зума в центр "
               "(0025 — 9.46×, GSD 0,21 мм/пикс; 0026/0027 — 4.73×): полузасыпанные "
@@ -1385,6 +1396,22 @@ def build():
                     "dFall": round(d_fall), "dRoute": round(d_route), "dDesc": round(d_desc),
                     "dTraj": round(min(d_fall, d_desc))})
 
+    def lrf_anchors():
+        """Лазерные точки рельефа из JPG (scripts/extract_lrf_anchors.py)."""
+        out = []
+        for tsv in sorted(ROOT.glob("analysis/coverage/lrf-anchors-*.tsv")):
+            for line in tsv.read_text().splitlines()[1:]:
+                p = line.split("\t")
+                if len(p) < 12 or not p[1]:
+                    continue
+                out.append(dict(
+                    lat=round(float(p[1]), 7), lon=round(float(p[2]), 7),
+                    alt=round(float(p[3]), 1) if p[3] else None,
+                    dist=round(float(p[4])) if p[4] else None,
+                    dd=round(float(p[11]), 1) if p[11] else None,
+                    photo=p[0].rsplit("/", 1)[-1]))
+        return out
+
     data = dict(
         kinds=[dict(id=k, title=t) for k, t in KINDS],
         srcs=[dict(id=s, title=t) for s, t in SRCS],
@@ -1395,6 +1422,7 @@ def build():
         wpts=[dict(name=n, lat=la, lon=lo) for n, la, lo in wpts],
         fall=fall, prio=prio, corridor=corridor,
         descents=[dict(label=l, line=v) for l, v in descents],
+        lrf=lrf_anchors(),
         contours=[dict(lvl=lvl, lines=lines) for lvl, lines in contours],
         zone=ZONE_RECT, impact=IMPACT_RECT,
         slope=slope_blind(),
@@ -1805,6 +1833,18 @@ for (const d of D.descents)
   L.polyline(d.line, {color:'#ff7043', weight:2, opacity:0.85, dashArray:'2 5'})
     .bindPopup('<b>Линия спуска</b> '+d.label+': расчёт по рельефу, куда скатится упавшее из этой точки зоны интереса. Линии из всей зоны сходятся к месту найденных вещей — срыв в зоне объясняет находки. Модель, не траектория.').addTo(descLayer);
 
+// --- лазерные точки рельефа (LRF-анкеры из JPG) ---
+const lrfLayer = L.layerGroup();
+for (const a of (D.lrf || []))
+  L.circleMarker([a.lat, a.lon], {radius:3, color:'#69f0ae', fillColor:'#00c853',
+                                  fillOpacity:0.9, weight:1})
+    .bindPopup(`<b>Лазерная точка рельефа</b><br>${a.photo}<br>` +
+               (a.alt != null ? `высота ${a.alt} м (LRF)` : '') +
+               (a.dd != null ? `${a.alt != null ? ', ' : ''}DEM ` +
+                 `${a.dd > 0 ? 'выше' : 'ниже'} на ${Math.abs(a.dd)} м` : '') +
+               (a.dist != null ? `<br>дистанция лазера ${a.dist} м` : ''))
+    .addTo(lrfLayer);
+
 // --- зоны ---
 const zonesLayer = L.layerGroup();
 L.rectangle(D.zone, {color:'#ff1744', weight:2, fillOpacity:0.12})
@@ -2074,6 +2114,7 @@ const overlays = [
   ['Линии спуска из зоны', descLayer, true],
   ['Зоны (интереса / отметин)', zonesLayer, true],
   ['Слепое пятно склона', slopeLayer, true],
+  ['Лазерные точки рельефа (LRF)', lrfLayer, false],
 ];
 const layersDiv = document.getElementById('layers');
 for (const [title, layer, on] of overlays) {

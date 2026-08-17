@@ -1,9 +1,9 @@
 t	f_px	dist_m	gsd_cm	obj8px_cm	status
-0.0	4339				above_horizon
-2.0	4339				above_horizon
-4.0	3384				above_horizon
-6.0	3384				above_horizon
-8.0	3384				above_horizon
+0.0	4339	0	0.0	0	ok
+2.0	4339	0	0.0	0	ok
+4.0	3384	1	0.0	0	ok
+6.0	3384	1	0.0	0	ok
+8.0	3384	1	0.0	0	ok
 10.0	4339				above_horizon
 12.0	4339				above_horizon
 14.0	5294				above_horizon

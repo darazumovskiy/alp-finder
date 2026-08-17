@@ -104,6 +104,77 @@ def focal_at(ests, t):
     return float(np.median(near))
 
 
+# --- SRT-фокусное как заполнитель провалов самокалибровки (17.08) -------------
+#
+# SRT несёт focal_len×dzoom покадрово, но в миллиметрах; перевод в пиксели
+# калибруется ПО САМОКАЛИБРОВКЕ ЭТОГО ЖЕ РОЛИКА (медиана отношения, MAD).
+# Без своих панорам берётся глобальная константа камеры Z (первая сверка SRT
+# с самокалибровкой на M30T: 7699 px при 120.3 мм, MAD 4% —
+# docs/video-analysis.md, кейс 183932). Семантика docs/focal-length-calibration.md
+# не нарушается: SRT-миллиметры на веру не берутся — множитель везде проверен
+# самокалибровкой. Заполняются только моменты, где своих оценок нет
+# (зависания без панорам — прежний «no_focal», из-за которого в плеере
+# пропадала рамка кадра).
+
+# Глобальной fallback-константы мм→px НЕТ (ревью 17.08): два задокументированных
+# замера дают K от −8% до +20% от номинала 1920/36 (наблюдения «SRT-фокусное»
+# в docs/video-analysis.md расходятся между собой), а применялась бы константа
+# ровно там, где проверить её нечем. Заполняем только с множителем,
+# откалиброванным по самокалибровке ЭТОГО ролика.
+SRT_K_MIN_ESTS = 8      # минимум пар (самокалибровка, SRT) для своего множителя
+SRT_K_MAD_MAX = 0.08    # относительный MAD хуже — множителю не верим
+SRT_MAX_DT = 1.0        # допуск сопоставления рядов по времени, с
+
+
+def srt_focal_series(video: Path):
+    """[(t, мм_экв)] из сайдкара <видео>.focal.tsv (scripts/dji_srt_focal.py)."""
+    side = video.parent / (video.name + ".focal.tsv")
+    if not side.exists():
+        return []
+    out = []
+    for line in side.read_text().splitlines()[1:]:
+        p = line.split("\t")
+        if len(p) >= 4 and p[0] and p[3]:
+            try:
+                out.append((float(p[0]), float(p[3])))
+            except ValueError:
+                continue
+    return out
+
+
+def srt_mm_at(srt, t):
+    """мм_экв ближайшей строки SRT в пределах SRT_MAX_DT или None."""
+    if not srt:
+        return None
+    ts = [row[0] for row in srt]
+    k = int(np.searchsorted(ts, t))
+    best = None
+    for i in (k - 1, k):
+        if 0 <= i < len(srt) and abs(srt[i][0] - t) <= SRT_MAX_DT:
+            if best is None or abs(srt[i][0] - t) < abs(best[0] - t):
+                best = srt[i]
+    return best[1] if best else None
+
+
+def srt_calibrate(video: Path, ests, srt, width):
+    """(K px/мм в НАТИВНЫХ пикселях ролика, метка источника) или (None, причина)."""
+    if not srt:
+        return None, "нет focal.tsv"
+    ratios = []
+    for t_est, f_est in ests:
+        mm = srt_mm_at(srt, t_est)
+        if mm:
+            ratios.append(f_est / mm)
+    if len(ratios) >= SRT_K_MIN_ESTS:
+        k = float(np.median(ratios))
+        mad = float(np.median(np.abs(np.array(ratios) - k))) / k
+        if mad <= SRT_K_MAD_MAX:
+            return k, (f"свой K={k * 1920.0 / width:.1f} px(1920)/мм "
+                       f"(n={len(ratios)}, MAD {mad:.1%})")
+        return None, f"MAD {mad:.1%} > {SRT_K_MAD_MAX:.0%} — SRT не используется"
+    return None, f"мало пар ({len(ratios)}) — свой множитель не откалибровать"
+
+
 def scan_video(video: Path, dem: Dem, step: float):
     rows = load_rows(video)
     if not rows or "gb_yaw" not in rows[0]:
@@ -115,10 +186,19 @@ def scan_video(video: Path, dem: Dem, step: float):
     h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) or 1080
     cap.release()
 
+    srt = srt_focal_series(video)
+    srt_k, srt_note = srt_calibrate(video, ests, srt, w)
+    n_srt_fill = 0
+
     samples = []
     t = float(tr["t"][0])
     while t <= float(tr["t"][-1]):
         f = focal_at(ests, t)
+        if f is None and srt_k is not None:
+            mm = srt_mm_at(srt, t)
+            if mm and F_BAND[0] <= srt_k * mm * 1920.0 / w <= F_BAND[1]:
+                f = srt_k * mm
+                n_srt_fill += 1
         row = dict(t=t, f=f, dist=None, gsd=None, sky=False, gap=False)
         pose = [interp(tr, t, k) for k in ("lat", "lon", "alt_m", "gb_yaw", "gb_pitch")]
         if not all(math.isfinite(v) for v in pose):
@@ -133,10 +213,17 @@ def scan_video(video: Path, dem: Dem, step: float):
                 row["gsd"] = hit[3] / f          # м/пикс в центре кадра
         samples.append(row)
         t += step
+    if srt:
+        print(f"  SRT-фокусное {video.name}: множитель — {srt_note}; "
+              f"заполнено {n_srt_fill} моментов без панорам")
     return dict(video=video, n_ests=len(ests), why=why, samples=samples, width=w)
 
 
 def write_video_tsv(res):
+    # фокусное и GSD пишутся в системе кадра 1920×1080 (порог 8 px и весь
+    # даунстрим — coverage_polygon, flight_cache — считают в ней); для
+    # 4K-роликов нативные значения масштабируются
+    norm = 1920.0 / res["width"]
     out = OUT / (res["video"].name + ".coverage.tsv")
     with out.open("w", encoding="utf-8") as f:
         f.write("t\tf_px\tdist_m\tgsd_cm\tobj8px_cm\tstatus\n")
@@ -146,12 +233,12 @@ def write_video_tsv(res):
             elif s["f"] is None:
                 st, fpx, d, g = "no_focal", "", "", ""
             elif s["sky"]:
-                st, fpx, d, g = "above_horizon", f"{s['f']:.0f}", "", ""
+                st, fpx, d, g = "above_horizon", f"{s['f'] * norm:.0f}", "", ""
             else:
                 st = "ok"
-                fpx, d = f"{s['f']:.0f}", f"{s['dist']:.0f}"
-                g = f"{s['gsd'] * 100:.1f}"
-            o8 = f"{s['gsd'] * 100 * THRESH_PX:.0f}" if s["gsd"] else ""
+                fpx, d = f"{s['f'] * norm:.0f}", f"{s['dist']:.0f}"
+                g = f"{s['gsd'] / norm * 100:.1f}"
+            o8 = f"{s['gsd'] / norm * 100 * THRESH_PX:.0f}" if s["gsd"] else ""
             f.write(f"{s['t']:.1f}\t{fpx}\t{d}\t{g}\t{o8}\t{st}\n")
 
 
@@ -165,7 +252,8 @@ def summarize(res):
     row = dict(video=res["video"].name, n=n, n_ests=res["n_ests"],
                no_focal=nofocal / n, sky=sky / n, gap=gap / n, width=res["width"])
     if known:
-        gsds = np.array([s["gsd"] for s in known])
+        # GSD в системе 1920×1080 — как в tsv (write_video_tsv)
+        gsds = np.array([s["gsd"] for s in known]) * res["width"] / 1920.0
         row["gsd_med_cm"] = float(np.median(gsds)) * 100
         row["gsd_p90_cm"] = float(np.percentile(gsds, 90)) * 100
         row["obj8_med_cm"] = row["gsd_med_cm"] * THRESH_PX

@@ -327,7 +327,11 @@ FP_STRICT_R_MIN_M = 6.0    # радиус закраски строгого по
 FP_STRICT_R_MAX_M = 10.0   # (меньше полудиагонали ячейки 15 м — не «мостит»)
 FP_STRICT_OBJ_CM = 150     # порог «претендует на масштаб» → строгий путь
 FP_STRICT_DEPTH = 7        # глубина квадродерева
-FP_STRICT_RAY_BUDGET = 3000  # потолок лучей на сэмпл (защита от разноса)
+FP_STRICT_RAY_BUDGET = 20000  # потолок лучей на сэмпл (ревью 17.08: при 3000
+                              # широкие детальные кадры дырявились на ~13%)
+FP_STRICT_DIST_MIN_M = 5.0    # дистанции короче — порядка ошибки DEM у склона:
+                              # масштабу не доверяем (ревью 17.08: «детально
+                              # 0 см» у точек зависания вплотную к патчу DEM)
 
 
 def video_footprint_hits_strict(video, dem, step, bbox):
@@ -405,7 +409,7 @@ def video_footprint_hits_strict(video, dem, step, bbox):
             return cache[key]
 
         def o8_at(h, d):
-            if h is None or not math.isfinite(h[3]):
+            if h is None or not math.isfinite(h[3]) or h[3] < FP_STRICT_DIST_MIN_M:
                 return math.nan
             return o8 * h[3] / dist0 * stretch_at(h[0], h[1], d)
 
@@ -414,6 +418,7 @@ def video_footprint_hits_strict(video, dem, step, bbox):
                               (h1[1] - h2[1]) * m_per_deg_lon(h1[0]))
 
         emitted = set()
+        sample_hits = []   # (lat, lon, o8, r, loose) — до клипа по рамке
 
         def emit(px, py, h, d, spacing):
             key = (round(px, 1), round(py, 1))
@@ -423,9 +428,10 @@ def video_footprint_hits_strict(video, dem, step, bbox):
             o8h = o8_at(h, d)
             if math.isfinite(o8h) and o8h <= FP_STRICT_OBJ_CM:
                 r = min(max(0.75 * spacing, FP_STRICT_R_MIN_M), FP_STRICT_R_MAX_M)
+                sample_hits.append((h[0], h[1], o8h, r, False))
             else:
                 r = min(max(0.6 * spacing, FP_R_MIN_M), FP_R_MAX_M)
-            hits.append((h[0], h[1], o8h, t, r))
+                sample_hits.append((h[0], h[1], o8h, r, True))
 
         def quad(p00, p11, depth):
             """Квадрат кадра в пикселях: (x0,y0), (x1,y1) — рекурсивное сгущение."""
@@ -459,6 +465,19 @@ def video_footprint_hits_strict(video, dem, step, bbox):
         for gi in range(FP_GRID_X - 1):
             for gj in range(FP_GRID_Y - 1):
                 quad((pxs[gi], pys[gj]), (pxs[gi + 1], pys[gj + 1]), 0)
+
+        # клип по выпуклой оболочке рамки для грубых попаданий (r до 40 м) —
+        # как в старом методе (аудит 14.08): «обзорно» не выходит за реальную
+        # кромку кадра дальше FP_R_MIN_M; строгие попадания (r ≤ 10 м) не клипуем
+        mlon = m_per_deg_lon(la)
+        xy_all = [((hh[1] - lo) * mlon, (hh[0] - la) * M_PER_DEG_LAT)
+                  for (hh, _d) in cache.values() if hh is not None]
+        hull = _hull(xy_all)
+        for (hla, hlo, o8h, r, loose) in sample_hits:
+            if loose and hull:
+                p = ((hlo - lo) * mlon, (hla - la) * M_PER_DEG_LAT)
+                r = min(r, _dist_to_hull_edge(p, hull) + FP_R_MIN_M)
+            hits.append((hla, hlo, o8h, t, r))
         t += step
     return hits
 

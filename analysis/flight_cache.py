@@ -128,10 +128,16 @@ def process(dem, video: Path, force: bool):
     dur = max(r["time_s"] for r in rows if "time_s" in r)
 
     out.mkdir(parents=True, exist_ok=True)
-    subprocess.run(
-        ["ffmpeg", "-v", "error", "-i", str(video),
-         "-vf", f"fps=1/{FRAME_STEP:g},scale={FRAME_W}:-2", "-q:v", "4",
-         "-start_number", "0", str(out / "f%04d.jpg"), "-y"], check=True)
+    # кадры не зависят от меты: при пересчёте меты (например, новое фокусное)
+    # готовую нарезку не перегоняем. Но прерванный ffmpeg оставляет усечённый
+    # набор (ревью 17.08) — считаем нарезку готовой только если кадров не
+    # меньше ожидаемого по длительности (минус 1 на округление хвоста)
+    n_expected = int(dur / FRAME_STEP)
+    if len(list(out.glob("f*.jpg"))) < n_expected:
+        subprocess.run(
+            ["ffmpeg", "-v", "error", "-i", str(video),
+             "-vf", f"fps=1/{FRAME_STEP:g},scale={FRAME_W}:-2", "-q:v", "4",
+             "-start_number", "0", str(out / "f%04d.jpg"), "-y"], check=True)
     n_frames = len(list(out.glob("f*.jpg")))
 
     samples = [s for s in (sample(dem, rows, cov, t)
