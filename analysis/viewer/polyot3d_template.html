@@ -85,43 +85,26 @@ body.hidepanels #toggle{display:block}
   </div>
 
   <div class="panel" id="layers">
-    <h2>Рельеф — опасности</h2>
-    <label><input type="checkbox" id="L-steep"><span class="sw" style="background:#fc8d24"></span>крутизна 45–55° и &gt;55°</label>
+    <h2>Рельеф</h2>
     <label><input type="checkbox" id="L-coul"><span class="sw" style="background:#5a73fa"></span>кулуары и ложбины</label>
-    <label><input type="checkbox" id="L-cont"><span class="sw" style="background:#4a5568"></span>горизонтали через 100 м</label>
-    <div class="note">Рельеф — NASA HMA 8 м, со стереопар WorldView, 2017 год.
-      Максимум крутизны по району <b>87°</b>: стены здесь уже почти настоящие.
-      Но карта высот держит одну высоту на ячейку, поэтому <b>карнизов и
-      отрицательных уклонов быть не может</b>, а трещины 1–5 м не видны.
-      Кулуары — вогнутость &gt;4 м на 90 м при уклоне &gt;28°.</div>
+    <div class="note">Рельеф — NASA HMA 8 м (WorldView 2017) + фотограмметрические
+      патчи 2026 г. в пятне вещей. Одна высота на ячейку: карнизов и
+      отрицательных уклонов нет, трещины 1–5 м не видны. Кулуары —
+      вогнутость &gt;4 м на 90 м при уклоне &gt;28°.</div>
 
-    <h2 style="margin-top:12px">Покрытие — alp-finder</h2>
-    <label><input type="checkbox" id="L-acov"><span class="sw" style="background:#38d972"></span>покрыто съёмкой (по 40 видео)</label>
+    <h2 style="margin-top:12px">Покрытие съёмкой (87 роликов)</h2>
+    <label><input type="checkbox" id="L-cov3"><span class="sw" style="background:#38d972"></span>детально — предмет ≤ 20 см</label>
+    <label><input type="checkbox" id="L-cov2"><span class="sw" style="background:#d9c23f"></span>средне — предмет ≤ 1 м</label>
+    <label><input type="checkbox" id="L-cov1"><span class="sw" style="background:#7fa8c9"></span>обзорно / масштаб неизвестен</label>
 
-    <h2 style="margin-top:12px">Покрытие — ручная карта</h2>
-    <label><input type="checkbox" id="L-gap" checked><span class="sw" style="background:#f2333f"></span>зоны накопления БЕЗ осмотра</label>
-    <label><input type="checkbox" id="L-run"><span class="sw" style="background:#4c9bf0"></span>зоны накопления, осмотренные</label>
-    <label><input type="checkbox" id="L-fine"><span class="sw" style="background:#3fcc66"></span>осмотрено подробно</label>
-    <label><input type="checkbox" id="L-coarse"><span class="sw" style="background:#bfae3d"></span>осмотрено мельком</label>
-    <h2 style="margin-top:12px">Объекты alp-finder</h2>
-    <label><input type="checkbox" id="L-alp" checked><span class="sw" style="background:#ff3b30"></span>предметы и следы (<span id="n-alp"></span>)</label>
+    <h2 style="margin-top:12px">Объекты</h2>
+    <label><input type="checkbox" id="L-alp" checked><span class="sw" style="background:#ff3b30"></span>точки реестра (<span id="n-alp"></span>)</label>
     <label><input type="checkbox" id="L-route" checked><span class="sw" style="background:#ffffff"></span>маршрут группы</label>
-    <label><input type="checkbox" id="L-fall"><span class="sw" style="background:#ff6ad5"></span>линия падения (по DEM)</label>
-    <label><input type="checkbox" id="L-corr"><span class="sw" style="background:#7fe3ff"></span>коридор поиска 400 м</label>
-    <label><input type="checkbox" id="L-prio"><span class="sw" style="background:#ff2d55"></span>приоритет: не осмотрено</label>
     <label><input type="checkbox" id="L-camp" checked><span class="sw" style="background:#c9f24d"></span>лагеря и вешки</label>
+    <label><input type="checkbox" id="L-cam" checked><span class="sw" style="background:#8fc8ff"></span>полёты дрона (<span id="n-cam"></span>)</label>
+    <label><input type="checkbox" id="L-fan"><span class="sw" style="background:#c9a6ff"></span>обзор дроном — лучи взгляда</label>
 
-    <h2 style="margin-top:12px">Объекты — мои слои</h2>
-    <label><input type="checkbox" id="L-find" checked><span class="sw" style="background:#ff7a1a"></span>находки (<span id="n-find"></span>)</label>
-    <label><input type="checkbox" id="L-thing" checked><span class="sw" style="background:#ffd23f"></span>вещи из чата (<span id="n-thing"></span>)</label>
-    <label><input type="checkbox" id="L-spot"><span class="sw" style="background:#ffe9a8"></span>пятна кадров</label>
-    <label><input type="checkbox" id="L-shel"><span class="sw" style="background:#35c9d4"></span>укрытия (<span id="n-shel"></span>)</label>
-    <label><input type="checkbox" id="L-cam" checked><span class="sw" style="background:#8fc8ff"></span>точки съёмки (<span id="n-cam"></span>)</label>
-    <label><input type="checkbox" id="L-fan"><span class="sw" style="background:#c9a6ff"></span>веер взгляда камеры</label>
     <h2 style="margin-top:12px">Вид</h2>
-    <label>раскраска
-      <select id="S-tex"><option value="h" selected>по высоте</option>
-      <option value="a">снимок 16.07</option><option value="b">снимок 15.08</option></select></label>
     <label><input type="checkbox" id="L-ring" checked>кольца 10 / 50 / 100 м у цели</label>
     <label><input type="checkbox" id="L-grid" checked>сетка блоков</label>
     <label><input type="checkbox" id="L-fog" checked>дымка</label>
@@ -135,8 +118,21 @@ body.hidepanels #toggle{display:block}
       <option value="1.5" selected>1.5×</option><option value="2">2× (чётко)</option></select></label>
     <label><input type="checkbox" id="S-idle" checked>не рисовать, пока стоишь</label>
     <div class="note" id="S-stat">—</div>
-    <div class="note">Наведи перекрестье на маркер — покажет подпись и кадр.
-      <kbd>E</kbd> — открыть кадр целиком.</div>
+    <div class="note">Наведи перекрестье на маркер — подпись и кадр.
+      <kbd>E</kbd> — открыть кадр / плеер этого полёта.</div>
+
+    <div style="display:none">
+      <select id="S-tex"><option value="h" selected>по высоте</option></select>
+      <input type="checkbox" id="L-steep"><input type="checkbox" id="L-cont">
+      <input type="checkbox" id="L-acov">
+      <input type="checkbox" id="L-gap"><input type="checkbox" id="L-run">
+      <input type="checkbox" id="L-fine"><input type="checkbox" id="L-coarse">
+      <input type="checkbox" id="L-fall"><input type="checkbox" id="L-corr">
+      <input type="checkbox" id="L-prio">
+      <input type="checkbox" id="L-find" checked><input type="checkbox" id="L-thing" checked>
+      <input type="checkbox" id="L-spot"><input type="checkbox" id="L-shel">
+      <span id="n-find"></span><span id="n-thing"></span><span id="n-shel"></span>
+    </div>
   </div>
 
   <div class="panel" id="legend">
@@ -151,12 +147,11 @@ body.hidepanels #toggle{display:block}
   </div>
 
   <div class="panel" id="help">
-    <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> лететь &nbsp; <b>тяни мышью</b> — смотреть<br>
+    <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / <kbd>стрелки</kbd> лететь &nbsp; <b>тяни мышью</b> — смотреть<br>
     на телефоне: палец — обзор, два пальца — вперёд/назад<br>
-    <kbd>Space</kbd>/<kbd>Shift</kbd> вверх-вниз &nbsp; <kbd>Ctrl</kbd> быстрее<br>
-    <kbd>колесо</kbd> скорость &nbsp; <kbd>Esc</kbd> курсор<br>
-    <kbd>R</kbd> к рюкзаку &nbsp; <kbd>T</kbd> к съёмке 15.08 &nbsp; <kbd>F</kbd> вверх<br>
-    <kbd>H</kbd> — спрятать панели
+    <kbd>Space</kbd>/<kbd>Shift</kbd> вверх-вниз &nbsp; <kbd>Ctrl</kbd> быстрее &nbsp; <kbd>колесо</kbd> скорость<br>
+    <kbd>R</kbd> к вещам &nbsp; <kbd>T</kbd> к съёмке 15.08 &nbsp; <kbd>F</kbd> вверх<br>
+    <kbd>E</kbd> кадр/плеер &nbsp; <kbd>H</kbd> — спрятать панели
   </div>
 </div>
 
@@ -336,8 +331,10 @@ void main(){
   int st=(m>>4)&3;                 // крутизна: 1=35-45, 2=45-55, 3=>55
   bool coul=(m&64)!=0;             // кулуар / вогнутый склон
   int ac=int(vAcov+0.5);           // покрытие alp-finder: 1..3
-  if(uOn2.x>0.5&&ac>0)             // слой покрытия alp-finder
-    c=mix(c,ac>=3?vec3(0.22,0.85,0.45):vec3(0.85,0.72,0.20),ac>=3?0.50:0.40);
+  int cm=int(uOn2.x+0.5);          // покрытие: биты 1=обзорно 2=средне 4=детально
+  if(ac>0&&(cm&(1<<(ac-1)))!=0){
+    vec3 cc=ac==3?vec3(0.22,0.85,0.45):(ac==2?vec3(0.85,0.72,0.20):vec3(0.45,0.62,0.78));
+    c=mix(c,cc,ac==3?0.50:0.40);}
   if(uOn2.y>0.5&&st>=2)            // крутизна
     c=mix(c,st==3?vec3(0.98,0.16,0.20):vec3(0.99,0.55,0.14),st==3?0.62:0.44);
   if(uOn2.z>0.5&&coul)             // кулуары
@@ -527,18 +524,19 @@ function view(e,f){const up=[0,1,0];
      (f[0]*e[0]+f[1]*e[1]+f[2]*e[2]),1]);}
 
 const keys={};let cur=null;
+const AK={ArrowUp:'KeyW',ArrowDown:'KeyS',ArrowLeft:'KeyA',ArrowRight:'KeyD'};
 function jump(o,back){cam.x=o.x;cam.z=o.z+(back||10);cam.y=o.y+(back?back*0.6:7);cam.yaw=Math.PI;cam.pitch=-0.36;}
 addEventListener('keydown',e=>{
   if(e.code==='Escape'&&el('big').style.display==='flex'){el('big').style.display='none';return;}
-  keys[e.code]=1;
-  if(e.code==='KeyR'&&P.finds[0]){const o=P.finds[0];jump({x:o.x,y:yOf(o.l),z:o.y},9);}
+  keys[AK[e.code]||e.code]=1;
+  if(e.code==='KeyR'&&BPK)jump({x:BPK.x,y:BPK.y,z:BPK.z},30);
   if(e.code==='KeyT'&&P.cams.length){const c=P.cams.find(c=>c[3].startsWith('20260815'))||P.cams[0];
     cam.x=c[0];cam.z=c[1];cam.y=yOf(c[2]);}
   if(e.code==='KeyF'){cam.y=Math.max(cam.y,ground(cam.x,cam.z)+140);cam.pitch=-1.25;}
   if(e.code==='KeyE'&&cur&&(cur.fb||cur.f||cur.url))openBig(cur);
   if(e.code==='KeyH')document.body.classList.toggle('hidepanels');
-  if(['Space','ShiftLeft','KeyW','KeyA','KeyS','KeyD'].includes(e.code))e.preventDefault();});
-addEventListener('keyup',e=>keys[e.code]=0);
+  if(['Space','ShiftLeft','KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();});
+addEventListener('keyup',e=>keys[AK[e.code]||e.code]=0);
 // fb — кадр, вшитый прямо в страницу (работает и по ссылке, где нет папки кадров);
 // f — путь к полноразмерному файлу рядом; th — миниатюра как последний запас
 function openBig(o){if(o.url){window.open(o.url,'_blank');return;}
@@ -577,9 +575,7 @@ addEventListener('mousemove',e=>{
 addEventListener('mouseup',()=>{
   if(!drag)return;
   drag=false;
-  if(moved<5){                              // не тащили, а щёлкнули
-    if(cur&&(cur.fb||cur.f)){openBig(cur);return;}
-    if(cv.requestPointerLock)cv.requestPointerLock();}});
+  if(moved<5&&cur&&(cur.fb||cur.f||cur.url))openBig(cur);});
 // касания: один палец — обзор, два — вперёд/назад
 let tx=0,ty=0,tmoved=0,tn=0;
 cv.addEventListener('touchstart',e=>{
@@ -593,11 +589,12 @@ cv.addEventListener('touchmove',e=>{
   else turn(dx*1.4,dy*1.4);
   e.preventDefault();},{passive:false});
 cv.addEventListener('touchend',e=>{
-  if(tn===1&&tmoved<8&&cur&&(cur.fb||cur.f))openBig(cur);},{passive:true});
-addEventListener('wheel',e=>{cam.spd=Math.max(0.4,Math.min(400,cam.spd*(e.deltaY>0?0.88:1.14)));},{passive:true});
+  if(tn===1&&tmoved<8&&cur&&(cur.fb||cur.f||cur.url))openBig(cur);},{passive:true});
+addEventListener('wheel',e=>{cam.spd=Math.max(2,Math.min(600,cam.spd*Math.exp(-e.deltaY*0.0016)));},{passive:true});
 
 const O={};['gap','run','fine','coarse','find','thing','spot','shel','cam','fan','grid','fog',
-  'steep','coul','cont','acov','alp','route','fall','corr','prio','camp','ring']
+  'steep','coul','cont','acov','alp','route','fall','corr','prio','camp','ring',
+  'cov1','cov2','cov3']
   .forEach(k=>O[k]=el('L-'+k));
 el('n-alp').textContent=P.apts.length;
 const uT={};['uVP','uEye','uGrid','uFog','uOn','uOn2','uSky','uYS'].forEach(n=>uT[n]=gl.getUniformLocation(PT,n));
@@ -617,11 +614,14 @@ el('go').onclick=()=>{
   el('go').textContent='строю рельеф…';
   setTimeout(()=>{
     buildMesh();uploadTerrain();buildScene();
-    cam.y=ground(cam.x,cam.z)+45;
-    el('splash').style.display='none';cv.requestPointerLock();
+    if(P.spawn){cam.x=P.spawn.x;cam.z=P.spawn.z;cam.yaw=P.spawn.yaw;
+      cam.pitch=P.spawn.pitch;cam.y=yOf(P.spawn.l);}
+    else cam.y=ground(cam.x,cam.z)+45;
+    el('splash').style.display='none';
     started=true;last=performance.now();lastDraw=last-99;dirty=true;
     requestAnimationFrame(loop);
     console.log('квадов',NQ,'кусков',CHUNKS.length);},30);};
+el('go').click();
 
 function loop(now){
   requestAnimationFrame(loop);
@@ -665,7 +665,7 @@ function loop(now){
   gl.uniform1i(uT.uFog,O.fog.checked?1:0);
   gl.uniform1f(uT.uYS,BZ/BX);
   gl.uniform4f(uT.uOn,O.coarse.checked?1:0,O.fine.checked?1:0,O.run.checked?1:0,O.gap.checked?1:0);
-  gl.uniform4f(uT.uOn2,O.acov.checked?1:0,O.steep.checked?1:0,O.coul.checked?1:0,O.cont.checked?1:0);
+  gl.uniform4f(uT.uOn2,(O.cov1.checked?1:0)+(O.cov2.checked?2:0)+(O.cov3.checked?4:0),O.steep.checked?1:0,O.coul.checked?1:0,O.cont.checked?1:0);
   gl.uniform3f(uT.uSky,SKY[0],SKY[1],SKY[2]);
   gl.bindVertexArray(vaoT);
   planes(VP);

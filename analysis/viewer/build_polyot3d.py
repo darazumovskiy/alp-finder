@@ -254,7 +254,15 @@ def build():
     apts = registry_points(dem, zmin, w, h)
     cams, fan = drone_layer(dem, zmin, w, h)
 
+    # появление: над ледником севернее кластера вещей, взгляд на юг —
+    # в кадре сразу склон с находками, стена LOOK и гребень
+    sp_lat, sp_lon = 39.4915, 73.5850
+    sx, sy = to_xy(sp_lat, sp_lon)
+    spawn = dict(x=sx, z=sy, yaw=0.06, pitch=-0.10,
+                 l=round((dem.elev(sp_lat, sp_lon) + 300 - zmin) / BZ))
+
     payload = dict(
+        spawn=spawn,
         W=w, H=h, BX=BX, BZ=BZ, zmin=zmin,
         LAT0=LAT0, LAT1=LAT1, LON0=LON0, LON1=LON1, MLA=MLA, MLO=MLO,
         lev=b64(lev), shade=b64(shade), slope=b64(slope),
