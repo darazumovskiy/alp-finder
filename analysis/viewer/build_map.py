@@ -1606,6 +1606,7 @@ header a { color:#4da3ff; text-decoration:none; }
 <a href="panoramy.html">Панорамы</a>
 <a href="model-3d.html">3D-модель</a>
 <a href="coverage-3d.html">3D-покрытие</a>
+<a href="polyot-3d.html">Полёт 3D</a>
 <a href="#" id="flightBtn">Полёт ▶</a>
 </nav></header>
 <div id="wrap">

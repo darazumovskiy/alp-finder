@@ -390,6 +390,7 @@ def page(title, body):
 <a href="panoramy.html">Панорамы</a>
 <a href="model-3d.html">3D-модель</a>
 <a href="coverage-3d.html">3D-покрытие</a>
+<a href="polyot-3d.html">Полёт 3D</a>
 </nav></header>
 <main>{body}</main>
 <div id="lightbox"><img alt=""></div>
