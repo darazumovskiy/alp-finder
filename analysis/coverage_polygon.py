@@ -104,7 +104,9 @@ def moment_table(video_name):
     rows = {}
     for line in path.read_text().splitlines()[1:]:
         t, f, d, _g, o8, status = line.split("\t")
-        if status == "ok" and f and d and o8:
+        # d=0 — дрон на земле у точки взлёта: масштаба у такого момента нет,
+        # деление на эту дистанцию роняло пересчёт (всплыло на HMA 17.08)
+        if status == "ok" and f and d and o8 and float(d) > 0:
             rows[round(float(t), 1)] = (float(o8), float(f), float(d))
     return MomentTable(rows)
 
