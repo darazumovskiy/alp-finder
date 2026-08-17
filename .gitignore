@@ -62,3 +62,4 @@ analysis/scans-furrow/*/crops/
 analysis/scans-furrow/*/montage_*.jpg
 analysis/trace-frames/*/*.jpg
 analysis/debug-furrow/
+analysis/tg_activity.sqlite

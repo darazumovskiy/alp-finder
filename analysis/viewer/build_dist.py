@@ -28,7 +28,8 @@ DIST = VIEWER_DIR / "dist"
 PAGES = ["index.html", "map.html", "montages.html", "panoramy.html",
          "coverage-3d.html", "otchet-2026-08-16.html",
          "otchet-2026-08-16-part2.html",
-         "otchet-2026-08-17-koshki-pokrytie.html"]
+         "otchet-2026-08-17-koshki-pokrytie.html",
+         "otchet-tg-aktivnost.html"]
 
 # Самодостаточные HTML вне viewer/ (ссылки из навигации) → имя в корне dist
 EXTRA_FILES = {

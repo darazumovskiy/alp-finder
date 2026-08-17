@@ -1,0 +1,2413 @@
+[
+ {
+  "author": "Александра Муранова",
+  "messages": 861,
+  "text_messages": 757,
+  "days_active": 5,
+  "first_day": "2026-08-12",
+  "last_day": "2026-08-16",
+  "est_hours": 53.8,
+  "sessions": 23,
+  "media_total": 310,
+  "candidates": 152,
+  "accepted": 33,
+  "topics": {
+   "1-gipotezy": 31,
+   "ai": 8,
+   "arkhiv-skrinshotov": 164,
+   "dlya-pereproverki-dronom": 39,
+   "general": 72,
+   "gipoteza-2-kurtka-ili-spalnik": 1,
+   "instrukcii-i-ssylki": 10,
+   "novye-skrinshoty": 292,
+   "otklonennye-posle-proverki-dronom": 23,
+   "pod-voprosom": 35,
+   "podtverzhdennye": 94,
+   "veshchi": 92
+  }
+ },
+ {
+  "author": "Gennadiy Bege",
+  "messages": 453,
+  "text_messages": 403,
+  "days_active": 5,
+  "first_day": "2026-08-12",
+  "last_day": "2026-08-16",
+  "est_hours": 41.2,
+  "sessions": 32,
+  "media_total": 77,
+  "candidates": 57,
+  "accepted": 3,
+  "topics": {
+   "1-gipotezy": 49,
+   "ai": 21,
+   "arkhiv-skrinshotov": 2,
+   "dlya-pereproverki-dronom": 15,
+   "general": 99,
+   "gipoteza-2-kurtka-ili-spalnik": 10,
+   "instrukcii-i-ssylki": 1,
+   "novye-skrinshoty": 208,
+   "pod-voprosom": 24,
+   "podtverzhdennye": 20,
+   "veshchi": 4
+  }
+ },
+ {
+  "author": "Dmitriy Razumovskiy",
+  "messages": 239,
+  "text_messages": 216,
+  "days_active": 4,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-16",
+  "est_hours": 21.8,
+  "sessions": 17,
+  "media_total": 70,
+  "candidates": 49,
+  "accepted": 4,
+  "topics": {
+   "1-gipotezy": 7,
+   "ai": 108,
+   "general": 40,
+   "novye-skrinshoty": 81,
+   "pod-voprosom": 2,
+   "podtverzhdennye": 1
+  }
+ },
+ {
+  "author": "Alex",
+  "messages": 233,
+  "text_messages": 227,
+  "days_active": 6,
+  "first_day": "2026-08-11",
+  "last_day": "2026-08-16",
+  "est_hours": 26.4,
+  "sessions": 34,
+  "media_total": 21,
+  "candidates": 15,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 9,
+   "ai": 11,
+   "arkhiv-skrinshotov": 1,
+   "dlya-pereproverki-dronom": 5,
+   "general": 96,
+   "gipoteza-2-kurtka-ili-spalnik": 9,
+   "instrukcii-i-ssylki": 1,
+   "novye-skrinshoty": 90,
+   "otklonennye-posle-proverki-dronom": 1,
+   "pod-voprosom": 5,
+   "podtverzhdennye": 3,
+   "veshchi": 2
+  }
+ },
+ {
+  "author": "Valeria K.",
+  "messages": 157,
+  "text_messages": 142,
+  "days_active": 2,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-16",
+  "est_hours": 18.1,
+  "sessions": 10,
+  "media_total": 57,
+  "candidates": 57,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 13,
+   "dlya-pereproverki-dronom": 2,
+   "general": 7,
+   "gipoteza-2-kurtka-ili-spalnik": 9,
+   "novye-skrinshoty": 121,
+   "pod-voprosom": 5
+  }
+ },
+ {
+  "author": "Victoria",
+  "messages": 156,
+  "text_messages": 145,
+  "days_active": 4,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-16",
+  "est_hours": 20.1,
+  "sessions": 21,
+  "media_total": 52,
+  "candidates": 52,
+  "accepted": 1,
+  "topics": {
+   "1-gipotezy": 3,
+   "dlya-pereproverki-dronom": 2,
+   "general": 9,
+   "gipoteza-2-kurtka-ili-spalnik": 2,
+   "novye-skrinshoty": 135,
+   "pod-voprosom": 4,
+   "podtverzhdennye": 1
+  }
+ },
+ {
+  "author": "Gagarin One",
+  "messages": 155,
+  "text_messages": 126,
+  "days_active": 4,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-16",
+  "est_hours": 16.8,
+  "sessions": 8,
+  "media_total": 75,
+  "candidates": 75,
+  "accepted": 2,
+  "topics": {
+   "1-gipotezy": 20,
+   "dlya-pereproverki-dronom": 2,
+   "general": 20,
+   "novye-skrinshoty": 108,
+   "pod-voprosom": 5
+  }
+ },
+ {
+  "author": "Ingrida",
+  "messages": 133,
+  "text_messages": 130,
+  "days_active": 4,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-16",
+  "est_hours": 19.2,
+  "sessions": 18,
+  "media_total": 33,
+  "candidates": 29,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 4,
+   "ai": 9,
+   "general": 21,
+   "novye-skrinshoty": 94,
+   "pod-voprosom": 1,
+   "podtverzhdennye": 4
+  }
+ },
+ {
+  "author": "Настя Маркова",
+  "messages": 111,
+  "text_messages": 93,
+  "days_active": 4,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-16",
+  "est_hours": 13.3,
+  "sessions": 16,
+  "media_total": 64,
+  "candidates": 64,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 2,
+   "ai": 2,
+   "dlya-pereproverki-dronom": 2,
+   "general": 1,
+   "novye-skrinshoty": 102,
+   "pod-voprosom": 2
+  }
+ },
+ {
+  "author": "AE",
+  "messages": 84,
+  "text_messages": 77,
+  "days_active": 4,
+  "first_day": "2026-08-12",
+  "last_day": "2026-08-15",
+  "est_hours": 8.6,
+  "sessions": 16,
+  "media_total": 9,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 1,
+   "dlya-pereproverki-dronom": 7,
+   "general": 73,
+   "novye-skrinshoty": 3
+  }
+ },
+ {
+  "author": "Serge",
+  "messages": 81,
+  "text_messages": 78,
+  "days_active": 6,
+  "first_day": "2026-08-11",
+  "last_day": "2026-08-16",
+  "est_hours": 16.6,
+  "sessions": 17,
+  "media_total": 19,
+  "candidates": 16,
+  "accepted": 1,
+  "topics": {
+   "1-gipotezy": 14,
+   "general": 8,
+   "gipoteza-2-kurtka-ili-spalnik": 1,
+   "novye-skrinshoty": 48,
+   "pod-voprosom": 4,
+   "podtverzhdennye": 4,
+   "veshchi": 2
+  }
+ },
+ {
+  "author": "Nickolai",
+  "messages": 79,
+  "text_messages": 72,
+  "days_active": 4,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-16",
+  "est_hours": 11.9,
+  "sessions": 18,
+  "media_total": 38,
+  "candidates": 36,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 9,
+   "ai": 9,
+   "general": 7,
+   "novye-skrinshoty": 54
+  }
+ },
+ {
+  "author": "Серафима Н.",
+  "messages": 73,
+  "text_messages": 39,
+  "days_active": 1,
+  "first_day": "2026-08-16",
+  "last_day": "2026-08-16",
+  "est_hours": 4.7,
+  "sessions": 8,
+  "media_total": 51,
+  "candidates": 26,
+  "accepted": 0,
+  "topics": {
+   "arkhiv-skrinshotov": 12,
+   "general": 23,
+   "novye-skrinshoty": 34,
+   "pod-voprosom": 4
+  }
+ },
+ {
+  "author": "mmariaveli",
+  "messages": 69,
+  "text_messages": 51,
+  "days_active": 3,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-15",
+  "est_hours": 9.6,
+  "sessions": 13,
+  "media_total": 54,
+  "candidates": 51,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 8,
+   "general": 3,
+   "gipoteza-2-kurtka-ili-spalnik": 1,
+   "novye-skrinshoty": 57
+  }
+ },
+ {
+  "author": "Michael 1204",
+  "messages": 64,
+  "text_messages": 63,
+  "days_active": 2,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-16",
+  "est_hours": 8.0,
+  "sessions": 11,
+  "media_total": 40,
+  "candidates": 40,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 4,
+   "general": 2,
+   "novye-skrinshoty": 58
+  }
+ },
+ {
+  "author": "Helen",
+  "messages": 61,
+  "text_messages": 55,
+  "days_active": 4,
+  "first_day": "2026-08-12",
+  "last_day": "2026-08-15",
+  "est_hours": 7.6,
+  "sessions": 16,
+  "media_total": 39,
+  "candidates": 32,
+  "accepted": 3,
+  "topics": {
+   "1-gipotezy": 1,
+   "dlya-pereproverki-dronom": 2,
+   "general": 10,
+   "novye-skrinshoty": 47,
+   "podtverzhdennye": 1
+  }
+ },
+ {
+  "author": "C C",
+  "messages": 61,
+  "text_messages": 52,
+  "days_active": 3,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-16",
+  "est_hours": 7.5,
+  "sessions": 8,
+  "media_total": 22,
+  "candidates": 3,
+  "accepted": 0,
+  "topics": {
+   "ai": 49,
+   "dlya-pereproverki-dronom": 2,
+   "general": 8,
+   "novye-skrinshoty": 2
+  }
+ },
+ {
+  "author": "R",
+  "messages": 61,
+  "text_messages": 52,
+  "days_active": 7,
+  "first_day": "2026-08-11",
+  "last_day": "2026-08-17",
+  "est_hours": 9.8,
+  "sessions": 25,
+  "media_total": 29,
+  "candidates": 18,
+  "accepted": 1,
+  "topics": {
+   "ai": 17,
+   "arkhiv-skrinshotov": 1,
+   "general": 22,
+   "novye-skrinshoty": 21
+  }
+ },
+ {
+  "author": "Dmitry Fedotov",
+  "messages": 55,
+  "text_messages": 51,
+  "days_active": 2,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-16",
+  "est_hours": 6.6,
+  "sessions": 10,
+  "media_total": 15,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "ai": 15,
+   "general": 40
+  }
+ },
+ {
+  "author": "Алеся",
+  "messages": 54,
+  "text_messages": 45,
+  "days_active": 4,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-16",
+  "est_hours": 8.6,
+  "sessions": 16,
+  "media_total": 27,
+  "candidates": 26,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 1,
+   "general": 3,
+   "gipoteza-2-kurtka-ili-spalnik": 12,
+   "novye-skrinshoty": 33,
+   "pod-voprosom": 5
+  }
+ },
+ {
+  "author": "Паша Че",
+  "messages": 53,
+  "text_messages": 49,
+  "days_active": 4,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-16",
+  "est_hours": 6.3,
+  "sessions": 12,
+  "media_total": 8,
+  "candidates": 8,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 7,
+   "ai": 1,
+   "novye-skrinshoty": 43,
+   "podtverzhdennye": 2
+  }
+ },
+ {
+  "author": "Gera Amaranth",
+  "messages": 53,
+  "text_messages": 34,
+  "days_active": 4,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-16",
+  "est_hours": 6.5,
+  "sessions": 10,
+  "media_total": 30,
+  "candidates": 29,
+  "accepted": 5,
+  "topics": {
+   "1-gipotezy": 3,
+   "general": 6,
+   "gipoteza-2-kurtka-ili-spalnik": 11,
+   "novye-skrinshoty": 23,
+   "podtverzhdennye": 1,
+   "veshchi": 9
+  }
+ },
+ {
+  "author": "Leo",
+  "messages": 36,
+  "text_messages": 34,
+  "days_active": 5,
+  "first_day": "2026-08-12",
+  "last_day": "2026-08-16",
+  "est_hours": 6.2,
+  "sessions": 17,
+  "media_total": 5,
+  "candidates": 3,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 1,
+   "general": 26,
+   "novye-skrinshoty": 9
+  }
+ },
+ {
+  "author": "Дмитрий Дуван",
+  "messages": 34,
+  "text_messages": 31,
+  "days_active": 4,
+  "first_day": "2026-08-12",
+  "last_day": "2026-08-15",
+  "est_hours": 4.7,
+  "sessions": 11,
+  "media_total": 12,
+  "candidates": 11,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 4,
+   "dlya-pereproverki-dronom": 2,
+   "general": 1,
+   "novye-skrinshoty": 25,
+   "pod-voprosom": 2
+  }
+ },
+ {
+  "author": "paleny Дима",
+  "messages": 34,
+  "text_messages": 32,
+  "days_active": 4,
+  "first_day": "2026-08-12",
+  "last_day": "2026-08-16",
+  "est_hours": 5.9,
+  "sessions": 9,
+  "media_total": 7,
+  "candidates": 2,
+  "accepted": 0,
+  "topics": {
+   "general": 28,
+   "novye-skrinshoty": 5,
+   "podtverzhdennye": 1
+  }
+ },
+ {
+  "author": "euclidia",
+  "messages": 33,
+  "text_messages": 33,
+  "days_active": 4,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-16",
+  "est_hours": 6.3,
+  "sessions": 12,
+  "media_total": 6,
+  "candidates": 1,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 4,
+   "ai": 3,
+   "general": 17,
+   "novye-skrinshoty": 9
+  }
+ },
+ {
+  "author": "Zheka",
+  "messages": 33,
+  "text_messages": 24,
+  "days_active": 3,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-16",
+  "est_hours": 4.3,
+  "sessions": 6,
+  "media_total": 15,
+  "candidates": 15,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 4,
+   "general": 3,
+   "novye-skrinshoty": 26
+  }
+ },
+ {
+  "author": "Наташа",
+  "messages": 32,
+  "text_messages": 28,
+  "days_active": 4,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-16",
+  "est_hours": 5.0,
+  "sessions": 9,
+  "media_total": 17,
+  "candidates": 17,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 12,
+   "general": 1,
+   "gipoteza-2-kurtka-ili-spalnik": 2,
+   "novye-skrinshoty": 17
+  }
+ },
+ {
+  "author": "Kate",
+  "messages": 32,
+  "text_messages": 30,
+  "days_active": 3,
+  "first_day": "2026-08-12",
+  "last_day": "2026-08-14",
+  "est_hours": 2.2,
+  "sessions": 10,
+  "media_total": 4,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 32
+  }
+ },
+ {
+  "author": "byap",
+  "messages": 29,
+  "text_messages": 27,
+  "days_active": 3,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-15",
+  "est_hours": 4.7,
+  "sessions": 9,
+  "media_total": 6,
+  "candidates": 6,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 4,
+   "novye-skrinshoty": 25
+  }
+ },
+ {
+  "author": "Liubov",
+  "messages": 28,
+  "text_messages": 27,
+  "days_active": 4,
+  "first_day": "2026-08-12",
+  "last_day": "2026-08-15",
+  "est_hours": 4.4,
+  "sessions": 19,
+  "media_total": 2,
+  "candidates": 2,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 2,
+   "arkhiv-skrinshotov": 2,
+   "general": 11,
+   "novye-skrinshoty": 11,
+   "pod-voprosom": 2
+  }
+ },
+ {
+  "author": "Kakunin Dmytro",
+  "messages": 28,
+  "text_messages": 26,
+  "days_active": 4,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-16",
+  "est_hours": 4.7,
+  "sessions": 12,
+  "media_total": 17,
+  "candidates": 17,
+  "accepted": 5,
+  "topics": {
+   "1-gipotezy": 2,
+   "general": 4,
+   "novye-skrinshoty": 22
+  }
+ },
+ {
+  "author": "Ксения",
+  "messages": 24,
+  "text_messages": 16,
+  "days_active": 1,
+  "first_day": "2026-08-16",
+  "last_day": "2026-08-16",
+  "est_hours": 1.6,
+  "sessions": 4,
+  "media_total": 9,
+  "candidates": 6,
+  "accepted": 0,
+  "topics": {
+   "dlya-pereproverki-dronom": 8,
+   "general": 7,
+   "novye-skrinshoty": 9
+  }
+ },
+ {
+  "author": "Nadufa",
+  "messages": 23,
+  "text_messages": 9,
+  "days_active": 3,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-16",
+  "est_hours": 2.2,
+  "sessions": 4,
+  "media_total": 20,
+  "candidates": 20,
+  "accepted": 0,
+  "topics": {
+   "general": 1,
+   "novye-skrinshoty": 21,
+   "pod-voprosom": 1
+  }
+ },
+ {
+  "author": "Yaroslav Andriyanov",
+  "messages": 22,
+  "text_messages": 22,
+  "days_active": 3,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-16",
+  "est_hours": 3.5,
+  "sessions": 5,
+  "media_total": 7,
+  "candidates": 7,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 9,
+   "general": 1,
+   "gipoteza-2-kurtka-ili-spalnik": 1,
+   "novye-skrinshoty": 9,
+   "pod-voprosom": 1,
+   "podtverzhdennye": 1
+  }
+ },
+ {
+  "author": "Космическая Пыль",
+  "messages": 21,
+  "text_messages": 21,
+  "days_active": 2,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-16",
+  "est_hours": 3.7,
+  "sessions": 8,
+  "media_total": 14,
+  "candidates": 12,
+  "accepted": 0,
+  "topics": {
+   "ai": 2,
+   "arkhiv-skrinshotov": 2,
+   "novye-skrinshoty": 17
+  }
+ },
+ {
+  "author": "Polina",
+  "messages": 19,
+  "text_messages": 17,
+  "days_active": 3,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-16",
+  "est_hours": 4.6,
+  "sessions": 6,
+  "media_total": 8,
+  "candidates": 7,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 1,
+   "general": 2,
+   "novye-skrinshoty": 16
+  }
+ },
+ {
+  "author": "Mikita Dziadziushka",
+  "messages": 19,
+  "text_messages": 19,
+  "days_active": 6,
+  "first_day": "2026-08-12",
+  "last_day": "2026-08-17",
+  "est_hours": 2.1,
+  "sessions": 8,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "arkhiv-skrinshotov": 3,
+   "general": 5,
+   "novye-skrinshoty": 10,
+   "podtverzhdennye": 1
+  }
+ },
+ {
+  "author": "Nikita Kotlyarov",
+  "messages": 18,
+  "text_messages": 16,
+  "days_active": 5,
+  "first_day": "2026-08-12",
+  "last_day": "2026-08-16",
+  "est_hours": 1.8,
+  "sessions": 9,
+  "media_total": 7,
+  "candidates": 3,
+  "accepted": 1,
+  "topics": {
+   "1-gipotezy": 2,
+   "ai": 3,
+   "general": 2,
+   "novye-skrinshoty": 11
+  }
+ },
+ {
+  "author": "Sle",
+  "messages": 18,
+  "text_messages": 18,
+  "days_active": 5,
+  "first_day": "2026-08-12",
+  "last_day": "2026-08-16",
+  "est_hours": 3.1,
+  "sessions": 11,
+  "media_total": 3,
+  "candidates": 3,
+  "accepted": 1,
+  "topics": {
+   "1-gipotezy": 2,
+   "ai": 1,
+   "general": 3,
+   "gipoteza-2-kurtka-ili-spalnik": 3,
+   "novye-skrinshoty": 8,
+   "podtverzhdennye": 1
+  }
+ },
+ {
+  "author": "Tаня",
+  "messages": 18,
+  "text_messages": 12,
+  "days_active": 2,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-15",
+  "est_hours": 2.2,
+  "sessions": 8,
+  "media_total": 13,
+  "candidates": 13,
+  "accepted": 1,
+  "topics": {
+   "gipoteza-2-kurtka-ili-spalnik": 1,
+   "novye-skrinshoty": 17
+  }
+ },
+ {
+  "author": "Aleksej Ant",
+  "messages": 17,
+  "text_messages": 11,
+  "days_active": 1,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-14",
+  "est_hours": 1.5,
+  "sessions": 3,
+  "media_total": 9,
+  "candidates": 2,
+  "accepted": 0,
+  "topics": {
+   "ai": 8,
+   "general": 5,
+   "novye-skrinshoty": 3,
+   "podtverzhdennye": 1
+  }
+ },
+ {
+  "author": "Dmitry",
+  "messages": 17,
+  "text_messages": 15,
+  "days_active": 5,
+  "first_day": "2026-08-12",
+  "last_day": "2026-08-16",
+  "est_hours": 2.5,
+  "sessions": 7,
+  "media_total": 6,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "ai": 3,
+   "general": 13,
+   "novye-skrinshoty": 1
+  }
+ },
+ {
+  "author": "Valerij Kozich",
+  "messages": 14,
+  "text_messages": 12,
+  "days_active": 5,
+  "first_day": "2026-08-11",
+  "last_day": "2026-08-15",
+  "est_hours": 1.7,
+  "sessions": 9,
+  "media_total": 3,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 1,
+   "general": 13
+  }
+ },
+ {
+  "author": "Elena Kozlova",
+  "messages": 14,
+  "text_messages": 14,
+  "days_active": 2,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-16",
+  "est_hours": 2.3,
+  "sessions": 7,
+  "media_total": 1,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 2,
+   "general": 3,
+   "novye-skrinshoty": 6,
+   "pod-voprosom": 1,
+   "podtverzhdennye": 2
+  }
+ },
+ {
+  "author": "Eddfreewind",
+  "messages": 14,
+  "text_messages": 7,
+  "days_active": 3,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-16",
+  "est_hours": 1.1,
+  "sessions": 6,
+  "media_total": 10,
+  "candidates": 9,
+  "accepted": 2,
+  "topics": {
+   "1-gipotezy": 1,
+   "general": 1,
+   "novye-skrinshoty": 3,
+   "pod-voprosom": 8,
+   "podtverzhdennye": 1
+  }
+ },
+ {
+  "author": "dedzet",
+  "messages": 13,
+  "text_messages": 11,
+  "days_active": 1,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-14",
+  "est_hours": 2.7,
+  "sessions": 2,
+  "media_total": 9,
+  "candidates": 9,
+  "accepted": 0,
+  "topics": {
+   "general": 1,
+   "novye-skrinshoty": 12
+  }
+ },
+ {
+  "author": "Antanas",
+  "messages": 13,
+  "text_messages": 11,
+  "days_active": 2,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-16",
+  "est_hours": 2.2,
+  "sessions": 3,
+  "media_total": 8,
+  "candidates": 8,
+  "accepted": 0,
+  "topics": {
+   "general": 1,
+   "novye-skrinshoty": 10,
+   "pod-voprosom": 2
+  }
+ },
+ {
+  "author": "Кориандр",
+  "messages": 12,
+  "text_messages": 11,
+  "days_active": 3,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-15",
+  "est_hours": 1.5,
+  "sessions": 5,
+  "media_total": 2,
+  "candidates": 2,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 6,
+   "gipoteza-2-kurtka-ili-spalnik": 1,
+   "novye-skrinshoty": 5
+  }
+ },
+ {
+  "author": "John",
+  "messages": 12,
+  "text_messages": 12,
+  "days_active": 3,
+  "first_day": "2026-08-12",
+  "last_day": "2026-08-14",
+  "est_hours": 2.3,
+  "sessions": 9,
+  "media_total": 5,
+  "candidates": 5,
+  "accepted": 1,
+  "topics": {
+   "general": 3,
+   "novye-skrinshoty": 8,
+   "podtverzhdennye": 1
+  }
+ },
+ {
+  "author": "Artur Rubcov",
+  "messages": 11,
+  "text_messages": 9,
+  "days_active": 4,
+  "first_day": "2026-08-12",
+  "last_day": "2026-08-15",
+  "est_hours": 1.5,
+  "sessions": 9,
+  "media_total": 4,
+  "candidates": 1,
+  "accepted": 0,
+  "topics": {
+   "general": 9,
+   "novye-skrinshoty": 1,
+   "podtverzhdennye": 1
+  }
+ },
+ {
+  "author": "Rada",
+  "messages": 11,
+  "text_messages": 11,
+  "days_active": 3,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-16",
+  "est_hours": 1.7,
+  "sessions": 7,
+  "media_total": 2,
+  "candidates": 1,
+  "accepted": 0,
+  "topics": {
+   "general": 7,
+   "novye-skrinshoty": 4
+  }
+ },
+ {
+  "author": "Ира",
+  "messages": 11,
+  "text_messages": 8,
+  "days_active": 2,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-16",
+  "est_hours": 1.3,
+  "sessions": 2,
+  "media_total": 7,
+  "candidates": 7,
+  "accepted": 0,
+  "topics": {
+   "general": 1,
+   "pod-voprosom": 10
+  }
+ },
+ {
+  "author": "Inna",
+  "messages": 11,
+  "text_messages": 8,
+  "days_active": 2,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-16",
+  "est_hours": 1.5,
+  "sessions": 4,
+  "media_total": 11,
+  "candidates": 11,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 11
+  }
+ },
+ {
+  "author": "Сергей Ковалевский",
+  "messages": 10,
+  "text_messages": 10,
+  "days_active": 2,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-16",
+  "est_hours": 1.4,
+  "sessions": 3,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 8,
+   "general": 1,
+   "novye-skrinshoty": 1
+  }
+ },
+ {
+  "author": "S B",
+  "messages": 10,
+  "text_messages": 10,
+  "days_active": 3,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-16",
+  "est_hours": 2.1,
+  "sessions": 5,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 1,
+   "general": 3,
+   "novye-skrinshoty": 3,
+   "pod-voprosom": 3
+  }
+ },
+ {
+  "author": "Maryna Ruban",
+  "messages": 10,
+  "text_messages": 10,
+  "days_active": 4,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-16",
+  "est_hours": 1.7,
+  "sessions": 7,
+  "media_total": 1,
+  "candidates": 1,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 2,
+   "general": 1,
+   "novye-skrinshoty": 6,
+   "podtverzhdennye": 1
+  }
+ },
+ {
+  "author": "N S",
+  "messages": 10,
+  "text_messages": 6,
+  "days_active": 3,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-15",
+  "est_hours": 1.0,
+  "sessions": 5,
+  "media_total": 10,
+  "candidates": 7,
+  "accepted": 3,
+  "topics": {
+   "novye-skrinshoty": 7,
+   "podtverzhdennye": 3
+  }
+ },
+ {
+  "author": "Alg Mil",
+  "messages": 9,
+  "text_messages": 7,
+  "days_active": 2,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-15",
+  "est_hours": 1.4,
+  "sessions": 3,
+  "media_total": 2,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "ai": 9
+  }
+ },
+ {
+  "author": "Ana Dementjeva",
+  "messages": 9,
+  "text_messages": 7,
+  "days_active": 4,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-16",
+  "est_hours": 0.9,
+  "sessions": 5,
+  "media_total": 4,
+  "candidates": 4,
+  "accepted": 0,
+  "topics": {
+   "general": 1,
+   "novye-skrinshoty": 8
+  }
+ },
+ {
+  "author": "Яночка",
+  "messages": 9,
+  "text_messages": 7,
+  "days_active": 2,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-15",
+  "est_hours": 0.8,
+  "sessions": 4,
+  "media_total": 5,
+  "candidates": 5,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 9
+  }
+ },
+ {
+  "author": "Klara",
+  "messages": 8,
+  "text_messages": 8,
+  "days_active": 2,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-16",
+  "est_hours": 1.4,
+  "sessions": 2,
+  "media_total": 5,
+  "candidates": 5,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 1,
+   "general": 2,
+   "novye-skrinshoty": 5
+  }
+ },
+ {
+  "author": "Evgeniy Ustinov",
+  "messages": 8,
+  "text_messages": 4,
+  "days_active": 4,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-17",
+  "est_hours": 1.6,
+  "sessions": 4,
+  "media_total": 5,
+  "candidates": 5,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 1,
+   "general": 1,
+   "novye-skrinshoty": 6
+  }
+ },
+ {
+  "author": "A S",
+  "messages": 7,
+  "text_messages": 6,
+  "days_active": 4,
+  "first_day": "2026-08-12",
+  "last_day": "2026-08-16",
+  "est_hours": 0.8,
+  "sessions": 5,
+  "media_total": 1,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 2,
+   "general": 5
+  }
+ },
+ {
+  "author": "anatoly www",
+  "messages": 7,
+  "text_messages": 4,
+  "days_active": 4,
+  "first_day": "2026-08-11",
+  "last_day": "2026-08-17",
+  "est_hours": 1.1,
+  "sessions": 4,
+  "media_total": 4,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 5,
+   "podtverzhdennye": 2
+  }
+ },
+ {
+  "author": "Miguel",
+  "messages": 7,
+  "text_messages": 5,
+  "days_active": 2,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-14",
+  "est_hours": 1.7,
+  "sessions": 4,
+  "media_total": 4,
+  "candidates": 3,
+  "accepted": 1,
+  "topics": {
+   "general": 4,
+   "novye-skrinshoty": 3
+  }
+ },
+ {
+  "author": "Юля",
+  "messages": 7,
+  "text_messages": 6,
+  "days_active": 4,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-16",
+  "est_hours": 1.3,
+  "sessions": 5,
+  "media_total": 3,
+  "candidates": 3,
+  "accepted": 0,
+  "topics": {
+   "general": 1,
+   "novye-skrinshoty": 6
+  }
+ },
+ {
+  "author": "Dasha",
+  "messages": 7,
+  "text_messages": 5,
+  "days_active": 2,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-16",
+  "est_hours": 1.0,
+  "sessions": 2,
+  "media_total": 4,
+  "candidates": 4,
+  "accepted": 0,
+  "topics": {
+   "general": 1,
+   "novye-skrinshoty": 6
+  }
+ },
+ {
+  "author": "Настя",
+  "messages": 7,
+  "text_messages": 6,
+  "days_active": 3,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-15",
+  "est_hours": 0.8,
+  "sessions": 5,
+  "media_total": 6,
+  "candidates": 6,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 7
+  }
+ },
+ {
+  "author": "Yatanya",
+  "messages": 7,
+  "text_messages": 4,
+  "days_active": 2,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-15",
+  "est_hours": 0.4,
+  "sessions": 2,
+  "media_total": 5,
+  "candidates": 5,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 7
+  }
+ },
+ {
+  "author": "Pani Natallia",
+  "messages": 6,
+  "text_messages": 6,
+  "days_active": 2,
+  "first_day": "2026-08-11",
+  "last_day": "2026-08-12",
+  "est_hours": 0.6,
+  "sessions": 3,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 6
+  }
+ },
+ {
+  "author": "Артем Оганесян",
+  "messages": 6,
+  "text_messages": 6,
+  "days_active": 2,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-14",
+  "est_hours": 1.6,
+  "sessions": 4,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 4,
+   "novye-skrinshoty": 2
+  }
+ },
+ {
+  "author": "Ira",
+  "messages": 6,
+  "text_messages": 6,
+  "days_active": 2,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-15",
+  "est_hours": 0.9,
+  "sessions": 5,
+  "media_total": 2,
+  "candidates": 2,
+  "accepted": 0,
+  "topics": {
+   "general": 1,
+   "novye-skrinshoty": 5
+  }
+ },
+ {
+  "author": "Anton Prokopovič",
+  "messages": 6,
+  "text_messages": 5,
+  "days_active": 2,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-16",
+  "est_hours": 0.4,
+  "sessions": 2,
+  "media_total": 1,
+  "candidates": 1,
+  "accepted": 0,
+  "topics": {
+   "general": 1,
+   "novye-skrinshoty": 5
+  }
+ },
+ {
+  "author": "alesia chilladze",
+  "messages": 6,
+  "text_messages": 6,
+  "days_active": 1,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-15",
+  "est_hours": 0.7,
+  "sessions": 2,
+  "media_total": 4,
+  "candidates": 4,
+  "accepted": 0,
+  "topics": {
+   "gipoteza-2-kurtka-ili-spalnik": 3,
+   "novye-skrinshoty": 3
+  }
+ },
+ {
+  "author": "Darina",
+  "messages": 6,
+  "text_messages": 6,
+  "days_active": 2,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-16",
+  "est_hours": 0.5,
+  "sessions": 2,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "gipoteza-2-kurtka-ili-spalnik": 1,
+   "novye-skrinshoty": 5
+  }
+ },
+ {
+  "author": "і.рa",
+  "messages": 6,
+  "text_messages": 6,
+  "days_active": 3,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-16",
+  "est_hours": 0.7,
+  "sessions": 3,
+  "media_total": 1,
+  "candidates": 1,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 6
+  }
+ },
+ {
+  "author": "Nikolay",
+  "messages": 5,
+  "text_messages": 5,
+  "days_active": 2,
+  "first_day": "2026-08-12",
+  "last_day": "2026-08-14",
+  "est_hours": 0.8,
+  "sessions": 3,
+  "media_total": 2,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 1,
+   "general": 4
+  }
+ },
+ {
+  "author": "N",
+  "messages": 5,
+  "text_messages": 5,
+  "days_active": 2,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-15",
+  "est_hours": 1.0,
+  "sessions": 4,
+  "media_total": 2,
+  "candidates": 2,
+  "accepted": 0,
+  "topics": {
+   "arkhiv-skrinshotov": 1,
+   "dlya-pereproverki-dronom": 1,
+   "general": 1,
+   "novye-skrinshoty": 2
+  }
+ },
+ {
+  "author": "Лада Хасанова",
+  "messages": 5,
+  "text_messages": 5,
+  "days_active": 3,
+  "first_day": "2026-08-11",
+  "last_day": "2026-08-16",
+  "est_hours": 0.7,
+  "sessions": 4,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 4,
+   "novye-skrinshoty": 1
+  }
+ },
+ {
+  "author": "Юлия",
+  "messages": 5,
+  "text_messages": 4,
+  "days_active": 2,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-16",
+  "est_hours": 1.2,
+  "sessions": 2,
+  "media_total": 3,
+  "candidates": 3,
+  "accepted": 0,
+  "topics": {
+   "general": 1,
+   "novye-skrinshoty": 4
+  }
+ },
+ {
+  "author": "Mishaklis",
+  "messages": 5,
+  "text_messages": 5,
+  "days_active": 2,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-14",
+  "est_hours": 0.8,
+  "sessions": 2,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 5
+  }
+ },
+ {
+  "author": "anastasia",
+  "messages": 5,
+  "text_messages": 4,
+  "days_active": 1,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-15",
+  "est_hours": 0.5,
+  "sessions": 3,
+  "media_total": 3,
+  "candidates": 3,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 4,
+   "pod-voprosom": 1
+  }
+ },
+ {
+  "author": "B̥͓͖̪̰̪̟̓͒͊̈́ȳ̢̝̙̟̓ͥt̸̠͕̂͌ͦͥe ̩͍͎̲͉͟",
+  "messages": 4,
+  "text_messages": 4,
+  "days_active": 2,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-17",
+  "est_hours": 0.6,
+  "sessions": 3,
+  "media_total": 3,
+  "candidates": 3,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 1,
+   "general": 1,
+   "novye-skrinshoty": 2
+  }
+ },
+ {
+  "author": "Александр Брок",
+  "messages": 4,
+  "text_messages": 4,
+  "days_active": 1,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-15",
+  "est_hours": 1.5,
+  "sessions": 2,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 4
+  }
+ },
+ {
+  "author": "Lana Choporova 🪬",
+  "messages": 4,
+  "text_messages": 4,
+  "days_active": 2,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-16",
+  "est_hours": 0.7,
+  "sessions": 4,
+  "media_total": 3,
+  "candidates": 3,
+  "accepted": 0,
+  "topics": {
+   "dlya-pereproverki-dronom": 1,
+   "general": 1,
+   "novye-skrinshoty": 2
+  }
+ },
+ {
+  "author": "Labudashik",
+  "messages": 4,
+  "text_messages": 4,
+  "days_active": 4,
+  "first_day": "2026-08-11",
+  "last_day": "2026-08-16",
+  "est_hours": 0.7,
+  "sessions": 4,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 2,
+   "novye-skrinshoty": 2
+  }
+ },
+ {
+  "author": "Ron",
+  "messages": 4,
+  "text_messages": 4,
+  "days_active": 2,
+  "first_day": "2026-08-12",
+  "last_day": "2026-08-13",
+  "est_hours": 0.5,
+  "sessions": 3,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 4
+  }
+ },
+ {
+  "author": "Tatsiana",
+  "messages": 4,
+  "text_messages": 4,
+  "days_active": 3,
+  "first_day": "2026-08-12",
+  "last_day": "2026-08-16",
+  "est_hours": 0.5,
+  "sessions": 3,
+  "media_total": 1,
+  "candidates": 1,
+  "accepted": 0,
+  "topics": {
+   "general": 3,
+   "novye-skrinshoty": 1
+  }
+ },
+ {
+  "author": "Мирбек",
+  "messages": 4,
+  "text_messages": 4,
+  "days_active": 2,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-16",
+  "est_hours": 0.6,
+  "sessions": 3,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 1,
+   "novye-skrinshoty": 3
+  }
+ },
+ {
+  "author": "Veronika Nazarova",
+  "messages": 4,
+  "text_messages": 3,
+  "days_active": 2,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-15",
+  "est_hours": 0.5,
+  "sessions": 3,
+  "media_total": 4,
+  "candidates": 4,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 4
+  }
+ },
+ {
+  "author": "Михаил Рыжиков",
+  "messages": 4,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-14",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 4,
+  "candidates": 4,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 4
+  }
+ },
+ {
+  "author": "Katerina",
+  "messages": 4,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-14",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 4,
+  "candidates": 4,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 4
+  }
+ },
+ {
+  "author": "Kemal",
+  "messages": 3,
+  "text_messages": 3,
+  "days_active": 2,
+  "first_day": "2026-08-12",
+  "last_day": "2026-08-13",
+  "est_hours": 0.7,
+  "sessions": 2,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 3
+  }
+ },
+ {
+  "author": "NO",
+  "messages": 3,
+  "text_messages": 3,
+  "days_active": 1,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-15",
+  "est_hours": 0.4,
+  "sessions": 2,
+  "media_total": 1,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 3
+  }
+ },
+ {
+  "author": "Olga Ts",
+  "messages": 3,
+  "text_messages": 3,
+  "days_active": 1,
+  "first_day": "2026-08-16",
+  "last_day": "2026-08-16",
+  "est_hours": 0.5,
+  "sessions": 3,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 3
+  }
+ },
+ {
+  "author": "Alex P",
+  "messages": 3,
+  "text_messages": 2,
+  "days_active": 1,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-13",
+  "est_hours": 0.3,
+  "sessions": 1,
+  "media_total": 3,
+  "candidates": 3,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 3
+  }
+ },
+ {
+  "author": "Greta",
+  "messages": 3,
+  "text_messages": 3,
+  "days_active": 2,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-16",
+  "est_hours": 0.8,
+  "sessions": 2,
+  "media_total": 1,
+  "candidates": 1,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 3
+  }
+ },
+ {
+  "author": "Arina",
+  "messages": 3,
+  "text_messages": 3,
+  "days_active": 1,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-13",
+  "est_hours": 0.6,
+  "sessions": 1,
+  "media_total": 2,
+  "candidates": 2,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 3
+  }
+ },
+ {
+  "author": "Vlad Vintsarevich",
+  "messages": 3,
+  "text_messages": 2,
+  "days_active": 1,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-14",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 2,
+  "candidates": 2,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 3
+  }
+ },
+ {
+  "author": "Екатерина Таргетолог",
+  "messages": 3,
+  "text_messages": 3,
+  "days_active": 1,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-15",
+  "est_hours": 0.9,
+  "sessions": 2,
+  "media_total": 2,
+  "candidates": 2,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 3
+  }
+ },
+ {
+  "author": "Анастасия Трофимова",
+  "messages": 3,
+  "text_messages": 3,
+  "days_active": 1,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-15",
+  "est_hours": 0.3,
+  "sessions": 1,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 3
+  }
+ },
+ {
+  "author": "Dmitrij",
+  "messages": 3,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-15",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 2,
+  "candidates": 2,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 3
+  }
+ },
+ {
+  "author": "Vladimir Pyatnitsky",
+  "messages": 2,
+  "text_messages": 2,
+  "days_active": 1,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-14",
+  "est_hours": 0.3,
+  "sessions": 2,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "ai": 2
+  }
+ },
+ {
+  "author": "Evgenia",
+  "messages": 2,
+  "text_messages": 2,
+  "days_active": 2,
+  "first_day": "2026-08-12",
+  "last_day": "2026-08-15",
+  "est_hours": 0.3,
+  "sessions": 2,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 1,
+   "novye-skrinshoty": 1
+  }
+ },
+ {
+  "author": "Vitalij Kozich",
+  "messages": 2,
+  "text_messages": 2,
+  "days_active": 2,
+  "first_day": "2026-08-12",
+  "last_day": "2026-08-13",
+  "est_hours": 0.3,
+  "sessions": 2,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 1,
+   "novye-skrinshoty": 1
+  }
+ },
+ {
+  "author": "Alex’s",
+  "messages": 2,
+  "text_messages": 2,
+  "days_active": 1,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-13",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 1,
+  "candidates": 1,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 2
+  }
+ },
+ {
+  "author": "Roman Danilčev",
+  "messages": 2,
+  "text_messages": 2,
+  "days_active": 1,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-14",
+  "est_hours": 0.3,
+  "sessions": 2,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 1,
+   "podtverzhdennye": 1
+  }
+ },
+ {
+  "author": "Олеся Ганчар",
+  "messages": 2,
+  "text_messages": 0,
+  "days_active": 1,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-15",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 2,
+  "candidates": 2,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 2
+  }
+ },
+ {
+  "author": "Polina Stundžienė",
+  "messages": 2,
+  "text_messages": 2,
+  "days_active": 1,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-15",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 2,
+  "candidates": 2,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 2
+  }
+ },
+ {
+  "author": "Катя",
+  "messages": 2,
+  "text_messages": 2,
+  "days_active": 1,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-15",
+  "est_hours": 0.3,
+  "sessions": 2,
+  "media_total": 1,
+  "candidates": 1,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 2
+  }
+ },
+ {
+  "author": "Ekaterina V",
+  "messages": 2,
+  "text_messages": 2,
+  "days_active": 1,
+  "first_day": "2026-08-16",
+  "last_day": "2026-08-16",
+  "est_hours": 0.3,
+  "sessions": 2,
+  "media_total": 2,
+  "candidates": 2,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 2
+  }
+ },
+ {
+  "author": "Masha Frolova",
+  "messages": 2,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-16",
+  "last_day": "2026-08-16",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 2,
+  "candidates": 2,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 2
+  }
+ },
+ {
+  "author": "Sergei.v78",
+  "messages": 1,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-15",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "1-gipotezy": 1
+  }
+ },
+ {
+  "author": "Skipper",
+  "messages": 1,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-11",
+  "last_day": "2026-08-11",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 1
+  }
+ },
+ {
+  "author": "Alina Viktorova",
+  "messages": 1,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-13",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 1
+  }
+ },
+ {
+  "author": "⚔️🛡️✠",
+  "messages": 1,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-14",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 1,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 1
+  }
+ },
+ {
+  "author": "Ирина",
+  "messages": 1,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-16",
+  "last_day": "2026-08-16",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 1
+  }
+ },
+ {
+  "author": "Dennis Skokov",
+  "messages": 1,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-16",
+  "last_day": "2026-08-16",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 1
+  }
+ },
+ {
+  "author": "Elle",
+  "messages": 1,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-16",
+  "last_day": "2026-08-16",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 1
+  }
+ },
+ {
+  "author": "Марта • СТОРИС • КОНТЕНТ-СЪЕМКИ",
+  "messages": 1,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-16",
+  "last_day": "2026-08-16",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 1
+  }
+ },
+ {
+  "author": "Iryna Rubcova",
+  "messages": 1,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-16",
+  "last_day": "2026-08-16",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 1
+  }
+ },
+ {
+  "author": "Юлия Алекса",
+  "messages": 1,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-16",
+  "last_day": "2026-08-16",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 1
+  }
+ },
+ {
+  "author": "Saule",
+  "messages": 1,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-16",
+  "last_day": "2026-08-16",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 1
+  }
+ },
+ {
+  "author": "Darja Adelaida",
+  "messages": 1,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-16",
+  "last_day": "2026-08-16",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 1
+  }
+ },
+ {
+  "author": "Роман Карасёв",
+  "messages": 1,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-16",
+  "last_day": "2026-08-16",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 1
+  }
+ },
+ {
+  "author": "OLGA Mik",
+  "messages": 1,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-17",
+  "last_day": "2026-08-17",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "general": 1
+  }
+ },
+ {
+  "author": "Volha",
+  "messages": 1,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-13",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 1
+  }
+ },
+ {
+  "author": "Natalio",
+  "messages": 1,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-13",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 1,
+  "candidates": 1,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 1
+  }
+ },
+ {
+  "author": "Сергей Батищев",
+  "messages": 1,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-13",
+  "last_day": "2026-08-13",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 1
+  }
+ },
+ {
+  "author": "Эмилия Imran",
+  "messages": 1,
+  "text_messages": 0,
+  "days_active": 1,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-14",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 1,
+  "candidates": 1,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 1
+  }
+ },
+ {
+  "author": "Liudmila Antonauskaya",
+  "messages": 1,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-15",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 1,
+  "candidates": 1,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 1
+  }
+ },
+ {
+  "author": "Антон",
+  "messages": 1,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-15",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 1,
+  "candidates": 1,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 1
+  }
+ },
+ {
+  "author": "Кристина Напрушкина",
+  "messages": 1,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-15",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 1,
+  "candidates": 1,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 1
+  }
+ },
+ {
+  "author": "Yana Batovskaya",
+  "messages": 1,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-16",
+  "last_day": "2026-08-16",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 1,
+  "candidates": 1,
+  "accepted": 0,
+  "topics": {
+   "novye-skrinshoty": 1
+  }
+ },
+ {
+  "author": "Elvira",
+  "messages": 1,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-15",
+  "last_day": "2026-08-15",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "pod-voprosom": 1
+  }
+ },
+ {
+  "author": "Н С",
+  "messages": 1,
+  "text_messages": 1,
+  "days_active": 1,
+  "first_day": "2026-08-14",
+  "last_day": "2026-08-14",
+  "est_hours": 0.2,
+  "sessions": 1,
+  "media_total": 0,
+  "candidates": 0,
+  "accepted": 0,
+  "topics": {
+   "podtverzhdennye": 1
+  }
+ }
+]
