@@ -1,0 +1,743 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Курумды — Полёт 3D (alp-finder)</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0b0f14;
+  font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#e8eef5}
+canvas{display:block;width:100%;height:100%;cursor:crosshair}
+#hud{position:fixed;inset:0;pointer-events:none}
+.panel{position:absolute;background:rgba(10,15,22,.85);border:1px solid #26456a;
+  border-radius:8px;padding:10px 12px;pointer-events:auto;backdrop-filter:blur(7px)}
+#info{top:12px;left:12px;min-width:210px}
+#layers{top:12px;right:12px;width:262px;max-height:calc(100vh - 24px);overflow:auto}
+#legend{bottom:12px;left:12px}
+#help{bottom:12px;right:12px;max-width:262px;font-size:12px;color:#9fb4cc}
+h2{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:#5c9ee0;
+  margin-bottom:7px;font-weight:600}
+.row{display:flex;justify-content:space-between;gap:14px;padding:1px 0}
+.k{color:#8199b3}.v{color:#fff;font-variant-numeric:tabular-nums}
+label{display:flex;align-items:center;gap:8px;padding:3px 0;cursor:pointer;user-select:none}
+label:hover{color:#7fc3ff}
+input[type=checkbox]{accent-color:#3d8fd6;cursor:pointer;width:13px;height:13px;flex:none}
+select{margin-left:auto;background:#132132;color:#e8eef5;border:1px solid #2f5a8d;
+  border-radius:5px;padding:2px 5px;font:inherit;font-size:12px;cursor:pointer}
+.sw{width:11px;height:11px;border-radius:2px;flex:none;box-shadow:0 0 0 1px rgba(0,0,0,.5)}
+.lg{display:flex;align-items:center;gap:8px;padding:1.5px 0;font-size:12px}
+kbd{background:#1c2c40;border:1px solid #33628f;border-radius:3px;padding:.5px 5px;
+  font:inherit;font-size:11px;color:#bcd6f0}
+#cross{position:absolute;left:50%;top:50%;width:15px;height:15px;margin:-7.5px 0 0 -7.5px;opacity:.55}
+#cross:before,#cross:after{content:'';position:absolute;background:#fff}
+#cross:before{left:7px;top:0;width:1px;height:15px}
+#cross:after{top:7px;left:0;height:1px;width:15px}
+#tip{position:absolute;left:50%;top:calc(50% + 26px);transform:translateX(-50%);
+  width:376px;background:rgba(8,13,20,.93);border:1px solid #3f7ab5;border-radius:9px;
+  padding:0;display:none;overflow:hidden;box-shadow:0 10px 34px rgba(0,0,0,.55)}
+#tip img{display:block;width:100%;height:auto;background:#05080c}
+#tip .tx{padding:9px 11px}
+#tip .nm{color:#ffd98a;font-size:13px;margin-bottom:4px;word-break:break-word}
+#tip .ds{color:#a9bed4;font-size:12px;white-space:pre-wrap;line-height:1.4}
+#tip .hk{margin-top:7px;color:#6f8399;font-size:11px}
+#big{position:fixed;inset:0;background:rgba(4,7,11,.94);z-index:30;display:none;
+  align-items:center;justify-content:center;flex-direction:column;gap:12px;pointer-events:auto}
+#big img{max-width:94vw;max-height:82vh;object-fit:contain;border:1px solid #2a4a6e}
+#big .cap{color:#cfe0f2;font-size:13px;max-width:88vw;text-align:center;white-space:pre-wrap}
+#big .esc{color:#6f8399;font-size:12px}
+#splash{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(6,10,15,.95);z-index:40;text-align:center}
+#splash div{max-width:490px;padding:0 24px}
+#splash h1{font-size:23px;color:#fff;margin-bottom:8px}
+#splash p{color:#9fb4cc;margin-bottom:9px;font-size:13px}
+#go{margin-top:18px;background:#2f7fc4;color:#fff;border:0;border-radius:7px;
+  padding:11px 26px;font:inherit;font-size:14px;cursor:pointer}
+#go:hover{background:#3c96e0}
+.note{color:#6f8399;font-size:11px;margin-top:6px;line-height:1.35}
+body.hidepanels .panel{display:none}
+#toggle{position:absolute;top:12px;right:12px;z-index:5;pointer-events:auto;
+  background:rgba(10,15,22,.85);border:1px solid #26456a;border-radius:8px;
+  color:#9fb4cc;font:inherit;font-size:15px;line-height:1;padding:8px 11px;cursor:pointer;
+  display:none}
+body.hidepanels #toggle{display:block}
+#toggle:hover{color:#7fc3ff;border-color:#3f7ab5}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud">
+  <button id="toggle" title="показать панели (H)">&#9776;</button>
+  <div id="cross"></div>
+  <div id="tip"><img id="tip-img" alt=""><div class="tx">
+    <div class="nm" id="tip-nm"></div><div class="ds" id="tip-ds"></div>
+    <div class="hk" id="tip-hk"></div></div></div>
+
+  <div class="panel" id="info">
+    <h2>Положение</h2>
+    <div class="row"><span class="k">широта</span><span class="v" id="i-lat">—</span></div>
+    <div class="row"><span class="k">долгота</span><span class="v" id="i-lon">—</span></div>
+    <div class="row"><span class="k">высота</span><span class="v" id="i-alt">—</span></div>
+    <div class="row"><span class="k">земля</span><span class="v" id="i-gnd">—</span></div>
+    <div class="row"><span class="k">уклон</span><span class="v" id="i-slp">—</span></div>
+    <div class="row"><span class="k">скорость</span><span class="v" id="i-spd">—</span></div>
+    <div class="row"><span class="k">FPS</span><span class="v" id="i-fps">—</span></div>
+  </div>
+
+  <div class="panel" id="layers">
+    <h2>Рельеф — опасности</h2>
+    <label><input type="checkbox" id="L-steep"><span class="sw" style="background:#fc8d24"></span>крутизна 45–55° и &gt;55°</label>
+    <label><input type="checkbox" id="L-coul"><span class="sw" style="background:#5a73fa"></span>кулуары и ложбины</label>
+    <label><input type="checkbox" id="L-cont"><span class="sw" style="background:#4a5568"></span>горизонтали через 100 м</label>
+    <div class="note">Рельеф — NASA HMA 8 м, со стереопар WorldView, 2017 год.
+      Максимум крутизны по району <b>87°</b>: стены здесь уже почти настоящие.
+      Но карта высот держит одну высоту на ячейку, поэтому <b>карнизов и
+      отрицательных уклонов быть не может</b>, а трещины 1–5 м не видны.
+      Кулуары — вогнутость &gt;4 м на 90 м при уклоне &gt;28°.</div>
+
+    <h2 style="margin-top:12px">Покрытие — alp-finder</h2>
+    <label><input type="checkbox" id="L-acov"><span class="sw" style="background:#38d972"></span>покрыто съёмкой (по 40 видео)</label>
+
+    <h2 style="margin-top:12px">Покрытие — ручная карта</h2>
+    <label><input type="checkbox" id="L-gap" checked><span class="sw" style="background:#f2333f"></span>зоны накопления БЕЗ осмотра</label>
+    <label><input type="checkbox" id="L-run"><span class="sw" style="background:#4c9bf0"></span>зоны накопления, осмотренные</label>
+    <label><input type="checkbox" id="L-fine"><span class="sw" style="background:#3fcc66"></span>осмотрено подробно</label>
+    <label><input type="checkbox" id="L-coarse"><span class="sw" style="background:#bfae3d"></span>осмотрено мельком</label>
+    <h2 style="margin-top:12px">Объекты alp-finder</h2>
+    <label><input type="checkbox" id="L-alp" checked><span class="sw" style="background:#ff3b30"></span>предметы и следы (<span id="n-alp"></span>)</label>
+    <label><input type="checkbox" id="L-route" checked><span class="sw" style="background:#ffffff"></span>маршрут группы</label>
+    <label><input type="checkbox" id="L-fall"><span class="sw" style="background:#ff6ad5"></span>линия падения (по DEM)</label>
+    <label><input type="checkbox" id="L-corr"><span class="sw" style="background:#7fe3ff"></span>коридор поиска 400 м</label>
+    <label><input type="checkbox" id="L-prio"><span class="sw" style="background:#ff2d55"></span>приоритет: не осмотрено</label>
+    <label><input type="checkbox" id="L-camp" checked><span class="sw" style="background:#c9f24d"></span>лагеря и вешки</label>
+
+    <h2 style="margin-top:12px">Объекты — мои слои</h2>
+    <label><input type="checkbox" id="L-find" checked><span class="sw" style="background:#ff7a1a"></span>находки (<span id="n-find"></span>)</label>
+    <label><input type="checkbox" id="L-thing" checked><span class="sw" style="background:#ffd23f"></span>вещи из чата (<span id="n-thing"></span>)</label>
+    <label><input type="checkbox" id="L-spot"><span class="sw" style="background:#ffe9a8"></span>пятна кадров</label>
+    <label><input type="checkbox" id="L-shel"><span class="sw" style="background:#35c9d4"></span>укрытия (<span id="n-shel"></span>)</label>
+    <label><input type="checkbox" id="L-cam" checked><span class="sw" style="background:#8fc8ff"></span>точки съёмки (<span id="n-cam"></span>)</label>
+    <label><input type="checkbox" id="L-fan"><span class="sw" style="background:#c9a6ff"></span>веер взгляда камеры</label>
+    <h2 style="margin-top:12px">Вид</h2>
+    <label>раскраска
+      <select id="S-tex"><option value="h" selected>по высоте</option>
+      <option value="a">снимок 16.07</option><option value="b">снимок 15.08</option></select></label>
+    <label><input type="checkbox" id="L-ring" checked>кольца 10 / 50 / 100 м у цели</label>
+    <label><input type="checkbox" id="L-grid" checked>сетка блоков</label>
+    <label><input type="checkbox" id="L-fog" checked>дымка</label>
+
+    <h2 style="margin-top:12px">Нагрузка</h2>
+    <label>кадров/с
+      <select id="S-fps"><option value="20">20</option><option value="30" selected>30</option>
+      <option value="60">60</option><option value="0">без предела</option></select></label>
+    <label>разрешение
+      <select id="S-dpr"><option value="1">1× (легче всего)</option>
+      <option value="1.5" selected>1.5×</option><option value="2">2× (чётко)</option></select></label>
+    <label><input type="checkbox" id="S-idle" checked>не рисовать, пока стоишь</label>
+    <div class="note" id="S-stat">—</div>
+    <div class="note">Наведи перекрестье на маркер — покажет подпись и кадр.
+      <kbd>E</kbd> — открыть кадр целиком.</div>
+  </div>
+
+  <div class="panel" id="legend">
+    <h2>Рельеф</h2>
+    <div class="lg"><span class="sw" style="background:#f8fbff"></span>снег &gt; 5650</div>
+    <div class="lg"><span class="sw" style="background:#bac4d0"></span>фирн 5350–5650</div>
+    <div class="lg"><span class="sw" style="background:#929294"></span>скала 5050–5350</div>
+    <div class="lg"><span class="sw" style="background:#8c8476"></span>осыпь 4750–5050</div>
+    <div class="lg"><span class="sw" style="background:#7c705c"></span>морена 4400–4750</div>
+    <div class="lg"><span class="sw" style="background:#686c4c"></span>склон 4150–4400</div>
+    <div class="lg"><span class="sw" style="background:#4a603a"></span>трава &lt; 4150</div>
+  </div>
+
+  <div class="panel" id="help">
+    <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> лететь &nbsp; <b>тяни мышью</b> — смотреть<br>
+    на телефоне: палец — обзор, два пальца — вперёд/назад<br>
+    <kbd>Space</kbd>/<kbd>Shift</kbd> вверх-вниз &nbsp; <kbd>Ctrl</kbd> быстрее<br>
+    <kbd>колесо</kbd> скорость &nbsp; <kbd>Esc</kbd> курсор<br>
+    <kbd>R</kbd> к рюкзаку &nbsp; <kbd>T</kbd> к съёмке 15.08 &nbsp; <kbd>F</kbd> вверх<br>
+    <kbd>H</kbd> — спрятать панели
+  </div>
+</div>
+
+<div id="big"><img id="big-img" alt=""><div class="cap" id="big-cap"></div>
+  <div class="esc">Esc или клик — закрыть</div></div>
+
+<div id="splash"><div>
+  <h1>Курумды — Полёт 3D</h1>
+  <p>Рельеф NASA HMA 8 м с фотограмметрическими патчами 2026 г.,
+     воксель 8 м по горизонтали и 2.5 м по высоте.</p>
+  <p>Данные проекта alp-finder: покрытие съёмкой по всем роликам,
+     реестр находок, треки полётов.</p>
+  <p style="color:#6f8399;font-size:12px">Управление как в Minecraft в режиме полёта.
+     Строит рельеф пару секунд.
+     Движок — Николай (@nickoliuzzz), проект kurumdy-3d.</p>
+  <button id="go">Войти на карту</button>
+</div></div>
+
+<script id="payload" type="application/json">__PAYLOAD__</script>
+<script>
+'use strict';
+const P=JSON.parse(document.getElementById('payload').textContent);
+const W=P.W,H=P.H,BX=P.BX,BZ=P.BZ,ZMIN=P.zmin;
+function b64(s){const b=atob(s),a=new Uint8Array(b.length);
+  for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a;}
+const LEV=new Uint16Array(b64(P.lev).buffer);
+const SHADE=b64(P.shade),SLOPE=b64(P.slope),META=b64(P.meta),ACOV=b64(P.acov);
+// META: биты 0-2 класс KML, бит 3 горизонталь 100 м, биты 4-5 крутизна, бит 6 кулуар
+const lev=(x,y)=>LEV[y*W+x];
+const el=id=>document.getElementById(id);
+el('n-find').textContent=P.finds.length; el('n-thing').textContent=P.items.length;
+el('n-shel').textContent=P.shel.length;  el('n-cam').textContent=P.cams.length;
+
+// ---------- палитра ----------
+const STOPS=[[3860,70,92,56],[4150,104,110,76],[4400,124,112,92],[4750,140,132,118],
+             [5050,146,146,148],[5350,186,196,208],[5650,228,236,244],[6250,250,252,255]];
+function hyps(a){
+  if(a<=STOPS[0][0])return STOPS[0].slice(1);
+  for(let i=1;i<STOPS.length;i++){
+    if(a<=STOPS[i][0]){const p=STOPS[i-1],q=STOPS[i],t=(a-p[0])/(q[0]-p[0]);
+      return [p[1]+(q[1]-p[1])*t,p[2]+(q[2]-p[2])*t,p[3]+(q[3]-p[3])*t];}}
+  return STOPS[STOPS.length-1].slice(1);
+}
+// спутниковые текстуры Sentinel-2, уже пересчитанные ровно на сетку W x H
+let TEX=null,texMode='h';
+function loadTex(src){return new Promise(res=>{const im=new Image();
+  im.onload=()=>{const cv=document.createElement('canvas');cv.width=W;cv.height=H;
+    const g2=cv.getContext('2d');g2.drawImage(im,0,0,W,H);
+    res(g2.getImageData(0,0,W,H).data);};
+  im.onerror=()=>res(null); im.src=src;});}
+function colOf(x,y,l){
+  const i=y*W+x,alt=ZMIN+l*BZ,sl=SLOPE[i];
+  if(texMode!=='h'&&TEX){
+    const j=i*4,sh=SHADE[i]/255*1.35;
+    return [Math.min(TEX[j]*sh,255)|0,Math.min(TEX[j+1]*sh,255)|0,Math.min(TEX[j+2]*sh,255)|0];
+  }
+  let c=hyps(alt);
+  if(sl>42){const t=Math.min((sl-42)/30,1)*0.62;   // крутое — голая порода
+    c=[c[0]*(1-t)+112*t,c[1]*(1-t)+104*t,c[2]*(1-t)+96*t];}
+  const sh=SHADE[i]/255*1.35;
+  // тёплый свет / холодная тень
+  const wr=sh>0.85?1.03:0.96, wb=sh>0.85?0.96:1.07;
+  const n=(((x*73856093)^(y*19349663)^(l*83492791))>>>0)%100/100, k=0.955+n*0.09;
+  return [Math.max(0,Math.min(255,c[0]*sh*wr*k))|0,
+          Math.max(0,Math.min(255,c[1]*sh*k))|0,
+          Math.max(0,Math.min(255,c[2]*sh*wb*k))|0];
+}
+
+// ---------- меш ----------
+const NBR=[[1,0],[-1,0],[0,1],[0,-1]];
+const skirt=l=>Math.max(l-6,0);
+let NQ=0,pos,col,meta,idx;
+const CH=32,CX=Math.ceil(W/CH),CZ=Math.ceil(H/CH);
+let CHUNKS=[];
+function buildMesh(){
+  let nq=W*H;                      // счёт обязан в точности повторять заполнение ниже
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const l=lev(x,y);
+    for(const [dx,dy] of NBR){
+      const nx=x+dx,ny=y+dy,edge=(nx<0||ny<0||nx>=W||ny>=H);
+      if((edge?skirt(l):lev(nx,ny))<l)nq++;}}
+  pos=new Float32Array(nq*12); col=new Uint8Array(nq*16); meta=new Uint8Array(nq*16);
+  idx=new Uint32Array(nq*6);
+  let p=0,c=0,m=0,q=0;
+  const put=(v,rgb,cl,face,ac)=>{
+    for(let i=0;i<4;i++){
+      pos[p++]=v[i][0];pos[p++]=v[i][1];pos[p++]=v[i][2];
+      col[c++]=rgb[0];col[c++]=rgb[1];col[c++]=rgb[2];col[c++]=255;
+      meta[m++]=cl;meta[m++]=face;meta[m++]=ac;meta[m++]=0;}
+    const b=q*4;
+    idx[q*6]=b;idx[q*6+1]=b+1;idx[q*6+2]=b+2;
+    idx[q*6+3]=b;idx[q*6+4]=b+2;idx[q*6+5]=b+3;q++;};
+  // Квады раскладываются по блокам 24x24 колонки, чтобы за кадр рисовать
+  // только те куски рельефа, что реально попали в поле зрения.
+  CHUNKS=[];
+  for(let cz=0;cz<CZ;cz++)for(let cx=0;cx<CX;cx++){
+    const bx0=cx*CH,bx1=Math.min(bx0+CH,W),bz0=cz*CH,bz1=Math.min(bz0+CH,H);
+    const first=q; let lo=1e9,hi=-1e9;
+    for(let y=bz0;y<bz1;y++)for(let x=bx0;x<bx1;x++){
+      const i=y*W+x,l=lev(x,y),rgb=colOf(x,y,l),cl=META[i],ac=ACOV[i],t=l+1;
+      if(l<lo)lo=l; if(l>hi)hi=l;
+      put([[x,t,y+1],[x+1,t,y+1],[x+1,t,y],[x,t,y]],rgb,cl,0,ac);
+      for(const [dx,dy] of NBR){
+        const nx=x+dx,ny=y+dy,edge=(nx<0||ny<0||nx>=W||ny>=H);
+        const nl=edge?skirt(l):lev(nx,ny);
+        if(nl>=l)continue;
+        if(nl<lo)lo=nl;
+        const f=dx?0.87:0.94;
+        const dk=[rgb[0]*f|0,rgb[1]*f|0,rgb[2]*f|0];
+        let v;
+        if(dx===1)      v=[[x+1,nl+1,y],[x+1,nl+1,y+1],[x+1,l+1,y+1],[x+1,l+1,y]];
+        else if(dx===-1)v=[[x,nl+1,y+1],[x,nl+1,y],[x,l+1,y],[x,l+1,y+1]];
+        else if(dy===1) v=[[x+1,nl+1,y+1],[x,nl+1,y+1],[x,l+1,y+1],[x+1,l+1,y+1]];
+        else            v=[[x,nl+1,y],[x+1,nl+1,y],[x+1,l+1,y],[x,l+1,y]];
+        put(v,dk,cl,dx?1:2,ac);}}
+    if(q>first) CHUNKS.push({off:first*6*4,cnt:(q-first)*6,
+      x0:bx0,x1:bx1,z0:bz0,z1:bz1,y0:lo*S,y1:(hi+1)*S});
+  }
+  NQ=q;
+}
+// отсечение по пирамиде видимости: плоскости достаём прямо из матрицы VP
+const PL6=new Float32Array(24);
+function planes(M){
+  for(let i=0;i<6;i++){
+    const s=(i%2)?-1:1, r=(i/2)|0;
+    PL6[i*4  ]=M[3]+s*M[r];
+    PL6[i*4+1]=M[7]+s*M[4+r];
+    PL6[i*4+2]=M[11]+s*M[8+r];
+    PL6[i*4+3]=M[15]+s*M[12+r];
+  }
+}
+function boxVisible(c){
+  for(let i=0;i<6;i++){
+    const a=PL6[i*4],b=PL6[i*4+1],d=PL6[i*4+2],e=PL6[i*4+3];
+    // дальняя по нормали вершина коробки — если и она за плоскостью, коробка не видна
+    const px=a>0?c.x1:c.x0, py=b>0?c.y1:c.y0, pz=d>0?c.z1:c.z0;
+    if(a*px+b*py+d*pz+e<0) return false;
+  }
+  return true;
+}
+
+// ---------- WebGL ----------
+const cv=el('c');
+const gl=cv.getContext('webgl2',{antialias:true,powerPreference:'high-performance'});
+if(!gl){el('splash').innerHTML='<div><h1>Нужен WebGL2</h1><p>Открой в Chrome, Safari 15+ или Firefox.</p></div>';
+  throw new Error('no webgl2');}
+function sh(t,s){const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);
+  if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(o));return o;}
+function prog(v,f){const p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,v));
+  gl.attachShader(p,sh(gl.FRAGMENT_SHADER,f));gl.linkProgram(p);
+  if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));return p;}
+
+const PT=prog(`#version 300 es
+precision highp float;
+layout(location=0) in vec3 aPos;layout(location=1) in vec4 aCol;layout(location=2) in vec4 aMeta;
+uniform mat4 uVP;uniform vec3 uEye;uniform float uYS;
+out vec3 vCol;out float vCls;out float vAcov;out float vDist;out vec2 vUV;
+void main(){
+  // Y хранится в уровнях по 5 м, X/Z — в блоках по 15 м: приводим к одному масштабу,
+  // иначе рельеф выглядел бы втрое круче, чем он есть
+  vec3 p=vec3(aPos.x,aPos.y*uYS,aPos.z);
+  vCol=aCol.rgb;vCls=aMeta.x;vAcov=aMeta.z;vDist=length(p-uEye);
+  int f=int(aMeta.y+0.5);
+  if(f==0)      vUV=p.xz;
+  else if(f==1) vUV=vec2(p.z,p.y);
+  else          vUV=vec2(p.x,p.y);
+  gl_Position=uVP*vec4(p,1.0);}`,
+`#version 300 es
+precision highp float;
+in vec3 vCol;in float vCls;in float vAcov;in float vDist;in vec2 vUV;
+uniform int uGrid,uFog;uniform vec4 uOn;uniform vec4 uOn2;uniform vec3 uSky;
+out vec4 o;
+void main(){
+  vec3 c=vCol;
+  int m=int(vCls+0.5);
+  int k=m&7;                       // класс покрытия из ручного KML
+  bool contour=(m&8)!=0;           // горизонталь через 100 м
+  int st=(m>>4)&3;                 // крутизна: 1=35-45, 2=45-55, 3=>55
+  bool coul=(m&64)!=0;             // кулуар / вогнутый склон
+  int ac=int(vAcov+0.5);           // покрытие alp-finder: 1..3
+  if(uOn2.x>0.5&&ac>0)             // слой покрытия alp-finder
+    c=mix(c,ac>=3?vec3(0.22,0.85,0.45):vec3(0.85,0.72,0.20),ac>=3?0.50:0.40);
+  if(uOn2.y>0.5&&st>=2)            // крутизна
+    c=mix(c,st==3?vec3(0.98,0.16,0.20):vec3(0.99,0.55,0.14),st==3?0.62:0.44);
+  if(uOn2.z>0.5&&coul)             // кулуары
+    c=mix(c,vec3(0.35,0.45,0.98),0.46);
+  if(uOn2.w>0.5&&contour) c*=0.62; // горизонтали
+  if(k==1&&uOn.x>0.5) c=mix(c,vec3(0.78,0.70,0.24),0.46);
+  if(k==2&&uOn.y>0.5) c=mix(c,vec3(0.24,0.80,0.40),0.48);
+  if(k==3&&uOn.z>0.5) c=mix(c,vec3(0.28,0.60,0.94),0.52);
+  if(k==4&&uOn.w>0.5) c=mix(c,vec3(0.96,0.19,0.25),0.62);
+  if(uGrid==1){vec2 f=abs(fract(vUV)-0.5),w=fwidth(vUV)*1.15;
+    float g=min(smoothstep(0.5-w.x,0.5,f.x)+smoothstep(0.5-w.y,0.5,f.y),1.0);
+    c*=1.0-g*0.15;}
+  if(uFog==1){float t=clamp((vDist-1400.0)/8000.0,0.0,0.72);c=mix(c,uSky,t);}
+  o=vec4(c,1.0);}`);
+
+const PM=prog(`#version 300 es
+precision highp float;
+layout(location=0) in vec3 aPos;layout(location=1) in vec4 aInst;layout(location=2) in vec4 aTint;
+uniform mat4 uVP;out vec4 vTint;out vec3 vN;
+void main(){vTint=aTint;vN=normalize(aPos);
+  gl_Position=uVP*vec4(aPos*aInst.w+aInst.xyz,1.0);}`,
+`#version 300 es
+precision highp float;in vec4 vTint;in vec3 vN;out vec4 o;
+void main(){float d=0.60+0.40*abs(dot(normalize(vN),normalize(vec3(0.4,0.85,0.3))));
+  o=vec4(vTint.rgb*d,vTint.a);}`);
+
+const PL=prog(`#version 300 es
+precision highp float;layout(location=0) in vec3 aPos;uniform mat4 uVP;
+void main(){gl_Position=uVP*vec4(aPos,1.0);}`,
+`#version 300 es
+precision highp float;uniform vec4 uCol;out vec4 o;void main(){o=uCol;}`);
+
+function buf(t,d){const b=gl.createBuffer();gl.bindBuffer(t,b);gl.bufferData(t,d,gl.STATIC_DRAW);return b;}
+let vaoT,colBuf;
+// перекраска рельефа без пересборки геометрии: обход обязан повторять buildMesh
+function recolor(){
+  const c2=new Uint8Array(NQ*16); let c=0;
+  const putc=(r,g2,b2)=>{for(let i=0;i<4;i++){c2[c++]=r;c2[c++]=g2;c2[c++]=b2;c2[c++]=255;}};
+  for(let cz=0;cz<CZ;cz++)for(let cx=0;cx<CX;cx++){
+    const bx0=cx*CH,bx1=Math.min(bx0+CH,W),bz0=cz*CH,bz1=Math.min(bz0+CH,H);
+    for(let y=bz0;y<bz1;y++)for(let x=bx0;x<bx1;x++){
+      const l=lev(x,y),rgb=colOf(x,y,l);
+      putc(rgb[0],rgb[1],rgb[2]);
+      for(const [dx,dy] of NBR){
+        const nx=x+dx,ny=y+dy,edge=(nx<0||ny<0||nx>=W||ny>=H);
+        if((edge?skirt(l):lev(nx,ny))>=l)continue;
+        const f=dx?0.87:0.94;
+        putc(rgb[0]*f|0,rgb[1]*f|0,rgb[2]*f|0);}}}
+  gl.bindBuffer(gl.ARRAY_BUFFER,colBuf);gl.bufferSubData(gl.ARRAY_BUFFER,0,c2);dirty=true;
+}
+function uploadTerrain(){
+  vaoT=gl.createVertexArray();gl.bindVertexArray(vaoT);
+  buf(gl.ARRAY_BUFFER,pos);gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+  colBuf=buf(gl.ARRAY_BUFFER,col);gl.enableVertexAttribArray(1);gl.vertexAttribPointer(1,4,gl.UNSIGNED_BYTE,true,0,0);
+  buf(gl.ARRAY_BUFFER,meta);gl.enableVertexAttribArray(2);gl.vertexAttribPointer(2,4,gl.UNSIGNED_BYTE,false,0,0);
+  buf(gl.ELEMENT_ARRAY_BUFFER,idx);gl.bindVertexArray(null);
+  pos=col=meta=idx=null;
+}
+
+const CUBE=new Float32Array([-.5,-.5,-.5,.5,-.5,-.5,.5,.5,-.5,-.5,.5,-.5,
+                             -.5,-.5,.5,.5,-.5,.5,.5,.5,.5,-.5,.5,.5]);
+const CIDX=new Uint16Array([0,1,2,0,2,3,5,4,7,5,7,6,4,0,3,4,3,7,1,5,6,1,6,2,3,2,6,3,6,7,4,5,1,4,1,0]);
+const S=BZ/BX;                 // уровень высоты -> горизонтальные единицы
+const yOf=l=>(l+1)*S;
+function group(pts,rgba,scale,lift){
+  const n=pts.length,inst=new Float32Array(n*4),tint=new Float32Array(n*4);
+  const fn=(typeof rgba==='function');
+  for(let i=0;i<n;i++){const m=pts[i];
+    inst[i*4]=m[0];inst[i*4+1]=yOf(m[2])+lift;inst[i*4+2]=m[1];inst[i*4+3]=scale;
+    tint.set(fn?rgba(i):rgba,i*4);}
+  const vao=gl.createVertexArray();gl.bindVertexArray(vao);
+  buf(gl.ARRAY_BUFFER,CUBE);gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+  buf(gl.ARRAY_BUFFER,inst);gl.enableVertexAttribArray(1);
+  gl.vertexAttribPointer(1,4,gl.FLOAT,false,0,0);gl.vertexAttribDivisor(1,1);
+  buf(gl.ARRAY_BUFFER,tint);gl.enableVertexAttribArray(2);
+  gl.vertexAttribPointer(2,4,gl.FLOAT,false,0,0);gl.vertexAttribDivisor(2,1);
+  buf(gl.ELEMENT_ARRAY_BUFFER,CIDX);gl.bindVertexArray(null);
+  return {vao,n};}
+
+// ---------- сцена ----------
+// цвет объекта alp-finder: подтверждено -> красный, отклонено -> серый,
+// открытое -> по достоверности (v/5 ярко-оранжевый ... 1 тускло-жёлтый)
+function alpColor(o){
+  if(o.s==='confirmed') return [1.0,0.18,0.16,1];
+  if(o.s==='rejected')  return [0.42,0.45,0.50,1];
+  if(o.s==='closed')    return [0.55,0.50,0.62,1];
+  const c=(o.c==='v')?5:(parseInt(o.c,10)||2);
+  const t=Math.min(Math.max((c-1)/4,0),1);
+  return [1.0,0.45+0.35*(1-t),0.12+0.30*(1-t),1];
+}
+let gFind,gThing,gShel,gCam,gAlp,gCamp,vaoFan,vaoSpot,spotN,LN={};
+// кольца известного радиуса на земле — единственный честный способ дать
+// почувствовать расстояние, раз маркер не может быть размером с предмет
+const RINGR=[10,50,100],RINGSEG=64,RINGN=RINGR.length*RINGSEG;
+let ringBuf,ringVao;
+const ringData=new Float32Array(RINGN*6);
+function ringsAt(ox,oz){
+  let k=0;
+  for(const rm of RINGR){
+    const r=rm/BX;
+    for(let i=0;i<RINGSEG;i++){
+      const a0=i/RINGSEG*2*Math.PI,a1=(i+1)/RINGSEG*2*Math.PI;
+      const x0=ox+Math.cos(a0)*r,z0=oz+Math.sin(a0)*r;
+      const x1=ox+Math.cos(a1)*r,z1=oz+Math.sin(a1)*r;
+      ringData[k++]=x0;ringData[k++]=ground(x0,z0)+0.12;ringData[k++]=z0;
+      ringData[k++]=x1;ringData[k++]=ground(x1,z1)+0.12;ringData[k++]=z1;}}
+  gl.bindBuffer(gl.ARRAY_BUFFER,ringBuf);
+  gl.bufferSubData(gl.ARRAY_BUFFER,0,ringData);
+}
+const distM=(a,b)=>Math.hypot((a.x-b.x)*BX,(a.z-b.z)*BX,(a.y-b.y)*BX);
+function strip(list,close){
+  const seg=[];
+  for(let i=0;i+1<list.length;i++){
+    const a=list[i],b=list[i+1];
+    seg.push(a[0],yOf(a[1])+0.25,a[2],b[0],yOf(b[1])+0.25,b[2]);}
+  const vao=gl.createVertexArray();gl.bindVertexArray(vao);
+  buf(gl.ARRAY_BUFFER,new Float32Array(seg));gl.enableVertexAttribArray(0);
+  gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);gl.bindVertexArray(null);
+  return {vao,n:seg.length/6};
+}
+function buildScene(){
+  // маркеры намеренно мелкие: предмет ~1 м, а воксель 15 м — крупный куб
+  // склеивал бы соседей и врал про расстояния между ними
+  gFind =group(P.finds.map(o=>[o.x,o.y,o.l]),[1,.44,.06,1],0.30,0.55);
+  gThing=group(P.items.map(o=>[o.x,o.y,o.l]),[1,.82,.25,1],0.18,0.25);
+  gShel =group(P.shel,[.21,.79,.83,1],0.20,0.14);
+  gCam  =group(P.cams,[.56,.78,1,1],0.45,0);
+  gAlp  =group(P.apts.map(o=>[o.x,o.y,o.l]),i=>alpColor(P.apts[i]),0.26,0.45);
+  gCamp =group(P.camps,[.79,.95,.30,1],0.50,0.60);
+  LN.route=strip(P.lines.route); LN.fall=strip(P.lines.fall);
+  LN.corr=strip(P.lines.corridor); LN.prio=strip(P.lines.prio);
+  ringBuf=gl.createBuffer(); ringVao=gl.createVertexArray();
+  gl.bindVertexArray(ringVao); gl.bindBuffer(gl.ARRAY_BUFFER,ringBuf);
+  gl.bufferData(gl.ARRAY_BUFFER,RINGN*6*4,gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+  gl.bindVertexArray(null);
+  const fa=new Float32Array(P.fan.length*6);
+  P.fan.forEach((f,i)=>fa.set([f[0],f[1]*S,f[2],f[3],f[4]*S,f[5]],i*6));
+  vaoFan=gl.createVertexArray();gl.bindVertexArray(vaoFan);
+  buf(gl.ARRAY_BUFFER,fa);gl.enableVertexAttribArray(0);
+  gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);gl.bindVertexArray(null);
+  // контуры пятен кадров
+  const seg=[];
+  for(const it of P.items){const q=it.p;
+    for(let i=0;i<q.length;i++){const a=q[i],b=q[(i+1)%q.length];
+      const ax=Math.max(0,Math.min(W-1,a[0]|0)),ay=Math.max(0,Math.min(H-1,a[1]|0));
+      const bx=Math.max(0,Math.min(W-1,b[0]|0)),by=Math.max(0,Math.min(H-1,b[1]|0));
+      seg.push(a[0],yOf(lev(ax,ay))+0.3,a[1],b[0],yOf(lev(bx,by))+0.3,b[1]);}}
+  spotN=seg.length/6;
+  vaoSpot=gl.createVertexArray();gl.bindVertexArray(vaoSpot);
+  buf(gl.ARRAY_BUFFER,new Float32Array(seg));gl.enableVertexAttribArray(0);
+  gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);gl.bindVertexArray(null);
+}
+
+// объекты для наведения
+const KIND=Object.fromEntries(P.kinds.map(k=>[k.id,k.title]));
+const STAT=Object.fromEntries(P.statuses.map(k=>[k.id,k.title]));
+const PICK=[];
+P.apts.forEach(o=>PICK.push({x:o.x,y:yOf(o.l)+1.0,z:o.y,n:o.n,
+  d:`${KIND[o.k]||o.k} · ${STAT[o.s]||o.s} · достоверность ${o.c}\n`+o.d,
+  th:o.th,f:(o.f&&o.f[0])||null,fb:o.fb||null,c:'alp'}));
+P.finds.forEach(o=>PICK.push({x:o.x,y:yOf(o.l)+1.7,z:o.y,n:o.n,d:o.d,
+  th:o.th,f:o.f,fb:o.fb||null,c:'#ff9a4a'}));
+P.items.forEach(o=>PICK.push({x:o.x,y:yOf(o.l)+0.8,z:o.y,n:o.n,d:o.d,th:o.th,f:o.f,c:'#ffd23f'}));
+P.cams.forEach(o=>PICK.push({x:o[0],y:yOf(o[2]),z:o[1],
+  n:'съёмка '+o[3],d:'кадров: '+o[4],th:null,f:null,c:'#8fc8ff'}));
+// опорная точка для расстояний — подтверждённый штабом рюкзак
+const BPK=PICK.find(o=>o.c==='alp'&&/Синий рюкзак/i.test(o.n))||null;
+
+// ---------- камера ----------
+const cam={x:W*0.5,y:0,z:H*0.72,yaw:Math.PI,pitch:-0.45,spd:12.0};
+const ground=(x,z)=>{const a=Math.floor(x),b=Math.floor(z);
+  return (a<0||b<0||a>=W||b>=H)?0:yOf(lev(a,b));};
+const dir=()=>[Math.cos(cam.pitch)*Math.sin(cam.yaw),Math.sin(cam.pitch),Math.cos(cam.pitch)*Math.cos(cam.yaw)];
+function mul(a,b){const r=new Float32Array(16);
+  for(let i=0;i<4;i++)for(let j=0;j<4;j++){let s=0;
+    for(let k=0;k<4;k++)s+=a[k*4+j]*b[i*4+k];r[i*4+j]=s;}return r;}
+const persp=(f,ar,n,fa)=>{const t=1/Math.tan(f/2);
+  return new Float32Array([t/ar,0,0,0,0,t,0,0,0,0,(fa+n)/(n-fa),-1,0,0,2*fa*n/(n-fa),0]);};
+function view(e,f){const up=[0,1,0];
+  const s=[f[1]*up[2]-f[2]*up[1],f[2]*up[0]-f[0]*up[2],f[0]*up[1]-f[1]*up[0]];
+  const L=Math.hypot(s[0],s[1],s[2]),n=[s[0]/L,s[1]/L,s[2]/L];
+  const u=[n[1]*f[2]-n[2]*f[1],n[2]*f[0]-n[0]*f[2],n[0]*f[1]-n[1]*f[0]];
+  return new Float32Array([n[0],u[0],-f[0],0,n[1],u[1],-f[1],0,n[2],u[2],-f[2],0,
+    -(n[0]*e[0]+n[1]*e[1]+n[2]*e[2]),-(u[0]*e[0]+u[1]*e[1]+u[2]*e[2]),
+     (f[0]*e[0]+f[1]*e[1]+f[2]*e[2]),1]);}
+
+const keys={};let cur=null;
+function jump(o,back){cam.x=o.x;cam.z=o.z+(back||10);cam.y=o.y+(back?back*0.6:7);cam.yaw=Math.PI;cam.pitch=-0.36;}
+addEventListener('keydown',e=>{
+  if(e.code==='Escape'&&el('big').style.display==='flex'){el('big').style.display='none';return;}
+  keys[e.code]=1;
+  if(e.code==='KeyR'&&P.finds[0]){const o=P.finds[0];jump({x:o.x,y:yOf(o.l),z:o.y},9);}
+  if(e.code==='KeyT'&&P.cams.length){const c=P.cams.find(c=>c[3].startsWith('20260815'))||P.cams[0];
+    cam.x=c[0];cam.z=c[1];cam.y=yOf(c[2]);}
+  if(e.code==='KeyF'){cam.y=Math.max(cam.y,ground(cam.x,cam.z)+140);cam.pitch=-1.25;}
+  if(e.code==='KeyE'&&cur&&(cur.fb||cur.f))openBig(cur);
+  if(e.code==='KeyH')document.body.classList.toggle('hidepanels');
+  if(['Space','ShiftLeft','KeyW','KeyA','KeyS','KeyD'].includes(e.code))e.preventDefault();});
+addEventListener('keyup',e=>keys[e.code]=0);
+// fb — кадр, вшитый прямо в страницу (работает и по ссылке, где нет папки кадров);
+// f — путь к полноразмерному файлу рядом; th — миниатюра как последний запас
+function openBig(o){const src=o.fb||o.f||o.th; if(!src)return;
+  el('big-img').src=src;el('big-cap').textContent=o.n+'\n'+(o.d||'');
+  el('big').style.display='flex';}
+el('big').onclick=()=>el('big').style.display='none';
+el('toggle').onclick=e=>{e.stopPropagation();document.body.classList.remove('hidepanels');};
+el('S-tex').onchange=async e=>{
+  const m=e.target.value;
+  if(m==='h'){texMode='h';recolor();return;}
+  const src=(m==='a')?P.tex_a:P.tex_b;
+  if(!src){e.target.value='h';return;}
+  el('S-stat').textContent='гружу снимок…';
+  TEX=await loadTex(src); texMode=TEX?m:'h';
+  if(!TEX)e.target.value='h';
+  recolor();};
+// Управление обзором. Pointer Lock запрещён в песочнице iframe (по ссылке-артефакту
+// он молча не включается), поэтому основной способ — перетаскивание, оно работает
+// везде. Захват мыши используем как приятное дополнение там, где он разрешён.
+const LOOK=0.0026;
+function turn(dx,dy){
+  cam.yaw-=dx*LOOK;
+  cam.pitch=Math.max(-1.55,Math.min(1.55,cam.pitch-dy*LOOK));
+}
+let drag=false,px=0,py=0,moved=0;
+cv.addEventListener('mousedown',e=>{
+  if(document.pointerLockElement===cv)return;
+  drag=true;px=e.clientX;py=e.clientY;moved=0;e.preventDefault();});
+addEventListener('mousemove',e=>{
+  if(document.pointerLockElement===cv){turn(e.movementX,e.movementY);return;}
+  if(!drag)return;
+  const dx=e.clientX-px,dy=e.clientY-py;
+  px=e.clientX;py=e.clientY;moved+=Math.abs(dx)+Math.abs(dy);
+  turn(dx,dy);});
+addEventListener('mouseup',()=>{
+  if(!drag)return;
+  drag=false;
+  if(moved<5){                              // не тащили, а щёлкнули
+    if(cur&&(cur.fb||cur.f)){openBig(cur);return;}
+    if(cv.requestPointerLock)cv.requestPointerLock();}});
+// касания: один палец — обзор, два — вперёд/назад
+let tx=0,ty=0,tmoved=0,tn=0;
+cv.addEventListener('touchstart',e=>{
+  tn=e.touches.length;tmoved=0;
+  tx=e.touches[0].clientX;ty=e.touches[0].clientY;e.preventDefault();},{passive:false});
+cv.addEventListener('touchmove',e=>{
+  const t=e.touches[0],dx=t.clientX-tx,dy=t.clientY-ty;
+  tx=t.clientX;ty=t.clientY;tmoved+=Math.abs(dx)+Math.abs(dy);
+  if(e.touches.length>1){const d=dir();const v=-dy*0.06;
+    cam.x+=d[0]*v;cam.y+=d[1]*v;cam.z+=d[2]*v;}
+  else turn(dx*1.4,dy*1.4);
+  e.preventDefault();},{passive:false});
+cv.addEventListener('touchend',e=>{
+  if(tn===1&&tmoved<8&&cur&&(cur.fb||cur.f))openBig(cur);},{passive:true});
+addEventListener('wheel',e=>{cam.spd=Math.max(0.4,Math.min(400,cam.spd*(e.deltaY>0?0.88:1.14)));},{passive:true});
+
+const O={};['gap','run','fine','coarse','find','thing','spot','shel','cam','fan','grid','fog',
+  'steep','coul','cont','acov','alp','route','fall','corr','prio','camp','ring']
+  .forEach(k=>O[k]=el('L-'+k));
+el('n-alp').textContent=P.apts.length;
+const uT={};['uVP','uEye','uGrid','uFog','uOn','uOn2','uSky','uYS'].forEach(n=>uT[n]=gl.getUniformLocation(PT,n));
+const uMV=gl.getUniformLocation(PM,'uVP');
+const uLV=gl.getUniformLocation(PL,'uVP'),uLC=gl.getUniformLocation(PL,'uCol');
+const SKY=[0.44,0.58,0.74];
+let last=performance.now(),acc=0,fr=0,started=false;
+let shownChunks=0,shownTris=0,dirty=true,lastDraw=0;
+const prev={x:NaN,y:NaN,z:NaN,yaw:NaN,pitch:NaN};
+const touch=()=>{dirty=true;};
+addEventListener('resize',touch);
+document.getElementById('layers').addEventListener('change',touch);
+addEventListener('keydown',touch); addEventListener('keyup',touch);
+addEventListener('wheel',touch,{passive:true});
+
+el('go').onclick=()=>{
+  el('go').textContent='строю рельеф…';
+  setTimeout(()=>{
+    buildMesh();uploadTerrain();buildScene();
+    cam.y=ground(cam.x,cam.z)+45;
+    el('splash').style.display='none';cv.requestPointerLock();
+    started=true;last=performance.now();lastDraw=last-99;dirty=true;
+    requestAnimationFrame(loop);
+    console.log('квадов',NQ,'кусков',CHUNKS.length);},30);};
+
+function loop(now){
+  requestAnimationFrame(loop);
+  const dt=Math.min((now-last)/1000,0.1);last=now;
+  const d=dir(),rt=[Math.sin(cam.yaw-Math.PI/2),0,Math.cos(cam.yaw-Math.PI/2)];
+  const v=cam.spd*dt*(keys['ControlLeft']||keys['ControlRight']?5:1);
+  if(keys['KeyW']){cam.x+=d[0]*v;cam.y+=d[1]*v;cam.z+=d[2]*v;}
+  if(keys['KeyS']){cam.x-=d[0]*v;cam.y-=d[1]*v;cam.z-=d[2]*v;}
+  if(keys['KeyD']){cam.x+=rt[0]*v;cam.z+=rt[2]*v;}
+  if(keys['KeyA']){cam.x-=rt[0]*v;cam.z-=rt[2]*v;}
+  if(keys['Space'])cam.y+=v;
+  if(keys['ShiftLeft']||keys['ShiftRight'])cam.y-=v;
+  const gnd=ground(cam.x,cam.z);
+  if(cam.y<gnd+0.4)cam.y=gnd+0.4;
+
+  if(cam.x!==prev.x||cam.y!==prev.y||cam.z!==prev.z||cam.yaw!==prev.yaw||cam.pitch!==prev.pitch){
+    dirty=true;prev.x=cam.x;prev.y=cam.y;prev.z=cam.z;prev.yaw=cam.yaw;prev.pitch=cam.pitch;}
+
+  const cap=+el('S-fps').value;                      // потолок кадров
+  if(cap>0&&now-lastDraw<1000/cap-0.6) return;
+  if(el('S-idle').checked&&!dirty) return;            // стоим — не перерисовываем
+  fr++; acc+=(now-lastDraw)/1000; lastDraw=now; dirty=false;
+  if(acc>0.5){el('i-fps').textContent=(fr/acc).toFixed(0);
+    el('S-stat').textContent=`видно ${shownChunks} из ${CHUNKS.length} кусков рельефа, `+
+      `${(shownTris/3/1000).toFixed(0)} тыс. треугольников`;
+    fr=0;acc=0;}
+
+  const dpr=Math.min(devicePixelRatio||1,+el('S-dpr').value);
+  const w=Math.floor(innerWidth*dpr),h=Math.floor(innerHeight*dpr);
+  if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}
+  gl.viewport(0,0,w,h);
+  gl.clearColor(SKY[0],SKY[1],SKY[2],1);
+  gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  gl.enable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);
+  const VP=mul(persp(1.12,w/h,0.5,14000),view([cam.x,cam.y,cam.z],d));
+
+  gl.useProgram(PT);
+  gl.uniformMatrix4fv(uT.uVP,false,VP);
+  gl.uniform3f(uT.uEye,cam.x,cam.y,cam.z);
+  gl.uniform1i(uT.uGrid,O.grid.checked?1:0);
+  gl.uniform1i(uT.uFog,O.fog.checked?1:0);
+  gl.uniform1f(uT.uYS,BZ/BX);
+  gl.uniform4f(uT.uOn,O.coarse.checked?1:0,O.fine.checked?1:0,O.run.checked?1:0,O.gap.checked?1:0);
+  gl.uniform4f(uT.uOn2,O.acov.checked?1:0,O.steep.checked?1:0,O.coul.checked?1:0,O.cont.checked?1:0);
+  gl.uniform3f(uT.uSky,SKY[0],SKY[1],SKY[2]);
+  gl.bindVertexArray(vaoT);
+  planes(VP);
+  let drawn=0,tris=0;
+  for(let i=0;i<CHUNKS.length;i++){const c=CHUNKS[i];
+    if(!boxVisible(c))continue;
+    gl.drawElements(gl.TRIANGLES,c.cnt,gl.UNSIGNED_INT,c.off);
+    drawn++;tris+=c.cnt;}
+  shownChunks=drawn;shownTris=tris;
+
+  gl.useProgram(PL);gl.uniformMatrix4fv(uLV,false,VP);
+  if(O.fan.checked&&P.fan.length){gl.uniform4f(uLC,0.79,0.65,1,1);
+    gl.bindVertexArray(vaoFan);gl.drawArrays(gl.LINES,0,P.fan.length*2);}
+  if(O.spot.checked&&spotN){gl.uniform4f(uLC,1,0.91,0.66,1);
+    gl.bindVertexArray(vaoSpot);gl.drawArrays(gl.LINES,0,spotN*2);}
+  const ln=(g,on,r,gg,b)=>{if(!on||!g||!g.n)return;gl.uniform4f(uLC,r,gg,b,1);
+    gl.bindVertexArray(g.vao);gl.drawArrays(gl.LINES,0,g.n*2);};
+  ln(LN.corr ,O.corr.checked ,0.50,0.89,1.00);
+  ln(LN.prio ,O.prio.checked ,1.00,0.18,0.33);
+  ln(LN.fall ,O.fall.checked ,1.00,0.42,0.83);
+  ln(LN.route,O.route.checked,1.00,1.00,1.00);
+
+  gl.useProgram(PM);gl.uniformMatrix4fv(uMV,false,VP);
+  const draw=(g,on)=>{if(!on||!g||!g.n)return;gl.bindVertexArray(g.vao);
+    gl.drawElementsInstanced(gl.TRIANGLES,36,gl.UNSIGNED_SHORT,0,g.n);};
+  draw(gShel,O.shel.checked);draw(gThing,O.thing.checked);
+  draw(gCam,O.cam.checked);draw(gCamp,O.camp.checked);
+  draw(gFind,O.find.checked);draw(gAlp,O.alp.checked);
+  gl.bindVertexArray(null);
+
+  // ---- наведение перекрестьем ----
+  cur=null;let bestD=1e9;
+  const cxp=w/2,cyp=h/2,RAD=0.10*h;
+  for(const o of PICK){
+    if(o.c==='#ffd23f'&&!O.thing.checked)continue;
+    if(o.c==='#ff9a4a'&&!O.find.checked)continue;
+    if(o.c==='#8fc8ff'&&!O.cam.checked)continue;
+    if(o.c==='alp'&&!O.alp.checked)continue;
+    const X=VP[0]*o.x+VP[4]*o.y+VP[8]*o.z+VP[12];
+    const Y=VP[1]*o.x+VP[5]*o.y+VP[9]*o.z+VP[13];
+    const Ww=VP[3]*o.x+VP[7]*o.y+VP[11]*o.z+VP[15];
+    if(Ww<=0.1)continue;
+    const sx=(X/Ww*0.5+0.5)*w,sy=(1-(Y/Ww*0.5+0.5))*h;
+    const dd=Math.hypot(sx-cxp,sy-cyp);
+    if(dd<RAD&&dd+Ww*0.02<bestD){bestD=dd+Ww*0.02;cur=o;}}
+  if(cur&&O.ring.checked){
+    ringsAt(cur.x,cur.z);
+    gl.useProgram(PL);gl.uniformMatrix4fv(uLV,false,VP);
+    gl.uniform4f(uLC,1,0.95,0.35,1);
+    gl.bindVertexArray(ringVao);gl.drawArrays(gl.LINES,0,RINGN*2);
+    gl.bindVertexArray(null);}
+
+  const tip=el('tip');
+  if(cur){tip.style.display='block';
+    el('tip-nm').textContent=cur.n;
+    const dc=Math.hypot((cur.x-cam.x)*BX,(cur.y-cam.y)*BX,(cur.z-cam.z)*BX);
+    let ln=`от камеры ${dc<1000?dc.toFixed(0)+' м':(dc/1000).toFixed(2)+' км'}`;
+    if(BPK&&cur!==BPK) ln+=` · до синего рюкзака ${distM(cur,BPK).toFixed(0)} м`;
+    el('tip-ds').textContent=ln+'\n'+(cur.d||'');
+    const im=el('tip-img');
+    if(cur.th){if(im.src!==cur.th){im.src=cur.th;}im.style.display='block';}
+    else im.style.display='none';
+    el('tip-hk').textContent=(cur.fb||cur.f)?'E или клик — открыть кадр целиком':'';}
+  else tip.style.display='none';
+
+  el('i-lat').textContent=(P.LAT1-(cam.z*BX)/P.MLA).toFixed(6);
+  el('i-lon').textContent=(P.LON0+(cam.x*BX)/P.MLO).toFixed(6);
+  el('i-alt').textContent=(ZMIN+cam.y*BX).toFixed(0)+' м';
+  el('i-gnd').textContent=(ZMIN+gnd*BX).toFixed(0)+' м';
+  {const a=Math.min(Math.max(Math.floor(cam.x),0),W-1),b=Math.min(Math.max(Math.floor(cam.z),0),H-1);
+   const i=b*W+a,m=META[i];
+   el('i-slp').textContent=SLOPE[i]+'°'+((m&64)?' кулуар':'');}
+  el('i-spd').textContent=(cam.spd*BX*3.6).toFixed(0)+' км/ч';
+}
+</script>
+</body>
+</html>

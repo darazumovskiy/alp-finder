@@ -26,7 +26,7 @@ VIEWER_DIR = Path(__file__).resolve().parent
 DIST = VIEWER_DIR / "dist"
 
 PAGES = ["index.html", "map.html", "montages.html", "panoramy.html",
-         "coverage-3d.html", "otchet-2026-08-16.html",
+         "coverage-3d.html", "polyot-3d.html", "otchet-2026-08-16.html",
          "otchet-2026-08-16-part2.html",
          "otchet-2026-08-17-koshki-pokrytie.html",
          "otchet-tg-aktivnost.html"]
