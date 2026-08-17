@@ -1577,6 +1577,16 @@ header a { color:#4da3ff; text-decoration:none; }
             align-items:center; justify-content:center; cursor:zoom-out; }
 #lightbox img { max-width:96vw; max-height:96vh; }
 #lightbox.on { display:flex; }
+#flLb { position:fixed; inset:0; background:#000e; display:none; z-index:2000;
+        flex-direction:column; align-items:center; justify-content:center; gap:8px; }
+#flLb.on { display:flex; }
+#flLb img { max-width:96vw; max-height:calc(100vh - 92px); border-radius:6px;
+            cursor:zoom-out; background:#0c0d10; }
+#flLbBar { width:min(96vw,1100px); display:flex; flex-direction:column; gap:6px; }
+#flLbBar canvas { width:100%; height:22px; border-radius:4px; cursor:pointer; display:block; }
+#flLb button { background:#262a31; color:var(--text); border:1px solid var(--line);
+               border-radius:6px; padding:4px 8px; font-size:14px; min-width:38px; cursor:pointer; }
+#flLbTc { margin-left:auto; font:12px ui-monospace,Menlo,monospace; color:#c7cdd6; white-space:nowrap; }
 .leaflet-container { font:12px/1.4 -apple-system,sans-serif; }
 .camp-label { background:none; border:none; box-shadow:none; color:#fff; font-weight:700;
               font-size:11px; text-shadow:0 0 3px #000,0 0 3px #000; white-space:nowrap; }
@@ -1599,8 +1609,8 @@ header a { color:#4da3ff; text-decoration:none; }
 #flSel { flex:1; min-width:0; }
 #flImg { width:100%; border-radius:8px; background:#0c0d10; min-height:120px; cursor:zoom-in; }
 #flTl { width:100%; height:22px; border-radius:4px; cursor:pointer; display:block; }
-#flight .fl-ctl { display:flex; gap:6px; align-items:center; }
-#flight .fl-ctl button { min-width:38px; font-size:14px; }
+.fl-ctl { display:flex; gap:6px; align-items:center; }
+.fl-ctl button { min-width:38px; font-size:14px; }
 #flTc { margin-left:auto; font:12px ui-monospace,Menlo,monospace; color:var(--dim); white-space:nowrap; }
 #flMeta { font-size:12px; line-height:1.55; color:#c7cdd6; }
 #flMeta b { color:var(--text); }
@@ -1740,6 +1750,19 @@ header a { color:#4da3ff; text-decoration:none; }
 </div>
 </div>
 <div id="lightbox"><img alt=""></div>
+<div id="flLb">
+  <img id="flLbImg" alt="кадр полёта" title="Клик — закрыть (Esc)">
+  <div id="flLbBar">
+    <canvas id="flLbTl" height="22"></canvas>
+    <div class="fl-ctl">
+      <button id="flLbPrev" title="Кадр назад (←)">⏮</button>
+      <button id="flLbPlay" title="Плей/пауза (пробел)">▶</button>
+      <button id="flLbNext" title="Кадр вперёд (→)">⏭</button>
+      <span id="flLbTc"></span>
+      <button id="flLbX" title="Закрыть (Esc)">×</button>
+    </div>
+  </div>
+</div>
 <script>
 const D = __DATA__;
 
@@ -2349,6 +2372,13 @@ const flTl = document.getElementById('flTl');
 const flMeta = document.getElementById('flMeta');
 const flTc = document.getElementById('flTc');
 const flPlayBtn = document.getElementById('flPlay');
+// живой лайтбокс плеера: кадр играет и в увеличенном виде, управление продублировано
+const flLb = document.getElementById('flLb');
+const flLbImg = document.getElementById('flLbImg');
+const flLbTl = document.getElementById('flLbTl');
+const flLbTc = document.getElementById('flLbTc');
+const flLbPlayBtn = document.getElementById('flLbPlay');
+const flLbOn = () => flLb.classList.contains('on');
 
 const flLayer = L.layerGroup();
 const flTrack = L.polyline([], {color:'#4da3ff', weight:1.5, dashArray:'2 5', opacity:0.8,
@@ -2409,8 +2439,12 @@ const o8Color = o8 => o8 == null ? '#546e7a'
 
 function flDrawTimeline() {
   if (!FL) return;
-  const w = flTl.width = flTl.clientWidth, h = flTl.height;
-  const g = flTl.getContext('2d');
+  flDrawTlCanvas(flTl);
+  if (flLbOn()) flDrawTlCanvas(flLbTl);
+}
+function flDrawTlCanvas(cv) {
+  const w = cv.width = cv.clientWidth, h = cv.height;
+  const g = cv.getContext('2d');
   g.clearRect(0, 0, w, h);
   if (SMP) {
     const n = SMP.tl.length;
@@ -2440,6 +2474,7 @@ function flRender() {
   if (idx !== flFrameIdx) {
     flFrameIdx = idx;
     flImg.src = `flights/${flName}/f${String(idx).padStart(4,'0')}.jpg`;
+    if (flLbOn()) flLbImg.src = flImg.src;
     for (let k = 1; k <= 2 && idx + k < FL.n_frames; k++)
       new Image().src = `flights/${flName}/f${String(idx+k).padStart(4,'0')}.jpg`;
   }
@@ -2463,6 +2498,7 @@ function flRender() {
   else flCtr.setStyle({opacity:0, fillOpacity:0});
   flTc.textContent = SMP ? fmtTc(smpGlobal()) + ' / ' + fmtTc(SMP.dur)
                          : fmtTc(flT) + ' / ' + fmtTc(FL.dur);
+  flLbTc.textContent = flTc.textContent;
   flMeta.innerHTML =
     (SMP ? `клип <b>${smpIdx + 1}/${SMP.clips.length}</b> · ${flName} · ` +
            `${fmtTc(flT)} ролика<br>` : '') +
@@ -2477,7 +2513,7 @@ function flRender() {
 
 function flStop() {
   flPlaying = false;
-  flPlayBtn.textContent = '▶';
+  flPlayBtn.textContent = flLbPlayBtn.textContent = '▶';
 }
 function flTick(ts) {
   if (!flPlaying) return;
@@ -2582,6 +2618,7 @@ function flOpen(name, t0) {
 }
 function flClose() {
   flStop();
+  flLbHide();
   flPane.classList.remove('on');
   map.removeLayer(flLayer);
   map.invalidateSize();
@@ -2603,7 +2640,7 @@ flPlayBtn.onclick = async () => {
   if (SMP) { if (smpGlobal() >= SMP.dur - 0.05) await smpSeek(0); }
   else if (flT >= FL.dur) flT = 0;
   flPlaying = true;
-  flPlayBtn.textContent = '⏸';
+  flPlayBtn.textContent = flLbPlayBtn.textContent = '⏸';
   flLastTs = performance.now();
   requestAnimationFrame(flTick);
 };
@@ -2625,27 +2662,36 @@ function flStep(dir) {
 document.getElementById('flPrev').onclick = () => flStep(-1);
 document.getElementById('flNext').onclick = () => flStep(1);
 
-// клик по кадру — на весь экран (общий лайтбокс, закрытие — клик в любом месте)
+// клик по кадру — живой лайтбокс: проигрывание продолжается, управление своё
 flImg.onclick = () => {
   if (!flImg.currentSrc) return;
-  const lb = document.getElementById('lightbox');
-  lb.querySelector('img').src = flImg.src;
-  lb.classList.add('on');
+  flLbImg.src = flImg.src;
+  flLb.classList.add('on');
+  flDrawTimeline();   // канвас лайтбокса получил размеры только сейчас
 };
+function flLbHide() { flLb.classList.remove('on'); }
+flLbImg.onclick = flLbHide;
+flLb.addEventListener('click', e => { if (e.target === flLb) flLbHide(); });
+document.getElementById('flLbX').onclick = flLbHide;
+document.getElementById('flLbPrev').onclick = () => flStep(-1);
+document.getElementById('flLbNext').onclick = () => flStep(1);
+flLbPlayBtn.onclick = () => flPlayBtn.onclick();
 
-function flSeekEv(e) {
+function flSeekEv(e, cv) {
   if (!FL) return;
-  const r = flTl.getBoundingClientRect();
+  const r = cv.getBoundingClientRect();
   const frac = Math.max(0, Math.min((e.clientX - r.left) / r.width, 1));
   if (SMP) { smpSeek(frac * SMP.dur); return; }
   flT = frac * FL.dur;
   flRender();
 }
-flTl.addEventListener('pointerdown', e => {
-  flSeekEv(e);
-  try { flTl.setPointerCapture(e.pointerId); } catch (_) {}
-});
-flTl.addEventListener('pointermove', e => { if (e.buttons) flSeekEv(e); });
+for (const cv of [flTl, flLbTl]) {
+  cv.addEventListener('pointerdown', e => {
+    flSeekEv(e, cv);
+    try { cv.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+  cv.addEventListener('pointermove', e => { if (e.buttons) flSeekEv(e, cv); });
+}
 
 document.addEventListener('click', e => {
   const a = e.target.closest('.flopen');
@@ -2677,6 +2723,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     document.getElementById('lightbox').classList.remove('on');
     document.getElementById('legendOverlay').classList.remove('on');
+    flLbHide();
   }
 });
 
