@@ -79,6 +79,12 @@ header a { color:#4da3ff; text-decoration:none; }
                  border-radius:6px; padding:6px 8px; font-size:13px; margin:3px 0 0;
                  cursor:pointer; }
 .covsel select:hover { border-color:#4da3ff; }
+.covsel .days { display:flex; flex-wrap:wrap; gap:3px 12px; margin:2px 0 3px; }
+.covsel .days label { display:flex; align-items:center; gap:5px; font-size:12.5px;
+                      cursor:pointer; color:var(--text); user-select:none; }
+.covsel .days input { accent-color:#4da3ff; margin:0; cursor:pointer; }
+.covsel .dtools { font-size:11px; margin:0 0 2px; }
+.covsel .dtools a { color:#4da3ff; text-decoration:none; cursor:pointer; margin-right:10px; }
 #presets { display:flex; flex-wrap:wrap; gap:6px; margin:6px 0 10px; }
 #presets button { background:#243447; color:#cfe4ff; border:1px solid #33506e;
                   border-radius:14px; padding:4px 11px; font-size:12px; cursor:pointer; }
@@ -436,14 +442,14 @@ const COVER_TIERS = D.cover ? [
 const coverGroup = L.layerGroup();
 let coverOpacity = 0.4;
 const coverOn = [true, true, true];
-let coverDate = 'all', coverVideo = 'all';
+let coverDates = null, coverVideo = 'all';   // null до построения UI = все дни
 let coverCells = [];       // [i, j, лучший уровень 0/1/2] по выбранным роликам
 const coverAreaEls = [];   // спаны «N км²» в подписях уровней
 
 function coverRecompute() {
   const bestMap = new Map();     // i*100000+j -> лучший уровень
   for (const v of D.cover.videos) {
-    if (coverDate !== 'all' && v.date !== coverDate) continue;
+    if (coverDates !== null && !coverDates.has(v.date)) continue;
     if (coverVideo !== 'all' && v.name !== coverVideo) continue;
     for (const [i, j, t] of v.cells) {
       const k = i * 100000 + j;
@@ -681,23 +687,45 @@ COVER_TIERS.forEach(([color, title], k) => {
 });
 
 if (COVER_TIERS.length) {
-  // фильтр покрытия: день и конкретный ролик внутри дня
+  // фильтр покрытия: дни галочками (произвольная комбинация) + ролик
   const fmt = d => d.slice(8, 10) + '.' + d.slice(5, 7);
   const dates = [...new Set(D.cover.videos.map(v => v.date))].sort();
+  coverDates = new Set(dates);
   const fBox = document.createElement('div');
   fBox.className = 'covsel';
-  fBox.innerHTML = `<div class="fh">Осмотр за</div><select></select><select></select>`;
-  const [dateSel, vidSel] = fBox.querySelectorAll('select');
-  dateSel.innerHTML = '<option value="all">все дни</option>' +
-    dates.map(d => `<option value="${d}">${fmt(d)}</option>`).join('');
+  fBox.innerHTML = `<div class="fh">Осмотр за</div>
+    <div class="dtools"><a data-op="all">все</a><a data-op="none">ничего</a><a data-op="inv">инверсия</a></div>
+    <div class="days"></div><select></select>`;
+  const daysDiv = fBox.querySelector('.days');
+  const vidSel = fBox.querySelector('select');
+  const dayInputs = new Map();
+  for (const d of dates) {
+    const lab = document.createElement('label');
+    lab.innerHTML = `<input type="checkbox" checked> ${fmt(d)}`;
+    const inp = lab.querySelector('input');
+    dayInputs.set(d, inp);
+    inp.onchange = () => {
+      inp.checked ? coverDates.add(d) : coverDates.delete(d);
+      fillVideos(); coverRecompute(); redrawCover();
+    };
+    daysDiv.appendChild(lab);
+  }
+  fBox.querySelectorAll('.dtools a').forEach(a => a.onclick = () => {
+    for (const d of dates) {
+      const on = a.dataset.op === 'all' ? true :
+                 a.dataset.op === 'none' ? false : !coverDates.has(d);
+      dayInputs.get(d).checked = on;
+      on ? coverDates.add(d) : coverDates.delete(d);
+    }
+    fillVideos(); coverRecompute(); redrawCover();
+  });
   const fillVideos = () => {
-    const vs = D.cover.videos.filter(v => coverDate === 'all' || v.date === coverDate);
+    const vs = D.cover.videos.filter(v => coverDates.has(v.date));
     vidSel.innerHTML = '<option value="all">все ролики</option>' +
       vs.map(v => `<option value="${v.name}">${v.name}</option>`).join('');
     coverVideo = 'all';
   };
   fillVideos();
-  dateSel.onchange = () => { coverDate = dateSel.value; fillVideos(); coverRecompute(); redrawCover(); };
   vidSel.onchange = () => { coverVideo = vidSel.value; coverRecompute(); redrawCover(); };
   layersDiv.prepend(fBox);
 
