@@ -39,6 +39,7 @@ OUT_DIR = ROOT / "analysis/viewer/flights"
 COV_DIR = ROOT / "analysis/coverage"
 
 META_STEP = 2.0     # шаг сэмплов меты, с (совпадает с сеткой coverage tsv)
+POLY_CAP = 2.0      # заливка кадра не дальше стольких дистанций центра
 FRAME_STEP = 5.0    # шаг кадров, с
 FRAME_W = 1024      # ширина кадра, px (кадр открывается лайтбоксом на весь экран)
 W, H = 1920, 1080   # система координат фокусного (coverage tsv)
@@ -98,10 +99,25 @@ def sample(dem, rows, cov, t):
     o8 = row[2] if row and abs(row[0] - t) <= META_STEP else None
 
     poly = None
-    if f_px:
-        hits = [cast(dem, lat, lon, alt, ray_dir(yaw, pitch, px, py, W, H, f_px))
-                for px, py in EDGE_PX]
-        pts = [[round(h[0], 5), round(h[1], 5)] for h in hits if h]
+    # Заливка — только БЛИЖНЯЯ зона кадра (луч не дальше POLY_CAP × дистанции
+    # центра): у пологих широких кадров краевые лучи стелются и «встречают»
+    # рельеф в километре, полигон полного конуса читался как «дрон осматривает
+    # то место», хотя там масштаб в разы хуже центра и ошибка модели на краях
+    # 1–5° (кейс 17.08, кадр 4:41 подхода). Без центра в рельефе заливки нет.
+    if f_px and hit:
+        cap = POLY_CAP * hit[3]
+        m_lat = 111132.0
+        m_lon = 111320.0 * math.cos(math.radians(lat))
+        pts = []
+        for px, py in EDGE_PX:
+            d = ray_dir(yaw, pitch, px, py, W, H, f_px)
+            h = cast(dem, lat, lon, alt, d)
+            if h is not None and h[3] <= cap:
+                pts.append([round(h[0], 5), round(h[1], 5)])
+            else:
+                # луч ушёл дальше/в небо — точка на границе ближней зоны
+                pts.append([round(lat + d[1] * cap / m_lat, 5),
+                            round(lon + d[0] * cap / m_lon, 5)])
         if len(pts) >= 3:
             poly = pts
 
