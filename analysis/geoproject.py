@@ -11,7 +11,8 @@
   cast ВИДЕО T PX PY F — трассировка луча: из позиции дрона в момент T через пиксель
                         (PX, PY) при фокусном F (пикс.) до пересечения с рельефом
                         Copernicus GLO-30 (data/dem/N39E073.tif). Печатает координаты
-                        точки, дистанцию и метры-на-пиксель (GSD).
+                        точки, дистанцию и метры-на-пиксель (GSD). Есть рельеф
+                        NASA HMA 8 м (см. HMA_PATH ниже) — им пользуется 3D-вьюер.
   elev LAT LON        — высота рельефа в точке (проверка DEM).
 
 Семантика углов телеметрии (gb_yaw: 0=север, по часовой; gb_pitch: минус=вниз)
@@ -31,7 +32,15 @@ import numpy as np
 import tifffile
 
 ROOT = Path(__file__).resolve().parents[1]
-DEM_PATH = ROOT / "data/dem/N39E073.tif"
+GLO_PATH = ROOT / "data/dem/N39E073.tif"
+HMA_PATH = ROOT / "data/dem/hma8m_kurumdy.tif"   # analysis/build_hma_dem.py
+# Расчётный конвейер (cast, рецепты карточек point_recalc) живёт на GLO-30:
+# все выданные штабу координаты посчитаны на нём, а на HMA 8 м cast-точки
+# уезжают на 7-49 м и часть рецептов у LOOK теряет пересечение (стены стали
+# честнее). Переход конвейера на HMA — только решением оператора с пересчётом
+# и перепроверкой всех cast-карточек. HMA используется явно: Dem(HMA_PATH) —
+# сейчас это 3D-вьюер покрытия (build_coverage3d).
+DEM_PATH = GLO_PATH
 PATCH_DIR = ROOT / "analysis/dem-patches"   # DSM-патчи фотограмметрии (см. README там)
 PATCH_FEATHER_M = 15.0                      # затухание поправки к краю охвата патчей
 FLOW_W = 960          # ширина центрального окна для phaseCorrelate
@@ -66,10 +75,10 @@ def _bilinear(z, x, y):
 
 
 class Dem:
-    """Рельеф: тайл GLO-30 + поле поправок из фотограмметрических DSM-патчей.
+    """Рельеф: базовый DEM (HMA 8 м либо GLO-30) + поправки DSM-патчей.
 
     Патчи (analysis/dem-patches/*.tif) — плотная реконструкция по кадрам дрона
-    в системе высот телеметрии; GLO-30 в пятне вещей врёт до ~48 м. Вместо
+    в системе высот телеметрии; базовый DEM в пятне вещей врёт до ~48 м. Вместо
     прямой подмены высот накладывается сглаженная разница «DSM − GLO-30»:
     дыры реконструкции заполняются ближайшей измеренной поправкой, к краям
     охвата поправка затухает до нуля — рельеф остаётся непрерывным и марш
@@ -80,6 +89,9 @@ class Dem:
         self.z, self.lon0, self.lat0, self.dlon, self.dlat = _read_geotiff(path)
         self.h, self.w = self.z.shape
         self._patch = self._load_patches(patch_dir) if patch_dir else None
+        # рамка HMA уже района GLO-30: за её пределами elev() берёт GLO-30
+        self._outside = (Dem(GLO_PATH, patch_dir=None)
+                         if Path(path) != GLO_PATH and GLO_PATH.exists() else None)
 
     def _load_patches(self, patch_dir):
         paths = sorted(Path(patch_dir).glob("*.tif"))
@@ -142,6 +154,8 @@ class Dem:
         x = (lon - self.lon0) / self.dlon
         y = (self.lat0 - lat) / self.dlat
         if not (0 <= x < self.w - 1 and 0 <= y < self.h - 1):
+            if self._outside is not None:
+                return self._outside.elev(lat, lon)
             raise ValueError(f"точка вне тайла DEM: {lat}, {lon}")
         x0, y0 = int(x), int(y)
         fx, fy = x - x0, y - y0

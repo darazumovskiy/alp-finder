@@ -4,7 +4,9 @@
 Ответ на вопрос «какие склоны реально осмотрены»: та же сетка покрытия, что
 на 2D-карте (analysis/coverage_map.py, 3 уровня по порогу 8 px), но натянутая
 на рельеф — в 3D видны мёртвые зоны за перегибами, которые плоская карта
-скрывает. Рельеф — GLO-30 с фотограмметрическими патчами (docs/dem-patches.md).
+скрывает. Рельеф — NASA HMA 8 м (analysis/build_hma_dem.py, стереопары
+WorldView ~2017) с фотограмметрическими патчами 2026 г. поверх
+(docs/dem-patches.md); расчётный конвейер координат остаётся на GLO-30.
 
 Вход: analysis/coverage/coverage-map-cells.json, DEM, маршрут (GPX), коридор
 (KML), подтверждённые вещи из POINTS build_map.py.
@@ -25,7 +27,7 @@ sys.path.insert(0, str(HERE))
 
 import numpy as np  # noqa: E402
 
-from geoproject import Dem, _bilinear  # noqa: E402
+from geoproject import Dem, HMA_PATH, _bilinear  # noqa: E402
 from build_map import (  # noqa: E402
     CAMPS, LAT0, LAT1, LON0, LON1, M_PER_DEG_LAT, POINTS, m_per_deg_lon,
     parse_gpx, parse_kml_lines,
@@ -74,7 +76,9 @@ def line3d(dem, pts, lift=4.0, every=1):
 
 
 def build():
-    dem = Dem()
+    if not HMA_PATH.exists():
+        sys.exit(f"нет {HMA_PATH.name} — соберите: analysis/build_hma_dem.py")
+    dem = Dem(HMA_PATH)
     cover = json.loads(COVER_JSON.read_text())
     h, ni, nj = terrain_grid(dem, cover)
     hmin = float(np.nanmin(h))
@@ -185,8 +189,9 @@ TEMPLATE = r"""<!doctype html>
   <div class="views" id="views"></div>
   <div class="note">Та же сетка, что на 2D-карте: проекция рамки кадра в рельеф
   с реальным фокусным, масштаб пересчитан на дистанцию каждого участка кадра,
-  порог различимости 8 px (docs/coverage-gsd.md). Рельеф: GLO-30 +
-  фотограмметрические патчи в пятне вещей (docs/dem-patches.md).</div>
+  порог различимости 8 px (docs/coverage-gsd.md). Рельеф: NASA HMA 8 м
+  (WorldView ~2017) + фотограмметрические патчи 2026 г. в пятне вещей
+  (docs/dem-patches.md).</div>
 </div>
 <div id="hint">вращение — мышь · зум — колесо · сдвиг — правая кнопка</div>
 <script>__THREE__</script>

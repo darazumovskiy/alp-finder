@@ -59,6 +59,9 @@ analysis/.venv/bin/pip install -r analysis/requirements.txt
 mkdir -p data/dem
 curl -o data/dem/N39E073.tif \
   https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N39_00_E073_00_DEM/Copernicus_DSM_COG_10_N39_00_E073_00_DEM.tif
+
+# детальный рельеф NASA HMA 8 м для 3D-вьюера (нужен токен Earthdata,
+# рецепт скачивания и сборки — шапка analysis/build_hma_dem.py)
 ```
 
 ### Локальный просмотр

@@ -4,3 +4,5 @@ tifffile>=2024.8
 imagecodecs>=2024.6
 matplotlib>=3.9
 pytest>=8
+rasterio>=1.4      # перепроецирование NASA HMA 8 м (analysis/build_hma_dem.py)
+pyproj>=3.6
