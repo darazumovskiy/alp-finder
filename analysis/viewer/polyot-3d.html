@@ -104,9 +104,12 @@ body.hidepanels #toggle{display:block}
     <label><input type="checkbox" id="L-alp" checked><span class="sw" style="background:#ff3b30"></span>точки реестра (<span id="n-alp"></span>)</label>
     <label>перелёт к точке
       <select id="S-goto" style="max-width:150px"><option value="">—</option></select></label>
+    <label>размер точек
+      <input type="range" id="S-msize" min="0.6" max="7" step="0.2" value="3"
+             style="margin-left:auto;width:110px;accent-color:#3d8fd6"></label>
     <label><input type="checkbox" id="L-route" checked><span class="sw" style="background:#ffffff"></span>маршрут группы</label>
     <label><input type="checkbox" id="L-camp" checked><span class="sw" style="background:#c9f24d"></span>лагеря и вешки</label>
-    <label><input type="checkbox" id="L-cam" checked><span class="sw" style="background:#8fc8ff"></span>полёты дрона (<span id="n-cam"></span>)</label>
+    <label><input type="checkbox" id="L-cam"><span class="sw" style="background:#8fc8ff"></span>полёты дрона (<span id="n-cam"></span>)</label>
     <label><input type="checkbox" id="L-fan"><span class="sw" style="background:#c9a6ff"></span>обзор дроном — лучи взгляда</label>
 
     <h2 style="margin-top:12px">Вид</h2>
@@ -358,9 +361,9 @@ void main(){
 const PM=prog(`#version 300 es
 precision highp float;
 layout(location=0) in vec3 aPos;layout(location=1) in vec4 aInst;layout(location=2) in vec4 aTint;
-uniform mat4 uVP;out vec4 vTint;out vec3 vN;
+uniform mat4 uVP;uniform float uScale;out vec4 vTint;out vec3 vN;
 void main(){vTint=aTint;vN=normalize(aPos);
-  gl_Position=uVP*vec4(aPos*aInst.w+aInst.xyz,1.0);}`,
+  gl_Position=uVP*vec4(aPos*aInst.w*uScale+aInst.xyz,1.0);}`,
 `#version 300 es
 precision highp float;in vec4 vTint;in vec3 vN;out vec4 o;
 void main(){float d=0.60+0.40*abs(dot(normalize(vN),normalize(vec3(0.4,0.85,0.3))));
@@ -598,7 +601,9 @@ cv.addEventListener('touchmove',e=>{
   e.preventDefault();},{passive:false});
 cv.addEventListener('touchend',e=>{
   if(tn===1&&tmoved<8&&cur&&(cur.fb||cur.f||cur.url))openBig(cur);},{passive:true});
-addEventListener('wheel',e=>{cam.spd=Math.max(2,Math.min(600,cam.spd*Math.exp(-e.deltaY*0.0016)));},{passive:true});
+addEventListener('wheel',e=>{
+  if(e.target.closest&&e.target.closest('.panel'))return;   // скролл меню
+  cam.spd=Math.max(2,Math.min(600,cam.spd*Math.exp(-e.deltaY*0.0016)));},{passive:true});
 
 const O={};['gap','run','fine','coarse','find','thing','spot','shel','cam','fan','grid','fog',
   'steep','coul','cont','acov','alp','route','fall','corr','prio','camp','ring',
@@ -624,7 +629,7 @@ gotoSel.onchange=()=>{
   gSel=group([[o.x,o.y,o.l]],[1,0.9,0.15,1],1.5,1.2);
   flyTo(o);};
 const uT={};['uVP','uEye','uGrid','uFog','uOn','uOn2','uSky','uYS'].forEach(n=>uT[n]=gl.getUniformLocation(PT,n));
-const uMV=gl.getUniformLocation(PM,'uVP');
+const uMV=gl.getUniformLocation(PM,'uVP'),uMS=gl.getUniformLocation(PM,'uScale');
 const uLV=gl.getUniformLocation(PL,'uVP'),uLC=gl.getUniformLocation(PL,'uCol');
 const SKY=[0.44,0.58,0.74];
 let last=performance.now(),acc=0,fr=0,started=false;
@@ -633,6 +638,7 @@ const prev={x:NaN,y:NaN,z:NaN,yaw:NaN,pitch:NaN};
 const touch=()=>{dirty=true;};
 addEventListener('resize',touch);
 document.getElementById('layers').addEventListener('change',touch);
+document.getElementById('layers').addEventListener('input',touch);
 addEventListener('keydown',touch); addEventListener('keyup',touch);
 addEventListener('wheel',touch,{passive:true});
 
@@ -715,6 +721,7 @@ function loop(now){
   ln(LN.route,O.route.checked,1.00,1.00,1.00);
 
   gl.useProgram(PM);gl.uniformMatrix4fv(uMV,false,VP);
+  gl.uniform1f(uMS,+el('S-msize').value);
   const draw=(g,on)=>{if(!on||!g||!g.n)return;gl.bindVertexArray(g.vao);
     gl.drawElementsInstanced(gl.TRIANGLES,36,gl.UNSIGNED_SHORT,0,g.n);};
   draw(gShel,O.shel.checked);draw(gThing,O.thing.checked);
