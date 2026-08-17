@@ -171,7 +171,7 @@ POINTS = [
                "дистанция 51 м; вилка DEM ±30 м — увод 23 м; фокусное на результат "
                "почти не влияет (объект у центра кадра)",
          calc=dict(m="c_center", video="20260815150808", t=231),
-         gps=[39.482509, 73.586347, 50], view=[102, -21], unc=23,
+         gps=[39.482509, 73.586347, 50], view=[102, -21], unc=25,
          video="DJI_20260815150808_0002_Z", tc="3:42–4:04 (лучший кадр 3:51)",
          who="наш конвейер 15.08 (треки 25/62/74/81/93/117) и независимо TG: "
              "Александра Муранова, «Новые скриншоты» #3415 (t.me/c/4466042035/248/3415) "
@@ -336,7 +336,7 @@ POINTS = [
          video="DJI_20260811161324_0003_Z", tc="3:14",
          desc="Одиночный тёмный + 2 мелких пятна рядом.",
          imgs=["analysis/scans/DJI_20260811161324_0003_Z/crops/t0002_03m14s.jpg"]),
-    dict(kind="item", src="ai", status="open", conf=4, lat=39.485903, lon=73.594271, alt=4925,
+    dict(kind="item", src="ai", status="open", conf=4, lat=39.485874, lon=73.594305, alt=4925,
          name="Ярко-оранжевая ткань (стропа?) на гряде севернее Camp1", fix="cast",
          size_calc=dict(label="видимая длина", px_lo=12, px_hi=30,
                         dist_lo=33, dist_hi=93, f=7699, f_lo=7468, f_hi=8038, unit="м"),
@@ -348,7 +348,7 @@ POINTS = [
                "кадре 0:03 (пиксель 548,865) — направления сходятся",
          calc=dict(m="cast", video="20260815183932_0001_Z", t=159, px=127, py=1002,
                    f=7699, f_lo=7468, f_hi=8038),
-         gps=[39.486328, 73.593784, 63], unc=35,
+         gps=[39.486328, 73.593784, 63], unc=29,
          video="DJI_20260815183932_0001_Z",
          tc="0:03 (пиксель 548,865) и 2:39 (127,1002) — один объект, сверено цветовым детектором",
          who="личный отсмотр оператора проекта 16.08 (скрины плеера); пиксели уточнены "
@@ -362,18 +362,19 @@ POINTS = [
          imgs=["analysis/fullframe/orange-183932/tkan-t159_full.jpg",
                "analysis/fullframe/orange-183932/tkan-t159_crop.jpg",
                "analysis/fullframe/orange-183932/tkan-t3_crop.jpg"]),
-    dict(kind="bird", src="ai", status="open", conf=3, lat=39.486182, lon=73.594633, alt=4925,
+    dict(kind="bird", src="ai", status="open", conf=3, lat=39.486171, lon=73.594699, alt=4925,
          name="Крупная тёмная птица (ворон?) на кромке гряды в 44 м от оранжевой ткани",
          fix="cast",
          size_calc=dict(label="корпус", px_lo=12, px_hi=20,
                         dist_lo=41, dist_hi=112, f=7699, f_lo=7468, f_hi=8038, unit="м"),
          size_unc="12–20 пикс; дистанция 41–112 м (вилка DEM); согласуется с крупной птицей",
          coord="геопроекция лучей 5:06 (пиксель 184,84) и 5:07 (251,86): обе точки сходятся "
-               "(расхождение <2 м), дистанция 75 м; луч полог — вилка DEM ±30 м уводит на "
-               "±35 м вдоль азимута 102°",
+               "(расхождение <2 м), дистанция 75 м; луч скользит вдоль кромки гряды — на "
+               "рельефе HMA 8 м вилка DEM −30 м уводит луч за кромку (увод 2,7 км), отсюда "
+               "формальный unc; поперёк луча позиция надёжна: птица на кромке, как и точка",
          calc=dict(m="cast", video="20260815183932_0001_Z", t=306, px=184, py=84,
                    f=7699, f_lo=7468, f_hi=8038),
-         gps=[39.486325, 73.593782, 75], unc=40,
+         gps=[39.486325, 73.593782, 75], unc=2755,
          video="DJI_20260815183932_0001_Z",
          tc="5:05–5:10 (перемещается по кромке)",
          who="личный отсмотр оператора проекта 16.08; движение подтверждено разностью "
@@ -409,7 +410,7 @@ POINTS = [
          desc="У кромки лавинного выноса; длинная прямая борозда с предметом в верхней части.",
          imgs=["analysis/scans/DJI_20260813130531_0001_Z/crops/t0026_02m40s.jpg",
                "analysis/scans/DJI_20260813130531_0001_Z/crops/t0130_00m44s.jpg"]),
-    dict(kind="item", src="ai", status="open", conf=3, lat=39.481579, lon=73.596333, alt=4876,
+    dict(kind="item", src="ai", status="open", conf=3, lat=39.481623, lon=73.596604, alt=4824,
          name="Кремовый округлый объект (каска?)", fix="cast",
          coord="трассировка луча через пиксель трека детектора (кадр 6:38, bbox трека 6): "
                "дистанция 256 м, фокусное 2671 (coverage); вилка DEM ±30 м — увод ≤23 м",
@@ -425,23 +426,23 @@ POINTS = [
          desc="Тёмный угловатый, у кромки трещины.",
          imgs=["analysis/scans/DJI_20260813152650_0001_Z/crops/t0001_00m02s.jpg",
                "analysis/pilot/check_152650_t1.jpg"]),
-    dict(kind="object", src="ai", status="open", conf=3, lat=39.482724, lon=73.593120, alt=5036,
+    dict(kind="object", src="ai", status="open", conf=3, lat=39.482718, lon=73.593116, alt=5038,
          name="Овальный предмет на чистом снегу",
          coord=CRAY + "; дистанция ~60 м, вилка DEM ±26 м, смещение от центра ≤10 м",
          calc=dict(m="c_center", video="20260811204542", t=258, f="cov", off_px=960),
-         gps=[39.48247, 73.59298, 60], unc=40,
+         gps=[39.48247, 73.59298, 60], unc=29,
          video="DJI_20260811204542_0001_Z", tc="4:18",
          desc="Изолированный тёмный гладкий, отчётливая тень, ореола протаивания нет.",
          imgs=["analysis/scans/DJI_20260811204542_0001_Z/crops/t0189_04m18s.jpg"]),
 
     # -- верёвки и перила --
-    dict(kind="rope", src="ai", status="confirmed", conf=5, lat=39.480794, lon=73.592573, alt=5119,
+    dict(kind="rope", src="ai", status="confirmed", conf=5, lat=39.480861, lon=73.592591, alt=5129,
          name="Линия старых перил (0:00–2:18)",
          coord=CRAY + "; кадр 0:16, дистанция ~34 м, вилка DEM ±16 м; сама линия "
                "протяжённая (+10 м к вилке)",
          calc=dict(m="c_center", video="20260812135747", t=16, f="cov", off_px=960,
                    extra_unc=10),
-         gps=[39.48097, 73.59262, 34], unc=30,
+         gps=[39.48097, 73.59262, 34], unc=24,
          video="DJI_20260812135747_0002_Z", tc="0:00–2:18",
          desc="Верёвка через скальный рог, узлы, станции; там же красная верёвка 0:30 (цвет основной верёвки группы).",
          imgs=["analysis/scans/DJI_20260812135747_0002_Z/crops/t0000_00m16s.jpg",
@@ -522,11 +523,11 @@ POINTS = [
                "data/telegram/podtverzhdennye/419.jpg"]),
 
     # -- следы/рельеф ув. 2 --
-    dict(kind="trace", src="ai", status="open", conf=2, lat=39.482724, lon=73.593120, alt=5036,
+    dict(kind="trace", src="ai", status="open", conf=2, lat=39.482718, lon=73.593116, alt=5038,
          name="Провал снежного моста у бергшрунда",
          coord=CRAY + "; дистанция ~60 м, вилка DEM ±26 м, смещение от центра ≤10 м",
          calc=dict(m="c_center", video="20260811204542", t=256, f="cov", off_px=960),
-         gps=[39.48247, 73.59298, 60], unc=40,
+         gps=[39.48247, 73.59298, 60], unc=29,
          video="DJI_20260811204542_0001_Z", tc="4:16",
          who="наш полнокадровый отсмотр (ИИ-агент); штабом не перепроверялось",
          desc="Тёмная полость, вывороченные блоки наста; следов подхода не видно.",
@@ -563,7 +564,7 @@ POINTS = [
          desc="Кандидат автоматической проверки CC (kurumdy_candidates.csv).",
          imgs=["docs/nezavisimyy-analiz/screens/20260811160637_00-01-14_1_single.png",
                "docs/nezavisimyy-analiz/screens/20260811160637_00-01-14_0_frame.jpg"]),
-    dict(kind="item", src="ai", status="open", conf=4, lat=39.482673, lon=73.585333, alt=4565,
+    dict(kind="item", src="ai", status="open", conf=4, lat=39.482652, lon=73.585325, alt=4559,
          name="Малиново-красный предмет на снегу — вплотную к бороздам района вещей",
          fix="cast",
          size_calc=dict(label="красное пятно", px_lo=8, px_hi=12,
@@ -578,7 +579,7 @@ POINTS = [
                "так что реальная высота предмета ближе к 4550 м",
          calc=dict(m="cast", video="20260815162956_0001_Z", t=178, px=1801, py=707,
                    f=3755, f_lo=2652, f_hi=4200),
-         gps=[39.482740, 73.585357, 20], unc=7, alt_unc=30,
+         gps=[39.482740, 73.585357, 20], unc=9, alt_unc=30,
          video="DJI_20260815162956_0001_Z",
          tc="2:58 (предмет в кадре 2:50–3:13, заявка совпадает)",
          who="личный отсмотр оператора проекта 16.08 (скриншот плеера с пометкой); пиксель и "
@@ -611,12 +612,12 @@ POINTS = [
          desc="«Чёткий край, чёткий перегиб на подветренной части» (Перепроверка #993). Рядом с "
               "кандидатом «трепыхающаяся ткань». Облёт не выполнен (нет точных координат).",
          imgs=["data/telegram/dlya-pereproverki-dronom/993.jpg"]),
-    dict(kind="object", src="tg", status="open", conf=2, lat=39.489744, lon=73.597689, alt=4803,
+    dict(kind="object", src="tg", status="open", conf=2, lat=39.489700, lon=73.597789, alt=4788,
          name="Блоки, пробившие снежную корку, у трещины",
          coord=CRAY + "; дистанция ~66 м, вилка DEM ±15 м; фокусного в coverage нет — "
                "смещение от центра по паспортному минимуму f, ≤16 м",
          calc=dict(m="c_center", video="20260812133237", t=2, f=4026, off_px=960),
-         gps=[39.48991, 73.59731, 66], unc=35,
+         gps=[39.48991, 73.59731, 66], unc=37,
          video="DJI_20260812133237_0005_Z", tc="0:00",
          desc="Группа блоков у трещины, над которой висел дрон (Перепроверка #1019, #1051 — одно место).",
          imgs=["data/telegram/dlya-pereproverki-dronom/1019.jpg",
@@ -650,7 +651,7 @@ POINTS = [
          imgs=["docs/nezavisimyy-analiz/screens/20260812141803_00-00-14_1_single.png",
                "docs/nezavisimyy-analiz/screens/20260812141803_00-00-14_0_frame.jpg"]),
 
-    dict(kind="furrow", src="tg", status="open", conf=3, lat=39.482658, lon=73.585299, alt=4571,
+    dict(kind="furrow", src="tg", status="open", conf=3, lat=39.482611, lon=73.585329, alt=4567,
          name="Две крупные борозды у района вещей (TG #1752)", fix="cast",
          size_calc=dict(label="ширина борозды", px_lo=16, px_hi=31,
                         dist_lo=215, dist_hi=259, f=7416, f_lo=6674, f_hi=8158, unit="м"),
@@ -662,7 +663,7 @@ POINTS = [
                "фокусного ±10% даёт ±1 м, вилка DEM ±30 м — увод 8–22 м",
          calc=dict(m="cast", video="20260813163855", t=55, px=1267, py=324,
                    f=7416, f_lo=6674, f_hi=8158),
-         gps=[39.48431, 73.58402, 237], unc=25,
+         gps=[39.48431, 73.58402, 237], unc=29,
          video="DJI_20260813163855_0001_Z",
          tc="0:55 (в заявке «0:53–0:54»; скрин #1752 сматчен по SIFT, 142 инлаера)",
          desc="Две U-образные борозды на снежнике склона района вещей, ~60 м юго-западнее "
@@ -693,7 +694,7 @@ POINTS = [
               "детектор такие не ловит.",
          imgs=["analysis/fullframe/sledy-uchastok/t0591_ann.jpg",
                "analysis/fullframe/sledy-uchastok/t0591_zoom.jpg"]),
-    dict(kind="furrow", src="tg", status="open", conf=3, lat=39.482965, lon=73.586598, alt=4647,
+    dict(kind="furrow", src="tg", status="open", conf=3, lat=39.482949, lon=73.586657, alt=4647,
          name="Две борозды на снежнике в ~40 м от рюкзака (личка Геннадия)", fix="cast",
          coord="геопроекция луча через пиксель борозд (629,344 в кадре 4:04, восстановлен "
                "матчем кропа отчёта): дистанция 202 м, фокусное 6465 (самокалибровка, "
@@ -701,7 +702,7 @@ POINTS = [
                "уводит точку до ~43 м вдоль склона",
          calc=dict(m="cast", video="20260813163855", t=244, px=629, py=344,
                    f=6465, f_lo=5819, f_hi=7112),
-         gps=[39.483533, 73.584408, 202], view=[108, 10], unc=45,
+         gps=[39.483533, 73.584408, 202], view=[108, 10], unc=50,
          video="DJI_20260813163855_0001_Z", tc="4:04 (в заявке «3.54»; кадр сматчен по SIFT, 149 инлаеров)",
          who="находка Геннадия Беге (админ TG-группы), личка 14.08 ~08:28 (#149015); вердикта нет",
          desc="Две длинные параллельные борозды вниз по снежному языку. Точка — в ~40 м к СЗ от "
@@ -747,7 +748,7 @@ POINTS = [
          imgs=["data/telegram/lichka-gennadiy-bege/148979.jpg",
                "data/telegram/lichka-gennadiy-bege/148983.jpg",
                "analysis/fullframe/gennadiy-124655/recheck/rope67_outline.png",
-               "analysis/fullframe/gennadiy-124655/crop_t67_rope_zoom.png"], unc=16),
+               "analysis/fullframe/gennadiy-124655/crop_t67_rope_zoom.png"], unc=21),
     dict(kind="object", src="tg", status="open", conf=2, lat=39.478337, lon=73.591389, alt=5265,
          name="Тёмный предмет у «надписи LOOK» (личка Геннадия)", fix="cast", alt_unc=10,
          size_calc=dict(label="длинная сторона", px=30,
@@ -813,11 +814,11 @@ POINTS = [
               "проверили: камни (Отклонённые #552–#557; Перепроверка #573).",
          imgs=["data/telegram/otklonennye-posle-proverki-dronom/552.jpg",
                "data/telegram/dlya-pereproverki-dronom/573.jpg"]),
-    dict(kind="object", src="tg", status="rejected", conf="x", lat=39.480441, lon=73.592544, alt=5142,
+    dict(kind="object", src="tg", status="rejected", conf="x", lat=39.480551, lon=73.592544, alt=5147,
          name="Подозрительное пятно — снег и камни",
          coord=CRAY + "; дистанция ~44 м, вилка DEM ±30 м, смещение от центра ≤12 м",
          calc=dict(m="c_center", video="20260812140054", t=27, f="cov", off_px=960),
-         gps=[39.48080, 73.59254, 44], unc=42,
+         gps=[39.48080, 73.59254, 44], unc=30,
          video="DJI_20260812140054_0003_Z", tc="0:27–0:36",
          desc="«Перепроверили — это интересно, завтра полетим» → слетали: снег и камни "
               "(Отклонённые #961–#964).",
@@ -830,7 +831,7 @@ POINTS = [
          imgs=["data/telegram/otklonennye-posle-proverki-dronom/995.jpg"]),
 
     # -- закрытые кандидаты --
-    dict(kind="item", src="tg", status="closed", conf="x", lat=39.478824, lon=73.592937, alt=5258,
+    dict(kind="item", src="tg", status="closed", conf="x", lat=39.478761, lon=73.592817, alt=5253,
          name="«Красный сегмент» — закрыт: скальные выходы", fix="cast", unc=36,
          coord=PROJ + "; дистанция 181 м, вилка DEM ±30 м уводит на 21–24 м, "
                "смещение от центра ≤12 м",
@@ -860,7 +861,7 @@ POINTS = [
                "analysis/fullframe/gennadiy-124655/crop_t114_zoom.png"]),
 
     # -- кандидаты пакета «спасы 14/08» (вечер 14.08, автоотсмотр) --
-    dict(kind="item", src="ai", status="open", conf=3, lat=39.480057, lon=73.592559, alt=5163,
+    dict(kind="item", src="ai", status="open", conf=3, lat=39.479973, lon=73.592561, alt=5179,
          name="Прямой стержень ~0,9 м (ледоруб/палка?)", fix="cast",
          size_calc=dict(px=26, dist_lo=100, dist_hi=145,
                         f=3569, f_lo=3212, f_hi=3926, unit="м"),
@@ -868,7 +869,7 @@ POINTS = [
          coord="трассировка луча через пиксель стержня (1838,168 в кадре 0:01): "
                "дистанция 122 м, фокусное 3569 (coverage); вилка DEM ±30 м — увод ±25 м",
          calc=dict(m="cast", video="20260814153347", t=1, px=1838, py=168, f="cov"),
-         gps=[39.479503, 73.592575, 122], view=[345, -66], unc=25,
+         gps=[39.479503, 73.592575, 122], view=[345, -66], unc=40,
          video="DJI_20260814153347_0008_Z", tc="0:01",
          who="автоотсмотр пакета «спасы 14/08» 14.08 (детектор + ИИ + перепроверка); "
              "TG «Новые скриншоты» #2691; вердикта нет",
@@ -909,7 +910,7 @@ POINTS = [
               "дорожка (у скал рядом параллельные линии сброса).",
          imgs=["analysis/review/findings-2026-08-14-spasy/05_foto0003_tsepochka_full.jpg",
                "analysis/review/findings-2026-08-14-spasy/05_foto0003_tsepochka_crop.jpg"]),
-    dict(kind="furrow", src="ai", status="open", conf=2, lat=39.478919, lon=73.588983, alt=5078,
+    dict(kind="furrow", src="ai", status="open", conf=2, lat=39.478899, lon=73.589000, alt=5078,
          name="Цепочка тёмных точек (место Б, у высоты верёвки гребня)", fix="cast",
          size_calc=dict(label="вмятины", px_lo=5, px_hi=10,
                         dist_lo=52, dist_hi=78, f=6722, f_lo=6050, f_hi=7394, unit="см"),
@@ -926,7 +927,7 @@ POINTS = [
               "прежняя оценка той верёвки — 5073 м). Альтернатива — камнепад.",
          imgs=["analysis/review/findings-2026-08-14-spasy/02_t117_tsepochka_full.jpg",
                "analysis/review/findings-2026-08-14-spasy/02_t117_tsepochka_crop.jpg"]),
-    dict(kind="object", src="ai", status="open", conf=2, lat=39.482740, lon=73.583977, alt=4579,
+    dict(kind="object", src="ai", status="open", conf=2, lat=39.482754, lon=73.584013, alt=4559,
          name="Прямоугольный предмет западнее вещей (баул?)", fix="cast",
          size_calc=dict(px_lo=55, px_hi=78, dist_lo=54, dist_hi=66,
                         f_lo=4026, f_hi=14315, unit="м"),
@@ -945,7 +946,7 @@ POINTS = [
               "западнее рюкзака — зона возможного уноса вещей. Скорее валун.",
          imgs=["analysis/review/findings-2026-08-14-spasy/03_t102_predmet_full.jpg",
                "analysis/review/findings-2026-08-14-spasy/03_t102_predmet_crop.jpg"]),
-    dict(kind="rope", src="ai", status="open", conf=3, lat=39.479208, lon=73.592712, alt=5228,
+    dict(kind="rope", src="ai", status="open", conf=3, lat=39.479219, lon=73.592745, alt=5223,
          name="Верёвки у LOOK: одна или две? (толстая + тонкая)", fix="cast",
          coord="среднее проекций центра двух зум-кадров одного зависания (0:25 и 0:32): "
                "дистанция 70 м, крутой луч (−58°); вилка DEM ±30 м — увод ≤27 м, "
@@ -955,7 +956,7 @@ POINTS = [
                                        f="cov", off_px=960),
                                   dict(m="c_center", video="20260814152347", t=32,
                                        f="cov", off_px=960)]),
-         gps=[39.47908, 73.59232, 70], unc=35,
+         gps=[39.47908, 73.59232, 70], unc=65,
          video="DJI_20260814152347_0006_Z", tc="0:25 и 0:32",
          who="автоотсмотр пакета «спасы 14/08» 14.08; TG «Новые скриншоты» #2703; вердикта нет",
          desc="На 0:25 толстый серый шнур петлями в камнях, на 0:32 тонкая верёвка с читаемой "

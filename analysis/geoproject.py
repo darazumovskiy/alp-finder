@@ -34,13 +34,11 @@ import tifffile
 ROOT = Path(__file__).resolve().parents[1]
 GLO_PATH = ROOT / "data/dem/N39E073.tif"
 HMA_PATH = ROOT / "data/dem/hma8m_kurumdy.tif"   # analysis/build_hma_dem.py
-# Расчётный конвейер (cast, рецепты карточек point_recalc) живёт на GLO-30:
-# все выданные штабу координаты посчитаны на нём, а на HMA 8 м cast-точки
-# уезжают на 7-49 м и часть рецептов у LOOK теряет пересечение (стены стали
-# честнее). Переход конвейера на HMA — только решением оператора с пересчётом
-# и перепроверкой всех cast-карточек. HMA используется явно: Dem(HMA_PATH) —
-# сейчас это 3D-вьюер покрытия (build_coverage3d).
-DEM_PATH = GLO_PATH
+# Расчётный конвейер с 17.08 живёт на HMA 8 м (решение оператора после сверки
+# по независимым эталонам — analysis/review/dem-benchmark.md: грубые промахи
+# рельефа втрое-вчетверо реже, чем у GLO-30). Смещения точек при миграции —
+# analysis/review/dem-migration.md. За рамкой HMA elev() падает на GLO-30.
+DEM_PATH = HMA_PATH if HMA_PATH.exists() else GLO_PATH
 PATCH_DIR = ROOT / "analysis/dem-patches"   # DSM-патчи фотограмметрии (см. README там)
 PATCH_FEATHER_M = 15.0                      # затухание поправки к краю охвата патчей
 FLOW_W = 960          # ширина центрального окна для phaseCorrelate
