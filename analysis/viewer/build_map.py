@@ -1751,17 +1751,66 @@ const SAT_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imag
 const TOPO_URL = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
 // maxNativeZoom: у OpenTopoMap тайлов глубже 17-го зума нет — растягиваем,
 // чтобы при зуме 18–19 (есть у Esri) топослой не пропадал
-const sat = L.tileLayer(SAT_URL, {maxZoom:19, attribution:'Esri World Imagery'});
-const topo = L.tileLayer(TOPO_URL, {maxZoom:19, maxNativeZoom:17, attribution:'OpenTopoMap'});
+// maxZoom 25 у подложек: глубокий зум нужен орто-слою (нативная деталь
+// до сантиметров), спутник и топо дальше своих native-зумов растягиваются
+const sat = L.tileLayer(SAT_URL, {maxZoom:25, maxNativeZoom:19, attribution:'Esri World Imagery'});
+const topo = L.tileLayer(TOPO_URL, {maxZoom:25, maxNativeZoom:17, attribution:'OpenTopoMap'});
 sat.addTo(map);
-L.control.layers({'Спутник (Esri)':sat,'Топокарта':topo}, null, {position:'topright'}).addTo(map);
+const layersCtl = L.control.layers({'Спутник (Esri)':sat,'Топокарта':topo}, null, {position:'topright'}).addTo(map);
 L.control.scale({imperial:false}).addTo(map);
+
+// --- ортомозаика из съёмки (analysis/build_ortho.py) ---
+// Тайлы 512 px сетки gz (= leaflet-зум − 1) упакованы в суперблоки 8×8
+// (ortho/{gz}/{sx}_{sy}.webp) из-за лимита числа файлов хостинга; слой сам
+// режет блок на тайлы, глубже нативного зума — растягивает ближайший уровень.
+// Появляется в списке слоёв, только если тайлы выложены рядом с картой.
+fetch('ortho/meta.json').then(r => r.ok ? r.json() : null).then(m => {
+  if (!m) return;
+  const BL = m.block || 8, TS = m.tile || 512, blockCache = new Map();
+  function orthoBlock(gz, sx, sy) {
+    const k = gz+'/'+sx+'_'+sy;
+    if (blockCache.has(k)) { const v = blockCache.get(k);
+      blockCache.delete(k); blockCache.set(k, v); return v; }
+    const p = new Promise(res => { const im = new Image();
+      im.onload = () => res(im); im.onerror = () => res(null);
+      im.src = 'ortho/'+gz+'/'+sx+'_'+sy+'.webp'; });
+    blockCache.set(k, p);
+    if (blockCache.size > 60) blockCache.delete(blockCache.keys().next().value);
+    return p;
+  }
+  const Ortho = L.GridLayer.extend({
+    createTile: function(coords, done) {
+      const tile = document.createElement('canvas');
+      tile.width = TS; tile.height = TS;
+      const gz = coords.z - 1;              // сетка блоков = leaflet-зум − 1
+      const zs = Math.min(gz, m.maxz), f = 1 << (gz - zs);   // растяжка сверх нативного
+      if (gz < m.minz) { setTimeout(() => done(null, tile), 0); return tile; }
+      const tx = Math.floor(coords.x / f), ty = Math.floor(coords.y / f);
+      orthoBlock(zs, Math.floor(tx / BL), Math.floor(ty / BL)).then(im => {
+        if (im) {
+          const ctx = tile.getContext('2d');
+          ctx.imageSmoothingEnabled = f === 1;
+          const sub = TS / f;               // кусок тайла zs, который растянется в этот тайл
+          ctx.drawImage(im,
+            (tx % BL) * TS + (coords.x % f) * sub, (ty % BL) * TS + (coords.y % f) * sub,
+            sub, sub, 0, 0, TS, TS);
+        }
+        done(null, tile);
+      });
+      return tile;
+    }
+  });
+  const ortho = new Ortho({tileSize:TS, minZoom:m.minz+1, maxZoom:25, zIndex:3,
+    bounds:[[m.bounds[0],m.bounds[1]],[m.bounds[2],m.bounds[3]]],
+    attribution:'ортомозаика alp-finder'});
+  layersCtl.addOverlay(ortho, 'Фото со съёмки (орто)');
+}).catch(()=>{});
 
 // --- наложение второй карты (спутник и топокарта одновременно) ---
 // Поверх текущей основы кладётся вторая карта с прозрачностью по ползунку:
 // основа спутник → сверху топокарта, основа топокарта → сверху спутник.
-const satOv = L.tileLayer(SAT_URL, {maxZoom:19, zIndex:2});
-const topoOv = L.tileLayer(TOPO_URL, {maxZoom:19, maxNativeZoom:17, zIndex:2});
+const satOv = L.tileLayer(SAT_URL, {maxZoom:25, maxNativeZoom:19, zIndex:2});
+const topoOv = L.tileLayer(TOPO_URL, {maxZoom:25, maxNativeZoom:17, zIndex:2});
 let baseIsSat = true, ovOpacity = 0;
 function syncOverlay() {
   const ov = baseIsSat ? topoOv : satOv;

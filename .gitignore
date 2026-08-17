@@ -66,3 +66,8 @@ analysis/tg_activity.sqlite
 
 # NASA Earthdata token
 nasa.token.txt
+
+# Ортомозаика (analysis/build_ortho.py): рабочие тайлы и публикуемые блоки
+# регенерируются из видео, в git не кладём
+analysis/ortho-work/
+analysis/viewer/ortho/

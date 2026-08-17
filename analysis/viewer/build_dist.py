@@ -98,6 +98,14 @@ def main() -> int:
         shutil.copytree(flights, DIST / "flights")
         n_flights = len(list((DIST / "flights").iterdir()))
 
+    # ортомозаика (analysis/build_ortho.py): polyot-3d.html и map.html грузят
+    # тайлы fetch'ем по относительному пути ortho/..., кладём рядом
+    n_ortho = 0
+    ortho = VIEWER_DIR / "ortho"
+    if ortho.is_dir():
+        shutil.copytree(ortho, DIST / "ortho")
+        n_ortho = len(list((DIST / "ortho").rglob("*.webp")))
+
     n_panos = 0
     for src_rel, dst_rel in PANOS.items():
         src = REPO_ROOT / src_rel
@@ -122,8 +130,8 @@ def main() -> int:
 
     total_mb = sum(f.stat().st_size for f in DIST.rglob("*") if f.is_file()) / 2**20
     print(f"dist/: {copied} картинок + {len(PAGES)} страниц + {n_extra} 3D-моделей "
-          f"+ {n_zips} архивов + {n_panos} панорам + {n_flights} полётов, "
-          f"{total_mb:.0f} МБ")
+          f"+ {n_zips} архивов + {n_panos} панорам + {n_flights} полётов "
+          f"+ {n_ortho} орто-тайлов, {total_mb:.0f} МБ")
     if missing:
         print(f"не найдено {len(missing)} файлов (страницы будут с битыми превью):",
               file=sys.stderr)
