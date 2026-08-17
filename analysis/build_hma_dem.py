@@ -3,13 +3,17 @@
 
 Вход:  data/dem/HMA_DEM8m_MOS_20170716_tile-203.tif — проекция Альберса, 8 м.
 Выход: data/dem/hma8m_kurumdy.tif — сетка широта/долгота (EPSG:4326) с шагом
-       ~8 м по нашему району, дыры и зоны вне тайла залиты GLO-30.
+       ~8 м по нашему району, дыры и зоны вне тайла залиты GLO-30 с локальным
+       полем разницы (без ступеней на стыке).
 
-Система высот. HMA отсчитывает высоты от эллипсоида WGS84, GLO-30 — от геоида
-(EGM2008); в нашем районе разница систематическая, ~30 м. Весь конвейер проекта
-(телеметрия MSL, валидация cast по рюкзаку, DSM-патчи) живёт в системе GLO-30,
-поэтому HMA приводится к ней: из него вычитается медианная разница
-«HMA − GLO-30» по всей рамке (робастна: скалы доминируют над ледниками).
+Система высот: HMA берётся КАК ЕСТЬ, без глобальных сдвигов. Проверка по
+37 независимым лазерным целям дальномера (analysis/dem_benchmark.py, 17.08):
+на скалах сырой HMA попадает в ноль (+0.5 м), на снежниках читает +13…+15 м —
+это реальное проседание снега/льда с 2017 г., а не ошибка датума; свежую
+поверхность в пятне вещей дают DSM-патчи 2026 г. поверх (класс Dem). Голый
+GLO-30 на тех же целях врёт +5…+53 м в зависимости от места, поэтому его
+медианная разница с HMA (−30 м по рамке) — ошибка GLO, вычитать её из HMA
+нельзя (первая версия скрипта делала так и портила HMA — не повторять).
 
 Формат выходного файла совместим с analysis/geoproject.py::_read_geotiff
 (ModelPixelScaleTag + ModelTiepointTag, float32). Скачивание тайла — по токену
@@ -65,14 +69,24 @@ def main() -> None:
             src_nodata=glo.nodata, dst_nodata=np.nan)
 
     both = np.isfinite(hma) & np.isfinite(base)
-    diff = hma[both] - base[both]
-    offset = float(np.median(diff))
+    diff = np.where(both, hma - base, np.nan).astype(np.float32)
     holes = np.isfinite(base) & ~np.isfinite(hma)
     print(f"сетка {w}x{h}, HMA покрывает {both.mean():.1%}, дыр {holes.mean():.2%}")
-    print(f"HMA − GLO-30: медиана {offset:+.1f} м, "
-          f"p5 {np.percentile(diff, 5):+.1f}, p95 {np.percentile(diff, 95):+.1f}")
+    print(f"HMA − GLO-30: медиана {np.nanmedian(diff):+.1f} м, "
+          f"p5 {np.nanpercentile(diff, 5):+.1f}, p95 {np.nanpercentile(diff, 95):+.1f}")
 
-    out = np.where(np.isfinite(hma), hma - offset, base).astype(np.float32)
+    # дыры → GLO-30 + локальное поле разницы: разница размывается наружу от
+    # известных ячеек, стык остаётся непрерывным (аналогично патчам в Dem)
+    import cv2
+    field = diff.copy()
+    while np.isnan(field).any():
+        m = np.isfinite(field).astype(np.float32)
+        s = cv2.GaussianBlur(np.nan_to_num(field), (0, 0), sigmaX=8)
+        wgt = cv2.GaussianBlur(m, (0, 0), sigmaX=8)
+        grow = wgt > 1e-3
+        fill = np.isnan(field) & grow
+        field[fill] = (s / np.maximum(wgt, 1e-6))[fill]
+    out = np.where(np.isfinite(hma), hma, base + field).astype(np.float32)
     if not np.isfinite(out).all():
         raise SystemExit("остались дыры без данных даже в GLO-30")
 
