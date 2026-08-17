@@ -33,7 +33,7 @@ kbd{background:#1c2c40;border:1px solid #33628f;border-radius:3px;padding:.5px 5
 #cross:before,#cross:after{content:'';position:absolute;background:#fff}
 #cross:before{left:7px;top:0;width:1px;height:15px}
 #cross:after{top:7px;left:0;height:1px;width:15px}
-#tip{position:absolute;left:50%;top:calc(50% + 26px);transform:translateX(-50%);
+#tip{position:absolute;left:0;top:0;
   width:376px;background:rgba(8,13,20,.93);border:1px solid #3f7ab5;border-radius:9px;
   padding:0;display:none;overflow:hidden;box-shadow:0 10px 34px rgba(0,0,0,.55)}
 #tip img{display:block;width:100%;height:auto;background:#05080c}
@@ -74,6 +74,9 @@ body.hidepanels #toggle{display:block}
     <div class="hk" id="tip-hk"></div></div></div>
 
   <div class="panel" id="info">
+    <div style="margin-bottom:8px;font-size:12px"><a href="index.html" style="color:#7fc3ff;text-decoration:none">&larr; Вьюер</a>
+      &nbsp;&middot;&nbsp; <a href="map.html" style="color:#7fc3ff;text-decoration:none">Карта</a>
+      &nbsp;&middot;&nbsp; <a href="coverage-3d.html" style="color:#7fc3ff;text-decoration:none">3D-покрытие</a></div>
     <h2>Положение</h2>
     <div class="row"><span class="k">широта</span><span class="v" id="i-lat">—</span></div>
     <div class="row"><span class="k">долгота</span><span class="v" id="i-lon">—</span></div>
@@ -99,6 +102,8 @@ body.hidepanels #toggle{display:block}
 
     <h2 style="margin-top:12px">Объекты</h2>
     <label><input type="checkbox" id="L-alp" checked><span class="sw" style="background:#ff3b30"></span>точки реестра (<span id="n-alp"></span>)</label>
+    <label>перелёт к точке
+      <select id="S-goto" style="max-width:150px"><option value="">—</option></select></label>
     <label><input type="checkbox" id="L-route" checked><span class="sw" style="background:#ffffff"></span>маршрут группы</label>
     <label><input type="checkbox" id="L-camp" checked><span class="sw" style="background:#c9f24d"></span>лагеря и вешки</label>
     <label><input type="checkbox" id="L-cam" checked><span class="sw" style="background:#8fc8ff"></span>полёты дрона (<span id="n-cam"></span>)</label>
@@ -455,6 +460,7 @@ function strip(list,close){
   gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);gl.bindVertexArray(null);
   return {vao,n:seg.length/6};
 }
+let gSel=null,SEL=null;
 function buildScene(){
   // маркеры намеренно мелкие: предмет ~1 м, а воксель 15 м — крупный куб
   // склеивал бы соседей и врал про расстояния между ними
@@ -529,7 +535,7 @@ function jump(o,back){cam.x=o.x;cam.z=o.z+(back||10);cam.y=o.y+(back?back*0.6:7)
 addEventListener('keydown',e=>{
   if(e.code==='Escape'&&el('big').style.display==='flex'){el('big').style.display='none';return;}
   keys[AK[e.code]||e.code]=1;
-  if(e.code==='KeyR'&&BPK)jump({x:BPK.x,y:BPK.y,z:BPK.z},30);
+  if(e.code==='KeyR'&&BPK)flyTo({x:BPK.x,y:BPK.z,l:BPK.y/S});
   if(e.code==='KeyT'&&P.cams.length){const c=P.cams.find(c=>c[3].startsWith('20260815'))||P.cams[0];
     cam.x=c[0];cam.z=c[1];cam.y=yOf(c[2]);}
   if(e.code==='KeyF'){cam.y=Math.max(cam.y,ground(cam.x,cam.z)+140);cam.pitch=-1.25;}
@@ -563,10 +569,12 @@ function turn(dx,dy){
   cam.pitch=Math.max(-1.55,Math.min(1.55,cam.pitch-dy*LOOK));
 }
 let drag=false,px=0,py=0,moved=0;
+let mouseX=innerWidth/2,mouseY=innerHeight/2;
 cv.addEventListener('mousedown',e=>{
   if(document.pointerLockElement===cv)return;
   drag=true;px=e.clientX;py=e.clientY;moved=0;e.preventDefault();});
 addEventListener('mousemove',e=>{
+  mouseX=e.clientX;mouseY=e.clientY;dirty=true;
   if(document.pointerLockElement===cv){turn(e.movementX,e.movementY);return;}
   if(!drag)return;
   const dx=e.clientX-px,dy=e.clientY-py;
@@ -597,6 +605,24 @@ const O={};['gap','run','fine','coarse','find','thing','spot','shel','cam','fan'
   'cov1','cov2','cov3']
   .forEach(k=>O[k]=el('L-'+k));
 el('n-alp').textContent=P.apts.length;
+const gotoSel=el('S-goto');
+P.apts.forEach((o,i)=>{const op=document.createElement('option');
+  op.value=i;op.textContent=(o.n.length>46?o.n.slice(0,45)+'…':o.n);
+  gotoSel.appendChild(op);});
+function flyTo(o){
+  // камера с северной (нижней по долине) стороны, гарантированно над рельефом
+  const B=55;cam.x=o.x;cam.z=o.y-B;
+  cam.y=Math.max(yOf(o.l)+26,ground(cam.x,cam.z)+22,
+                 ground(o.x,o.y-B/2)+22);
+  cam.yaw=0;
+  cam.pitch=Math.max(-1.2,Math.atan2(yOf(o.l)-cam.y,B));
+  dirty=true;}
+gotoSel.onchange=()=>{
+  const i=gotoSel.value;
+  if(i===''){SEL=null;dirty=true;return;}
+  const o=P.apts[+i];SEL=o;
+  gSel=group([[o.x,o.y,o.l]],[1,0.9,0.15,1],1.5,1.2);
+  flyTo(o);};
 const uT={};['uVP','uEye','uGrid','uFog','uOn','uOn2','uSky','uYS'].forEach(n=>uT[n]=gl.getUniformLocation(PT,n));
 const uMV=gl.getUniformLocation(PM,'uVP');
 const uLV=gl.getUniformLocation(PL,'uVP'),uLC=gl.getUniformLocation(PL,'uCol');
@@ -694,11 +720,24 @@ function loop(now){
   draw(gShel,O.shel.checked);draw(gThing,O.thing.checked);
   draw(gCam,O.cam.checked);draw(gCamp,O.camp.checked);
   draw(gFind,O.find.checked);draw(gAlp,O.alp.checked);
+  if(SEL&&O.alp.checked&&gSel)draw(gSel,true);
   gl.bindVertexArray(null);
+  if(SEL&&O.alp.checked){
+    ringsAt(SEL.x,SEL.y);
+    gl.useProgram(PL);gl.uniformMatrix4fv(uLV,false,VP);
+    gl.uniform4f(uLC,1,0.85,0.1,1);
+    gl.bindVertexArray(ringVao);gl.drawArrays(gl.LINES,0,RINGN*2);
+    gl.bindVertexArray(null);}
 
-  // ---- наведение перекрестьем ----
+  // ---- наведение мышью (заслонённые рельефом объекты не пикаются) ----
   cur=null;let bestD=1e9;
-  const cxp=w/2,cyp=h/2,RAD=0.10*h;
+  const cxp=mouseX*(w/innerWidth),cyp=mouseY*(h/innerHeight),RAD=0.08*h;
+  const occluded=o=>{
+    const dx=o.x-cam.x,dy=o.y-cam.y,dz=o.z-cam.z;
+    const n=Math.min(240,Math.max(8,Math.hypot(dx,dz)|0));
+    for(let i=1;i<n*0.97;i++){const t=i/n;
+      if(cam.y+dy*t<ground(cam.x+dx*t,cam.z+dz*t)-0.6)return true;}
+    return false;};
   for(const o of PICK){
     if(o.c==='#ffd23f'&&!O.thing.checked)continue;
     if(o.c==='#ff9a4a'&&!O.find.checked)continue;
@@ -710,7 +749,7 @@ function loop(now){
     if(Ww<=0.1)continue;
     const sx=(X/Ww*0.5+0.5)*w,sy=(1-(Y/Ww*0.5+0.5))*h;
     const dd=Math.hypot(sx-cxp,sy-cyp);
-    if(dd<RAD&&dd+Ww*0.02<bestD){bestD=dd+Ww*0.02;cur=o;}}
+    if(dd<RAD&&dd+Ww*0.02<bestD&&!occluded(o)){bestD=dd+Ww*0.02;cur=o;}}
   if(cur&&O.ring.checked){
     ringsAt(cur.x,cur.z);
     gl.useProgram(PL);gl.uniformMatrix4fv(uLV,false,VP);
@@ -720,6 +759,8 @@ function loop(now){
 
   const tip=el('tip');
   if(cur){tip.style.display='block';
+    tip.style.left=Math.min(mouseX+18,innerWidth-392)+'px';
+    tip.style.top=Math.min(mouseY+18,innerHeight*0.42)+'px';
     el('tip-nm').textContent=cur.n;
     const dc=Math.hypot((cur.x-cam.x)*BX,(cur.y-cam.y)*BX,(cur.z-cam.z)*BX);
     let ln=`от камеры ${dc<1000?dc.toFixed(0)+' м':(dc/1000).toFixed(2)+' км'}`;

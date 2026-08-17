@@ -166,13 +166,18 @@ def thumb(path, max_side=320):
     return "data:image/jpeg;base64," + base64.b64encode(enc).decode() if ok else None
 
 
-def registry_points(dem, zmin, w, h):
-    """apts движка из реестра карты: все точки со статусами и кадрами."""
+def registry_points(z, zmin, w, h):
+    """apts движка из реестра карты: все точки со статусами и кадрами.
+
+    Уровень маркера — рельеф в ячейке, не высота карточки: точка лежит на
+    склоне, а расхождение высот (датумы, вилки) топило бы маркер в вокселях.
+    """
     apts = []
     for p in POINTS:
         x, y = to_xy(p["lat"], p["lon"])
         if not (0 <= x < w and 0 <= y < h):
             continue
+        lv = round((float(z[min(int(y), h - 1), min(int(x), w - 1)]) - zmin) / BZ)
         bits = []
         if p.get("video"):
             bits.append(p["video"] + (f" {p['tc']}" if p.get("tc") else ""))
@@ -185,7 +190,7 @@ def registry_points(dem, zmin, w, h):
             d = " · ".join(bits) + "\n" + d
         imgs = [i for i in p.get("imgs", []) if (ROOT / i).exists()]
         apts.append(dict(
-            x=x, y=y, l=round((p["alt"] - zmin) / BZ),
+            x=x, y=y, l=lv,
             n=p["name"], d=d, k=p["kind"], s=p["status"], c=str(p["conf"]),
             th=thumb(imgs[0]) if imgs else None, f=imgs))
     return apts
@@ -251,7 +256,7 @@ def build():
     lines = dict(route=line3d(dem, track, zmin, every=2),
                  fall=[], prio=[], corridor=[])
 
-    apts = registry_points(dem, zmin, w, h)
+    apts = registry_points(z, zmin, w, h)
     cams, fan = drone_layer(dem, zmin, w, h)
 
     # появление: над ледником севернее кластера вещей, взгляд на юг —
