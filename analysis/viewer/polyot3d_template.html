@@ -632,11 +632,21 @@ function flyTo(o){
   cam.yaw=0;
   cam.pitch=Math.max(-1.2,Math.atan2(yOf(o.l)-cam.y,B));
   dirty=true;}
+let pulseTimer=null;
 function selectPoint(o,row){
-  SEL=o;gSel=group([[o.x,o.y,o.l]],[1,0.9,0.15,1],1.5,1.2);
+  SEL=o;
   document.querySelectorAll('#ptlist .pt.on').forEach(x=>x.classList.remove('on'));
   if(row)row.classList.add('on');
-  flyTo(o);}
+  // пульс ~2.5 с: маркер плавно вырастает и опадает, затем остаётся
+  // ярко-жёлтым вдвое крупнее обычного — заметен, но не загораживает
+  if(pulseTimer)clearInterval(pulseTimer);
+  const t0=performance.now();
+  const mk=sc=>{gSel=group([[o.x,o.y,o.l]],[1,0.92,0.18,1],sc,1.0);dirty=true;window.__mk=(window.__mk||0)+1;window.__sel=[o.x,o.y,o.l];};
+  mk(0.52);
+  pulseTimer=setInterval(()=>{
+    const tp=(performance.now()-t0)/2500;
+    if(tp>=1){clearInterval(pulseTimer);pulseTimer=null;mk(0.52);return;}
+    mk(0.52+1.5*Math.sin(Math.PI*tp));},80);}
 const fold=t=>t.toLowerCase().replace(/ё/g,'е').replace(/й/g,'и');
 const kindCbs=[];
 (function(){
@@ -782,7 +792,7 @@ function loop(now){
   draw(gShel,O.shel.checked);draw(gThing,O.thing.checked);
   draw(gCam,O.cam.checked);draw(gCamp,O.camp.checked);
   draw(gFind,O.find.checked);draw(gAlp,O.alp.checked);
-  if(SEL&&O.alp.checked&&gSel)draw(gSel,true);
+  if(SEL&&O.alp.checked&&gSel){draw(gSel,true);window.__ds=(window.__ds||0)+1;}
   gl.bindVertexArray(null);
   if(SEL&&O.alp.checked){
     ringsAt(SEL.x,SEL.y);
