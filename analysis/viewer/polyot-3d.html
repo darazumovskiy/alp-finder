@@ -352,8 +352,9 @@ uniform int uGrid,uFog;uniform vec4 uOn;uniform vec4 uOn2;uniform vec3 uSky;
 uniform int uPhoto;uniform sampler2D uOB,uOW1,uOW2;
 uniform vec4 uBBox,uW1Box,uW2Box;   // (x0, z0, 1/w, 1/h) окна в блоках сетки
 uniform vec2 uWFar;                 // дальность применения окон W1/W2
-uniform int uEyeOn;uniform mat4 uEyeVP0,uEyeVP1,uEyeVP2,uEyeVP3;
-uniform sampler2D uEyeT0,uEyeT1,uEyeT2,uEyeT3;uniform vec4 uEyeW;
+uniform int uEyeOn;uniform mat4 uEyeVP0,uEyeVP1,uEyeVP2,uEyeVP3,uEyeVP4,uEyeVP5;
+uniform sampler2D uEyeT0,uEyeT1,uEyeT2,uEyeT3,uEyeT4,uEyeT5;
+uniform vec4 uEyeWa;uniform vec2 uEyeWb;
 out vec4 o;
 vec3 eyeApply(mat4 M,sampler2D T,float w,vec3 c,vec3 wp){
   if(w<0.004)return c;
@@ -385,10 +386,12 @@ void main(){
     // Четыре проектора (слабый -> сильный): почти всюду вдоль треков что-то
     // показано, сильнейший кадр перекрывает остальных.
     vec3 wp=vec3(vXZ.x,vY,vXZ.y);
-    c=eyeApply(uEyeVP0,uEyeT0,uEyeW.x,c,wp);
-    c=eyeApply(uEyeVP1,uEyeT1,uEyeW.y,c,wp);
-    c=eyeApply(uEyeVP2,uEyeT2,uEyeW.z,c,wp);
-    c=eyeApply(uEyeVP3,uEyeT3,uEyeW.w,c,wp);
+    c=eyeApply(uEyeVP0,uEyeT0,uEyeWa.x,c,wp);
+    c=eyeApply(uEyeVP1,uEyeT1,uEyeWa.y,c,wp);
+    c=eyeApply(uEyeVP2,uEyeT2,uEyeWa.z,c,wp);
+    c=eyeApply(uEyeVP3,uEyeT3,uEyeWa.w,c,wp);
+    c=eyeApply(uEyeVP4,uEyeT4,uEyeWb.x,c,wp);
+    c=eyeApply(uEyeVP5,uEyeT5,uEyeWb.y,c,wp);
   }
   int m=int(vCls+0.5);
   int k=m&7;                       // класс покрытия из ручного KML
@@ -745,8 +748,8 @@ const kindCbs=[];
 })();
 const uT={};['uVP','uEye','uGrid','uFog','uOn','uOn2','uSky','uYS','uPhoto',
   'uOB','uOW1','uOW2','uBBox','uW1Box','uW2Box','uWFar',
-  'uEyeOn','uEyeVP0','uEyeVP1','uEyeVP2','uEyeVP3',
-  'uEyeT0','uEyeT1','uEyeT2','uEyeT3','uEyeW']
+  'uEyeOn','uEyeVP0','uEyeVP1','uEyeVP2','uEyeVP3','uEyeVP4','uEyeVP5',
+  'uEyeT0','uEyeT1','uEyeT2','uEyeT3','uEyeT4','uEyeT5','uEyeWa','uEyeWb']
   .forEach(n=>uT[n]=gl.getUniformLocation(PT,n));
 
 // ---------- «глазами дрона»: проекция кадра из позы камеры дрона ----------
@@ -754,7 +757,7 @@ const uT={};['uVP','uEye','uGrid','uFog','uOn','uOn2','uSky','uYS','uPhoto',
 // flights/<v>/f%04d.jpg. Ближайшая к камере поза в радиусе EYE_R блоков
 // проецируется на рельеф с весом, тающим с удалением от позы.
 const EYE_R=150;                   // блоков (×8 м): вдоль треков кадр есть всегда
-const EYE_N=4;                     // проекторов одновременно
+const EYE_N=6;                     // проекторов одновременно
 const EYE={list:[],cache:new Map(),
   slots:Array.from({length:EYE_N},()=>({key:null,e:null,tex:null,w:0,tgt:0,ok:false}))};
 (P.eye||[]).forEach(f=>f.s.forEach(s=>EYE.list.push(
@@ -769,15 +772,12 @@ function eyeFrame(e){
   EYE.cache.set(k,im);
   if(EYE.cache.size>48){EYE.cache.delete(EYE.cache.keys().next().value);}
   return im;}
-const eyeDir=e=>{const yr=e.yaw*Math.PI/180,pr=e.pitch*Math.PI/180,cp=Math.cos(pr);
-  return [Math.sin(yr)*cp,Math.sin(pr),-Math.cos(yr)*cp];};
-function eyeScore(e,ud){
-  // ближе к позе и похожий ракурс — сильнее; дальше радиуса — ноль
+function eyeScore(e){
+  // только дистанция до позы: набор кадров не зависит от того, куда смотрит
+  // пользователь — иначе каждый поворот головы перетасовывал кадры (моргание)
   const dist=Math.hypot(e.x-cam.x,e.y-cam.y,e.z-cam.z);
   if(dist>EYE_R)return 0;
-  const pd=eyeDir(e);
-  const dot=Math.max(0,ud[0]*pd[0]+ud[1]*pd[1]+ud[2]*pd[2]);
-  return 0.96*Math.pow(1-dist/EYE_R,0.30)*(0.40+0.60*dot);}
+  return 0.96*Math.pow(1-dist/EYE_R,0.30);}
 function eyeLoad(slot){
   const im=eyeFrame(slot.e);
   if(!im.__ok)return;
@@ -785,33 +785,34 @@ function eyeLoad(slot){
   gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,im);
   slot.ok=true;}
 function eyeUpdate(dt){
-  const ud=dir();
-  // топ-N поз по score (полный перебор ~3 тыс. поз — дешевле кеша)
-  const top=[];
-  for(const e of EYE.list){
-    const s=eyeScore(e,ud);
-    if(s<=0)continue;
-    if(top.length<EYE_N)top.push({e,s});
-    else{let mi=0;for(let i=1;i<EYE_N;i++)if(top[i].s<top[mi].s)mi=i;
-      if(s>top[mi].s)top[mi]={e,s};}
-    if(top.length===EYE_N)top.sort((a,b)=>a.s-b.s);}
-  const want=new Map(top.map(t=>[t.e.v+'/'+t.e.i,t]));
-  // слоты, чьи позы выпали из топа, гаснут; новые позы занимают самый слабый
+  // слоты «липкие»: занятый слот держит свою позу, пока кандидат не станет
+  // ощутимо лучше (×1.3) — состав меняется только при реальном перемещении
+  const used=new Set();
   for(const sl of EYE.slots){
-    if(sl.key&&want.has(sl.key)){sl.tgt=want.get(sl.key).s;want.delete(sl.key);}
-    else sl.tgt=0;}
-  for(const [k,t] of want){
+    sl.tgt=sl.e?eyeScore(sl.e):0;
+    if(sl.key)used.add(sl.key);}
+  const cand=[];
+  for(const e of EYE.list){
+    const k=e.v+'/'+e.i;
+    if(used.has(k))continue;
+    const s=eyeScore(e);
+    if(s<=0)continue;
+    if(cand.length<EYE_N)cand.push({e,s});
+    else{let mi=0;for(let i=1;i<EYE_N;i++)if(cand[i].s<cand[mi].s)mi=i;
+      if(s>cand[mi].s)cand[mi]={e,s};}}
+  cand.sort((a,b)=>b.s-a.s);
+  for(const c of cand){
     let sl=null;
-    for(const s of EYE.slots)if(!sl||s.w+s.tgt<sl.w+sl.tgt)sl=s;
-    if(sl.w>0.25)continue;          // все слоты ещё заняты видимыми — подождём
-    sl.key=k;sl.e=t.e;sl.tgt=t.s;sl.w=0;sl.ok=false;
+    for(const s of EYE.slots)if(!sl||s.tgt<sl.tgt)sl=s;
+    if(!(c.s>sl.tgt*1.3+0.03))break;   // кандидаты дальше только слабее
+    sl.key=c.e.v+'/'+c.e.i;sl.e=c.e;sl.tgt=c.s;sl.w=Math.min(sl.w,0.05);sl.ok=false;
     if(!sl.tex)sl.tex=mkTex();
     eyeLoad(sl);}
   let anim=false,strong=null;
   for(const sl of EYE.slots){
     if(sl.e&&!sl.ok)eyeLoad(sl);     // кадр мог догрузиться
     const target=sl.ok?sl.tgt:0;
-    sl.w+=(target-sl.w)*Math.min(1,dt*5);
+    sl.w+=(target-sl.w)*Math.min(1,dt*3);
     if(Math.abs(target-sl.w)>0.01)anim=true;
     if(sl.w<0.004&&!sl.tgt)sl.e&&(sl.key=null,sl.e=null,sl.ok=false);
     if(sl.e&&(!strong||sl.w>strong.w))strong=sl;}
@@ -1030,16 +1031,17 @@ function loop(now){
   if(eyeSlots&&eyeSlots.some(s=>s.w>0.004)){
     gl.uniform1i(uT.uEyeOn,1);
     const EM=new Float32Array(16);
-    const vpU=[uT.uEyeVP0,uT.uEyeVP1,uT.uEyeVP2,uT.uEyeVP3];
-    const txU=[uT.uEyeT0,uT.uEyeT1,uT.uEyeT2,uT.uEyeT3];
-    const ws=[0,0,0,0];
+    const vpU=[uT.uEyeVP0,uT.uEyeVP1,uT.uEyeVP2,uT.uEyeVP3,uT.uEyeVP4,uT.uEyeVP5];
+    const txU=[uT.uEyeT0,uT.uEyeT1,uT.uEyeT2,uT.uEyeT3,uT.uEyeT4,uT.uEyeT5];
+    const ws=[0,0,0,0,0,0];
     eyeSlots.forEach((sl,i)=>{
       ws[i]=sl.e&&sl.ok?sl.w:0;
       gl.uniformMatrix4fv(vpU[i],false,sl.e?eyeMatrix(sl.e):EM);
       gl.uniform1i(txU[i],3+i);
       gl.activeTexture(gl.TEXTURE3+i);
       gl.bindTexture(gl.TEXTURE_2D,sl.tex||ORTHO.win[0]);});
-    gl.uniform4f(uT.uEyeW,ws[0],ws[1],ws[2],ws[3]);
+    gl.uniform4f(uT.uEyeWa,ws[0],ws[1],ws[2],ws[3]);
+    gl.uniform2f(uT.uEyeWb,ws[4],ws[5]);
     gl.activeTexture(gl.TEXTURE0);
   }else gl.uniform1i(uT.uEyeOn,0);
   gl.bindVertexArray(vaoT);
