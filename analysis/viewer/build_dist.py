@@ -26,7 +26,8 @@ VIEWER_DIR = Path(__file__).resolve().parent
 DIST = VIEWER_DIR / "dist"
 
 PAGES = ["index.html", "map.html", "montages.html", "panoramy.html",
-         "coverage-3d.html", "polyot-3d.html", "otchet-2026-08-16.html",
+         "coverage-3d.html", "polyot-3d.html", "scena-3d.html",
+         "otchet-2026-08-16.html",
          "otchet-2026-08-16-part2.html",
          "otchet-2026-08-17-koshki-pokrytie.html",
          "otchet-tg-aktivnost.html"]
@@ -105,6 +106,12 @@ def main() -> int:
     if ortho.is_dir():
         shutil.copytree(ortho, DIST / "ortho")
         n_ortho = len(list((DIST / "ortho").rglob("*.webp")))
+
+    # сплат-сцены (analysis/scene3d) и вендорные JS их вьюера scena-3d.html
+    for extra in ("scenes", "vendor"):
+        d = VIEWER_DIR / extra
+        if d.is_dir():
+            shutil.copytree(d, DIST / extra)
 
     n_panos = 0
     for src_rel, dst_rel in PANOS.items():
