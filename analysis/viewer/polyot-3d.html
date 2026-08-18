@@ -13,7 +13,8 @@ canvas{display:block;width:100%;height:100%;cursor:crosshair}
 .panel{position:absolute;background:rgba(10,15,22,.85);border:1px solid #26456a;
   border-radius:8px;padding:10px 12px;pointer-events:auto;backdrop-filter:blur(7px)}
 #info{top:12px;left:12px;min-width:210px}
-#layers{top:12px;right:12px;width:262px;max-height:calc(100vh - 24px);overflow:auto}
+/* низ меню не должен прятаться под панелью подсказок (#help) в правом углу */
+#layers{top:12px;right:12px;width:262px;max-height:calc(100vh - 175px);overflow:auto}
 #legend{bottom:12px;left:12px}
 #help{bottom:12px;right:12px;max-width:262px;font-size:12px;color:#9fb4cc}
 h2{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:#5c9ee0;
@@ -95,7 +96,27 @@ body.hidepanels #toggle{display:block}
   </div>
 
   <div class="panel" id="layers">
-    <h2>Рельеф</h2>
+    <h2>Отладка</h2>
+    <button id="dbg-btn" style="background:#8c2f3a;color:#fff;border:0;border-radius:5px;
+      padding:4px 10px;cursor:pointer;font:inherit;font-size:12px">⏺ запись</button>
+    <span class="note" id="dbg-time" style="margin-left:6px"></span>
+    <div class="note">Что-то не так? Нажми запись, повтори проблему, впиши
+      комментарий, скопируй лог и пришли его вместе со скриншотами (таймер
+      REC на скриншоте свяжет его с логом).</div>
+    <div id="dbg-live" style="display:none">
+      <div id="dbg-tail" style="font:10px ui-monospace,monospace;white-space:pre-wrap;
+        color:#9fb8d0;background:#0a1017;border:1px solid #26456a;border-radius:5px;
+        padding:4px 6px;margin:5px 0;max-height:96px;overflow-y:auto"></div>
+      <input id="dbg-comment" placeholder="комментарий в лог… (Enter)"
+        style="width:100%;background:#132132;color:#e8eef5;border:1px solid #2f5a8d;
+        border-radius:5px;padding:4px 7px;font:inherit;font-size:12px;margin-bottom:4px">
+      <button id="dbg-copy" style="background:#2f7fc4;color:#fff;border:0;border-radius:5px;
+        padding:4px 10px;cursor:pointer;font:inherit;font-size:12px">копировать лог</button>
+      <button id="dbg-save" style="background:#1c2c40;color:#e8eef5;border:1px solid #33628f;
+        border-radius:5px;padding:4px 10px;cursor:pointer;font:inherit;font-size:12px">скачать</button>
+    </div>
+
+    <h2 style="margin-top:12px">Рельеф</h2>
     <label><input type="checkbox" id="L-coul"><span class="sw" style="background:#5a73fa"></span>кулуары и ложбины</label>
     <div class="note">Рельеф — NASA HMA 8 м (WorldView 2017) + фотограмметрические
       патчи 2026 г. в пятне вещей. Одна высота на ячейку: карнизов и
@@ -147,26 +168,6 @@ body.hidepanels #toggle{display:block}
     <div class="note" id="S-stat">—</div>
     <div class="note">Наведи перекрестье на маркер — подпись и кадр.
       <kbd>E</kbd> — открыть кадр / плеер этого полёта.</div>
-
-    <h2 style="margin-top:12px">Отладка</h2>
-    <div class="note">Что-то не так? Нажми запись, повтори проблему, впиши
-      комментарий, скопируй лог и пришли его вместе со скриншотами (таймер
-      записи на скриншоте свяжет его с логом).</div>
-    <button id="dbg-btn" style="background:#8c2f3a;color:#fff;border:0;border-radius:5px;
-      padding:4px 10px;cursor:pointer;font:inherit;font-size:12px">⏺ запись</button>
-    <span class="note" id="dbg-time" style="margin-left:6px"></span>
-    <div id="dbg-live" style="display:none">
-      <div id="dbg-tail" style="font:10px ui-monospace,monospace;white-space:pre-wrap;
-        color:#9fb8d0;background:#0a1017;border:1px solid #26456a;border-radius:5px;
-        padding:4px 6px;margin:5px 0;max-height:96px;overflow-y:auto"></div>
-      <input id="dbg-comment" placeholder="комментарий в лог… (Enter)"
-        style="width:100%;background:#132132;color:#e8eef5;border:1px solid #2f5a8d;
-        border-radius:5px;padding:4px 7px;font:inherit;font-size:12px;margin-bottom:4px">
-      <button id="dbg-copy" style="background:#2f7fc4;color:#fff;border:0;border-radius:5px;
-        padding:4px 10px;cursor:pointer;font:inherit;font-size:12px">копировать лог</button>
-      <button id="dbg-save" style="background:#1c2c40;color:#e8eef5;border:1px solid #33628f;
-        border-radius:5px;padding:4px 10px;cursor:pointer;font:inherit;font-size:12px">скачать</button>
-    </div>
 
     <div style="display:none">
       <select id="S-tex"><option value="h" selected>по высоте</option></select>
@@ -626,8 +627,10 @@ const AK={ArrowUp:'KeyW',ArrowDown:'KeyS',ArrowLeft:'KeyA',ArrowRight:'KeyD'};
 function jump(o,back){cam.x=o.x;cam.z=o.z+(back||10);cam.y=o.y+(back?back*0.6:7);cam.yaw=Math.PI;cam.pitch=-0.36;}
 addEventListener('keydown',e=>{
   if(e.code==='Escape'&&el('big').style.display==='flex'){el('big').style.display='none';return;}
-  // набор текста в поле (поиск, комментарий отладки) не должен гонять камеру
-  if(e.target&&(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'))return;
+  // набор ТЕКСТА (поиск, комментарий отладки) не должен гонять камеру;
+  // галочки/селекты/слайдеры — не текст, полёт при них работает
+  const tg=e.target,tt=tg&&tg.tagName;
+  if(tt==='TEXTAREA'||(tt==='INPUT'&&/^(text|search|password|number|email|url)$/.test(tg.type)))return;
   keys[AK[e.code]||e.code]=1;
   if(e.code==='KeyR'&&BPK)flyTo({x:BPK.x,y:BPK.z,l:BPK.y/S});
   if(e.code==='KeyT'&&P.cams.length){const c=P.cams.find(c=>c[3].startsWith('20260815'))||P.cams[0];
@@ -665,6 +668,9 @@ function turn(dx,dy){
 let drag=false,px=0,py=0,moved=0;
 let mouseX=innerWidth/2,mouseY=innerHeight/2;
 cv.addEventListener('mousedown',e=>{
+  // preventDefault ниже не даёт браузеру самому увести фокус из меню —
+  // снимаем его руками, иначе после меню клавиши полёта «не работают»
+  if(document.activeElement&&document.activeElement!==document.body)document.activeElement.blur();
   if(document.pointerLockElement===cv)return;
   drag=true;px=e.clientX;py=e.clientY;moved=0;e.preventDefault();});
 addEventListener('mousemove',e=>{
@@ -834,6 +840,7 @@ function dbgSaveFile(txt){
   a.download='polyot3d-otladka-'+new Date().toISOString().replace(/[:.]/g,'-').slice(0,19)+'.txt';
   a.click();}
 el('dbg-btn').onclick=()=>{
+  el('dbg-btn').blur();   // иначе пробел (полёт вверх) снова «нажмёт» кнопку
   if(!DBG.on){
     DBG.on=true;DBG.t0=performance.now();DBG.lines=[];
     DBG.lastCam='';DBG.lastSlots='';DBG.lastRej='';DBG.timer=0;
@@ -852,16 +859,19 @@ el('dbg-btn').onclick=()=>{
     t.scrollTop=t.scrollHeight;}};
 el('dbg-comment').addEventListener('keydown',e=>{if(e.key==='Enter')dbgNote();});
 el('dbg-copy').onclick=()=>{
+  el('dbg-copy').blur();
   const txt=DBG.lines.join('\n');
   const done=()=>{el('dbg-copy').textContent='скопировано ✓';
     setTimeout(()=>el('dbg-copy').textContent='копировать лог',1500);};
   if(navigator.clipboard&&navigator.clipboard.writeText)
     navigator.clipboard.writeText(txt).then(done,()=>dbgSaveFile(txt));
   else dbgSaveFile(txt);};
-el('dbg-save').onclick=()=>dbgSaveFile(DBG.lines.join('\n'));
+el('dbg-save').onclick=()=>{el('dbg-save').blur();dbgSaveFile(DBG.lines.join('\n'));};
 document.getElementById('layers').addEventListener('change',e=>{
   if(DBG.on&&e.target&&e.target.type==='checkbox')
-    dbg('галка '+e.target.id+' = '+(e.target.checked?'ВКЛ':'выкл'));});
+    dbg('галка '+e.target.id+' = '+(e.target.checked?'ВКЛ':'выкл'));
+  // щёлкнул галку/селект/слайдер — фокус сразу назад полёту
+  if(e.target&&/^(checkbox|select-one|range)$/.test(e.target.type))e.target.blur();});
 // авто-запись для смоук-тестов; с задержкой — заголовок лога читает EYE/O,
 // объявленные ниже по скрипту
 if(location.hash.indexOf('dbgrec')>=0)setTimeout(()=>el('dbg-btn').click(),800);
