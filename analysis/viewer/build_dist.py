@@ -106,11 +106,6 @@ def main() -> int:
         shutil.copytree(ortho, DIST / "ortho")
         n_ortho = len(list((DIST / "ortho").rglob("*.webp")))
 
-    # запечённый фон из кадров (analysis/viewer/build_eye_bake.py)
-    ebake = VIEWER_DIR / "eyebake"
-    if ebake.is_dir():
-        shutil.copytree(ebake, DIST / "eyebake")
-
     n_panos = 0
     for src_rel, dst_rel in PANOS.items():
         src = REPO_ROOT / src_rel
