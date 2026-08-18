@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Статус конвейера сцен 3D с процентами. Запуск: bash analysis/scene3d/status.sh
 D="$(cd "$(dirname "$0")" && pwd)/data"
-SCRATCH=$(ls -d /private/tmp/claude-*/-Users-d-razumovskiy-work-alp-finder/*/scratchpad 2>/dev/null | head -1)
+SCRATCH="/private/tmp/claude-557897862/-Users-d-razumovskiy-work-alp-finder/d32ac67f-04ce-4772-8b00-c469f0f23f44/scratchpad"
 
 alive() { pgrep -f "$1" >/dev/null && echo "РАБОТАЕТ" || echo "—"; }
 
@@ -42,6 +42,6 @@ for v in "$D"/koshki-1608/splats-v*/; do
   ply=$(ls -t "$v"*.ply 2>/dev/null | head -1 | xargs -n1 basename 2>/dev/null)
   ev=$(ls -dt "$v"eval_* 2>/dev/null | head -1 | xargs -n1 basename 2>/dev/null)
   step=$(echo "${ev:-$ply}" | grep -o "[0-9]*" | tail -1)
-  [ -n "$ply$ev" ] && echo "  $(basename "$v"): шаг ${step:-?}/30000 ${ply:+ply:$ply}"
+  [ -n "$ply$ev" ] && echo "  $(basename "$v"): шаг ${step:-?} ${ply:+ply:$ply}"
 done
 echo "(проценты матчинга и камеры сборки — из логов текущей сессии)"
