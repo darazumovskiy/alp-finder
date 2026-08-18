@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Сцена 3D — сплаты</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0b1119; overflow: hidden;
+               font: 13px/1.45 -apple-system, "Segoe UI", sans-serif; color: #e8eef5; }
+  #canvas { width: 100%; height: 100%; touch-action: none; }
+  #info { position: fixed; left: 10px; top: 10px; background: rgba(11,17,25,.85);
+          border: 1px solid #24425f; border-radius: 8px; padding: 8px 12px; max-width: 340px; }
+  #info h1 { font-size: 14px; margin: 0 0 4px; color: #7ec3ff; }
+  #info .note { color: #8fa3b8; font-size: 12px; }
+  #info a { color: #7ec3ff; }
+  #spinner { position: fixed; inset: 0; display: flex; align-items: center;
+             justify-content: center; color: #8fa3b8; pointer-events: none; }
+  #progress { position: fixed; left: 0; top: 0; height: 3px; background: #3d8fd6; width: 0; }
+  #quality { position: fixed; right: 10px; top: 10px; background: rgba(11,17,25,.85);
+             border: 1px solid #24425f; border-radius: 8px; padding: 6px 10px;
+             color: #8fa3b8; font-size: 12px; display: none; }
+  #message { display: none; position: fixed; inset: 30% 20%; color: #ff9a8a; }
+  .cube-wrapper { display: none; }
+</style>
+</head>
+<body>
+<div id="info">
+  <h1 id="ttl">Сцена 16.08 «кошки» — честная 3D (сплаты)</h1>
+  <div class="note">
+    Реконструкция по кадрам подлётного облёта (56 ракурсов).
+    Мышь — вращение, колесо — масштаб, правая кнопка / Shift — сдвиг,
+    WASD — полёт. <b>Для ориентировки, не для отсмотра</b>: мелкое могло
+    усредниться — проверяй по исходным кадрам.
+    <a href="polyot-3d.html#photo,eye">← Полёт 3D</a> ·
+    <a href="map.html">Карта</a>
+  </div>
+</div>
+<div id="progress"></div>
+<div id="spinner">загрузка сцены…</div>
+<div id="quality"><span id="fps"></span> <span id="camid"></span></div>
+<div id="message"></div>
+<div class="cube-wrapper"><div class="cube"></div></div>
+<canvas id="canvas"></canvas>
+<script>
+// стартовая камера — реальная поза дрона у сцены (кадр 114520 t=300),
+// если в ссылке не задан свой ракурс хэшем
+if (!location.hash || location.hash.length < 3)
+  location.hash = JSON.stringify([0.9983,0.0012,-0.0589,0,-0.0137,0.9769,
+    -0.2131,0,0.0573,0.2135,0.9753,0,0.5734,0.9325,0.4864,1]);
+</script>
+<script src="vendor/splat-render.js"></script>
+</body>
+</html>

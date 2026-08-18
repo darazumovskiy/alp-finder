@@ -46,17 +46,6 @@ def main():
             break
         prev = n
     rec.write(str(BASE / "sparse-telem"))
-
-    out = BASE / "sparse-final"
-    out.mkdir(exist_ok=True)
-    mo = pycolmap.IncrementalPipelineOptions()
-    mo.mapper.init_min_tri_angle = 4.0
-    mo.mapper.abs_pose_min_inlier_ratio = 0.15
-    recs = pycolmap.incremental_mapping(
-        str(DB), str(IMAGES), str(out), options=mo,
-        input_path=str(BASE / "sparse-telem"))
-    for i, r in recs.items():
-        stats(r, f"финал {i}")
     return 0
 
 

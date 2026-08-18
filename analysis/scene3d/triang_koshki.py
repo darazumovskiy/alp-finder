@@ -90,6 +90,8 @@ def main():
         if rows is None:
             continue
         pose = [at(rows, t, k) for k in ("lat", "lon", "alt_m", "gb_yaw", "gb_pitch")]
+        # только доверенное фокусное (гейты coverage): эксперимент 18.08 с
+        # fallback-медианой ролика развалил BA (расхождение в бесконечность)
         f = focal_at(cov_cache[stem], t)
         if not all(math.isfinite(v) for v in pose) or not f:
             continue
