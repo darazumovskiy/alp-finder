@@ -148,6 +148,26 @@ body.hidepanels #toggle{display:block}
     <div class="note">Наведи перекрестье на маркер — подпись и кадр.
       <kbd>E</kbd> — открыть кадр / плеер этого полёта.</div>
 
+    <h2 style="margin-top:12px">Отладка</h2>
+    <div class="note">Что-то не так? Нажми запись, повтори проблему, впиши
+      комментарий, скопируй лог и пришли его вместе со скриншотами (таймер
+      записи на скриншоте свяжет его с логом).</div>
+    <button id="dbg-btn" style="background:#8c2f3a;color:#fff;border:0;border-radius:5px;
+      padding:4px 10px;cursor:pointer;font:inherit;font-size:12px">⏺ запись</button>
+    <span class="note" id="dbg-time" style="margin-left:6px"></span>
+    <div id="dbg-live" style="display:none">
+      <div id="dbg-tail" style="font:10px ui-monospace,monospace;white-space:pre-wrap;
+        color:#9fb8d0;background:#0a1017;border:1px solid #26456a;border-radius:5px;
+        padding:4px 6px;margin:5px 0;max-height:96px;overflow-y:auto"></div>
+      <input id="dbg-comment" placeholder="комментарий в лог… (Enter)"
+        style="width:100%;background:#132132;color:#e8eef5;border:1px solid #2f5a8d;
+        border-radius:5px;padding:4px 7px;font:inherit;font-size:12px;margin-bottom:4px">
+      <button id="dbg-copy" style="background:#2f7fc4;color:#fff;border:0;border-radius:5px;
+        padding:4px 10px;cursor:pointer;font:inherit;font-size:12px">копировать лог</button>
+      <button id="dbg-save" style="background:#1c2c40;color:#e8eef5;border:1px solid #33628f;
+        border-radius:5px;padding:4px 10px;cursor:pointer;font:inherit;font-size:12px">скачать</button>
+    </div>
+
     <div style="display:none">
       <select id="S-tex"><option value="h" selected>по высоте</option></select>
       <input type="checkbox" id="L-steep"><input type="checkbox" id="L-cont">
@@ -181,6 +201,10 @@ body.hidepanels #toggle{display:block}
     <kbd>E</kbd> кадр/плеер &nbsp; <kbd>H</kbd> — спрятать панели
   </div>
 </div>
+
+<div id="dbg-hud" style="display:none;position:fixed;top:8px;left:50%;
+  transform:translateX(-50%);z-index:25;background:rgba(178,28,40,.88);color:#fff;
+  font:12px ui-monospace,monospace;padding:3px 12px;border-radius:6px">⏺ REC</div>
 
 <div id="big"><img id="big-img" alt=""><div class="cap" id="big-cap"></div>
   <div class="esc">Esc или клик — закрыть</div></div>
@@ -602,6 +626,8 @@ const AK={ArrowUp:'KeyW',ArrowDown:'KeyS',ArrowLeft:'KeyA',ArrowRight:'KeyD'};
 function jump(o,back){cam.x=o.x;cam.z=o.z+(back||10);cam.y=o.y+(back?back*0.6:7);cam.yaw=Math.PI;cam.pitch=-0.36;}
 addEventListener('keydown',e=>{
   if(e.code==='Escape'&&el('big').style.display==='flex'){el('big').style.display='none';return;}
+  // набор текста в поле (поиск, комментарий отладки) не должен гонять камеру
+  if(e.target&&(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'))return;
   keys[AK[e.code]||e.code]=1;
   if(e.code==='KeyR'&&BPK)flyTo({x:BPK.x,y:BPK.z,l:BPK.y/S});
   if(e.code==='KeyT'&&P.cams.length){const c=P.cams.find(c=>c[3].startsWith('20260815'))||P.cams[0];
@@ -752,6 +778,94 @@ const uT={};['uVP','uEye','uGrid','uFog','uOn','uOn2','uSky','uYS','uPhoto',
   'uEyeT0','uEyeT1','uEyeT2','uEyeT3','uEyeT4','uEyeT5','uEyeWa','uEyeWb']
   .forEach(n=>uT[n]=gl.getUniformLocation(PT,n));
 
+// ---------- отладка: запись состояния для разбора жалоб оператора ----------
+// Кнопка «⏺ запись» в панели: каждые 0.5 с пишется позиция камеры, прицел и
+// состояние слотов «глазами дрона» (только при изменениях), плюс события
+// назначения/выгрузки кадров. Оператор добавляет комментарии, копирует лог
+// и присылает вместе со скриншотами — таймер REC на экране связывает их.
+const DBG={on:false,t0:0,lines:[],lastCam:'',lastSlots:'',lastRej:'',timer:0};
+const dbgT=()=>'T+'+((performance.now()-DBG.t0)/1000).toFixed(1)+'с';
+function dbg(msg){if(!DBG.on)return;
+  DBG.lines.push(dbgT()+' '+msg);
+  if(DBG.lines.length>30000)DBG.lines.splice(0,5000);
+  const t=el('dbg-tail');t.textContent=DBG.lines.slice(-6).join('\n');
+  t.scrollTop=t.scrollHeight;}
+function dbgHeader(){
+  const [lat,lon]=gridll(cam.x,cam.z);
+  return ['=== ОТЛАДОЧНЫЙ ЛОГ polyot-3d ===',
+    'начало: '+new Date().toISOString(),
+    'экран: '+innerWidth+'×'+innerHeight+' dpr='+(devicePixelRatio||1),
+    'браузер: '+navigator.userAgent,
+    'поз в слое «глазами дрона»: '+EYE.list.length+' · роликов: '+(P.eye||[]).length,
+    'галки: обои='+(O.photo.checked?'вкл':'выкл')+' · глазами дрона='+(O.eye.checked?'вкл':'выкл'),
+    'yaw/pitch камеры — внутренние углы движка в градусах; d — дистанция поза↔прицел',
+    'старт '+lat.toFixed(5)+','+lon.toFixed(5)+' выс='+Math.round(ZMIN+cam.y*BX)+'м',
+    ''].join('\n');}
+function dbgSample(now){
+  if(now-DBG.timer<500)return;
+  DBG.timer=now;
+  el('dbg-time').textContent=dbgT()+' · строк '+DBG.lines.length;
+  el('dbg-hud').textContent='⏺ REC '+dbgT();
+  const [lat,lon]=gridll(cam.x,cam.z);
+  const [ax,az]=lookAt();
+  const sky=ax===cam.x&&az===cam.z;
+  const [tlat,tlon]=gridll(ax,az);
+  const td=Math.round(Math.hypot(ax-cam.x,ground(ax,az)-cam.y,az-cam.z)*BX);
+  const camL=`камера ${lat.toFixed(5)},${lon.toFixed(5)} выс=${Math.round(ZMIN+cam.y*BX)}м `+
+    `yaw=${Math.round(cam.yaw*180/Math.PI)}° pitch=${Math.round(cam.pitch*180/Math.PI)}°`+
+    (sky?' | прицел: НЕБО (взгляд мимо рельефа)':
+     ` | прицел ${tlat.toFixed(5)},${tlon.toFixed(5)} выс=${Math.round(ZMIN+ground(ax,az)*BX)}м дист=${td}м`);
+  if(camL!==DBG.lastCam){DBG.lastCam=camL;dbg(camL);}
+  if(O.eye.checked&&EYE.list.length){
+    const s=EYE.slots.map((s2,i)=>s2.e?
+      `[${i}]${s2.e.v.replace(/^DJI_/,'')}#${s2.e.i} d=${Math.round(s2.d*BX)}м w=${s2.w.toFixed(2)}${s2.ok?'':' ⏳грузится'}`:
+      `[${i}]пусто`).join('\n    ');
+    if(s!==DBG.lastSlots){DBG.lastSlots=s;dbg('слоты:\n    '+s);}}}
+function dbgNote(){
+  const t=el('dbg-comment').value.trim();if(!t)return;
+  DBG.lines.push(dbgT()+' 💬 ОПЕРАТОР: '+t);
+  el('dbg-comment').value='';
+  const tl=el('dbg-tail');tl.textContent=DBG.lines.slice(-6).join('\n');
+  tl.scrollTop=tl.scrollHeight;
+  el('dbg-time').textContent=dbgT()+' · строк '+DBG.lines.length;}
+function dbgSaveFile(txt){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));
+  a.download='polyot3d-otladka-'+new Date().toISOString().replace(/[:.]/g,'-').slice(0,19)+'.txt';
+  a.click();}
+el('dbg-btn').onclick=()=>{
+  if(!DBG.on){
+    DBG.on=true;DBG.t0=performance.now();DBG.lines=[];
+    DBG.lastCam='';DBG.lastSlots='';DBG.lastRej='';DBG.timer=0;
+    DBG.lines.push(dbgHeader());
+    dbg('— ЗАПИСЬ НАЧАТА —');
+    el('dbg-btn').textContent='⏹ стоп';
+    el('dbg-live').style.display='';
+    el('dbg-hud').style.display='';
+    el('dbg-hud').textContent='⏺ REC';
+  }else{
+    DBG.lines.push(dbgT()+' — запись остановлена —');
+    DBG.on=false;
+    el('dbg-btn').textContent='⏺ запись';
+    el('dbg-hud').style.display='none';
+    const t=el('dbg-tail');t.textContent=DBG.lines.slice(-6).join('\n');
+    t.scrollTop=t.scrollHeight;}};
+el('dbg-comment').addEventListener('keydown',e=>{if(e.key==='Enter')dbgNote();});
+el('dbg-copy').onclick=()=>{
+  const txt=DBG.lines.join('\n');
+  const done=()=>{el('dbg-copy').textContent='скопировано ✓';
+    setTimeout(()=>el('dbg-copy').textContent='копировать лог',1500);};
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(txt).then(done,()=>dbgSaveFile(txt));
+  else dbgSaveFile(txt);};
+el('dbg-save').onclick=()=>dbgSaveFile(DBG.lines.join('\n'));
+document.getElementById('layers').addEventListener('change',e=>{
+  if(DBG.on&&e.target&&e.target.type==='checkbox')
+    dbg('галка '+e.target.id+' = '+(e.target.checked?'ВКЛ':'выкл'));});
+// авто-запись для смоук-тестов; с задержкой — заголовок лога читает EYE/O,
+// объявленные ниже по скрипту
+if(location.hash.indexOf('dbgrec')>=0)setTimeout(()=>el('dbg-btn').click(),800);
+
 // ---------- «глазами дрона»: проекция кадра из позы камеры дрона ----------
 // P.eye: на флайт {v, s:[[i, x, z, yb, yaw, pitch, f1024]…]} — кадры кеша
 // flights/<v>/f%04d.jpg. Кадры выбираются вокруг точки ПРИЦЕЛА (куда смотрит
@@ -772,7 +886,8 @@ function eyeFrame(e){
   if(EYE.cache.has(k)){const v=EYE.cache.get(k);
     EYE.cache.delete(k);EYE.cache.set(k,v);return v;}
   const im=new Image();
-  im.onload=()=>{im.__ok=true;touch();};
+  im.onload=()=>{im.__ok=true;dbg('кадр загрузился: '+k);touch();};
+  im.onerror=()=>dbg('ОШИБКА загрузки кадра: '+k);
   im.src='flights/'+e.v+'/f'+String(e.i).padStart(4,'0')+'.jpg';
   EYE.cache.set(k,im);
   if(EYE.cache.size>48){EYE.cache.delete(EYE.cache.keys().next().value);}
@@ -812,7 +927,13 @@ function eyeUpdate(dt){
     if(taken.some(p=>Math.hypot(p.x-c.e.x,p.y-c.e.y,p.z-c.e.z)<EYE_SEP))continue;
     let worst=null;
     for(const s of EYE.slots)if(!worst||s.d>worst.d)worst=s;
-    if(worst.e&&c.d+EYE_MARG>=worst.d)break;  // дальше кандидаты только хуже
+    if(worst.e&&c.d+EYE_MARG>=worst.d){       // дальше кандидаты только хуже
+      if(DBG.on){const r=`отбор стоп: кандидат ${c.e.v.replace('DJI_','')}#${c.e.i} `+
+        `(d=${Math.round(c.d*BX)}м) не ближе худшего слота (d=${Math.round(worst.d*BX)}м) на ${EYE_MARG*BX}м`;
+        if(r!==DBG.lastRej){DBG.lastRej=r;dbg(r);}}
+      break;}
+    dbg(`слот←кадр: ${worst.key?worst.key+' вытеснен, ':''}ставлю `+
+      `${c.e.v.replace('DJI_','')}#${c.e.i} d=${Math.round(c.d*BX)}м`);
     worst.key=c.e.v+'/'+c.e.i;worst.e=c.e;worst.d=c.d;worst.tgt=eyeW(c.d);
     worst.w=Math.min(worst.w,0.05);worst.ok=false;
     if(!worst.tex)worst.tex=mkTex();
@@ -824,7 +945,8 @@ function eyeUpdate(dt){
     const target=sl.ok?sl.tgt:0;
     sl.w+=(target-sl.w)*Math.min(1,dt*3);
     if(Math.abs(target-sl.w)>0.01)anim=true;
-    if(sl.w<0.004&&!sl.tgt)sl.e&&(sl.key=null,sl.e=null,sl.ok=false);
+    if(sl.w<0.004&&!sl.tgt&&sl.e){dbg('слот погас: '+sl.key);
+      sl.key=null;sl.e=null;sl.ok=false;}
     if(sl.e&&(!strong||sl.w>strong.w))strong=sl;}
   if(anim)dirty=true;                // плавное появление/уход кадров
   if(strong&&strong.e){
@@ -995,6 +1117,7 @@ function loop(now){
 
   if(cam.x!==prev.x||cam.y!==prev.y||cam.z!==prev.z||cam.yaw!==prev.yaw||cam.pitch!==prev.pitch){
     dirty=true;prev.x=cam.x;prev.y=cam.y;prev.z=cam.z;prev.yaw=cam.yaw;prev.pitch=cam.pitch;}
+  if(DBG.on)dbgSample(now);   // семпл и при простое — до отсечек перерисовки
 
   const cap=+el('S-fps').value;                      // потолок кадров
   if(cap>0&&now-lastDraw<1000/cap-0.6) return;
