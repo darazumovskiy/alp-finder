@@ -1065,7 +1065,7 @@ function splatSorterFn(self) {
     };
 }
 
-const SPL={state:0,scenes:[],prog:null,quad:null};
+const SPL={state:0,scenes:[],prog:null,quad:null,got:0,total:0};
 const SPL_VS=`#version 300 es
 precision highp float;precision highp int;
 uniform highp usampler2D u_texture;uniform mat4 u_view,u_evp;
@@ -1098,7 +1098,7 @@ void main(){
   vColor=vec4((cov.w)&0xffu,(cov.w>>8)&0xffu,(cov.w>>16)&0xffu,(cov.w>>24)&0xffu)/255.0;
   vPosition=position;
   vec2 off=position.x*majA+position.y*minA;
-  gl_Position=vec4(nd.xy+vec2(off.x,-off.y)/viewport*2.0,nd.z,1.0);
+  gl_Position=vec4(nd.xy+vec2(off.x,-off.y)/viewport,nd.z,1.0);
 }`;
 const SPL_FS=`#version 300 es
 precision highp float;
@@ -1121,7 +1121,7 @@ function splatGeo(geo){
 }
 function splatInit(){
   if(SPL.state)return;SPL.state=1;
-  el('splat-note').textContent='Сцены: грузятся (полминуты-минута)…';
+  el('splat-note').textContent='';
   fetch('scenes/manifest.json').then(r=>r.ok?r.json():null).then(async man=>{
     if(!man){el('splat-note').textContent='Сцены не выложены в эту сборку.';SPL.state=-1;return;}
     SPL.prog=prog(SPL_VS,SPL_FS);
@@ -1151,12 +1151,13 @@ async function splatLoad(S){
       for(const u of S.parts){
         const r=await fetch(u);
         if(!r.ok)throw new Error(u);
+        SPL.total+=+r.headers.get('Content-Length')||24*1048576;
         const reader=r.body.getReader();
         for(;;){
           const {done,value}=await reader.read();
           if(done)break;
           chunks.push(value);
-          S.mb+=value.length/1048576;
+          SPL.got+=value.length;
           dirty=true;
         }
       }
@@ -1206,8 +1207,6 @@ function drawSplats(VP,w,h){
   if(SPL.state===0)splatInit();
   if(SPL.state!==2)return;
   const fy=0.5*h/Math.tan(1.12/2), fx=fy;
-  let note='Сцены: ';
-  const notes=[];
   gl.useProgram(SPL.prog);
   gl.enable(gl.BLEND);
   gl.blendFuncSeparate(gl.ONE,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
@@ -1215,8 +1214,6 @@ function drawSplats(VP,w,h){
   for(const S of SPL.scenes){
     const dnear=Math.hypot(S.ax-cam.x,S.az-cam.z);
     if(!S.worker&&!S.loading&&dnear<SPL_NEAR)splatLoad(S);
-    notes.push(S.title+(S.ready?'':(S.loading?
-      ` (грузится, ${(S.mb||0).toFixed(0)} МБ…)`:' (далеко)')));
     if(S.worker&&S.n&&dnear<SPL_NEAR*1.5){
       // воркер просыпается только от матрицы вида: шлём всегда, иначе
       // депа-док — он ждёт вид, мы ждём его depthIndex
@@ -1243,7 +1240,12 @@ function drawSplats(VP,w,h){
   gl.activeTexture(gl.TEXTURE0);
   gl.depthMask(true);
   gl.disable(gl.BLEND);
-  el('splat-note').textContent=note+notes.join(' · ');
+  // один общий прогресс-бар загрузки; всё загружено — пусто
+  const loading=SPL.scenes.some(s=>s.loading&&!s.ready);
+  const pct=SPL.total?Math.min(100,Math.round(SPL.got*100/SPL.total)):0;
+  const nb=loading?('<div style="height:6px;background:#24425f;border-radius:3px;margin:4px 0">'+
+    `<div style="height:6px;width:${pct}%;background:#7ce0c3;border-radius:3px"></div></div>`):'';
+  if(el('splat-note').__h!==nb){el('splat-note').__h=nb;el('splat-note').innerHTML=nb;}
 }
 
 el('n-alp').textContent=P.apts.length;
