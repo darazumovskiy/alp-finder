@@ -1121,6 +1121,7 @@ function splatGeo(geo){
 }
 function splatInit(){
   if(SPL.state)return;SPL.state=1;
+  el('splat-note').textContent='Сцены: грузятся (полминуты-минута)…';
   fetch('scenes/manifest.json').then(r=>r.ok?r.json():null).then(async man=>{
     if(!man){el('splat-note').textContent='Сцены не выложены в эту сборку.';SPL.state=-1;return;}
     SPL.prog=prog(SPL_VS,SPL_FS);
@@ -1193,13 +1194,18 @@ function drawSplats(VP,w,h){
   gl.depthMask(false);
   for(const S of SPL.scenes){
     notes.push(S.title+(S.ready?'':' (грузится)'));
+    if(S.worker&&S.n){
+      // воркер просыпается только от матрицы вида: шлём всегда, иначе
+      // депа-док — он ждёт вид, мы ждём его depthIndex
+      const evp0=mul(VP,S.G);
+      S.worker.postMessage({view:Array.from(evp0)});
+    }
     if(!S.ready||!S.tex)continue;
     const evp=mul(VP,S.G);
     // V_t: движковый вид с z вперёд (флип z) в координатах сцены
     const Ve=view([cam.x,cam.y,cam.z],dir());
     const F=new Float32Array([1,0,0,0, 0,1,0,0, 0,0,-1,0, 0,0,0,1]);
     const Vt=mul(mul(F,Ve),S.G);
-    S.worker.postMessage({view:Array.from(evp)});
     gl.uniformMatrix4fv(SPL.uT.u_view,false,Vt);
     gl.uniformMatrix4fv(SPL.uT.u_evp,false,evp);
     gl.uniform2f(SPL.uT.focal,fx,fy);
