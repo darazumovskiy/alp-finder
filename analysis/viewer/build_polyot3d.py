@@ -234,6 +234,61 @@ def drone_layer(dem, zmin, w, h):
     return cams, fan
 
 
+def eye_layer(zmin, w, h):
+    """Индекс «глазами дрона»: поза камеры и фокусное каждого кадра кеша.
+
+    На флайт: dict(v=имя, s=[[i, x, z, yb, yaw, pitch, f1024]…]) — кадр
+    flights/<v>/f%04d.jpg номер i, позиция в сетке (x, z, yb — высота в блоках),
+    компасный yaw/pitch подвеса, фокусное в пикселях кадра шириной 1024.
+    Поза интерполируется по сэмплам меты (шаг 2 с), фокусное — coverage tsv;
+    кадры без фокусного пропускаются (проецировать нечем).
+    """
+    import bisect
+    sys.path.insert(0, str(ROOT / "analysis"))
+    from flight_cache import load_coverage, nearest_cov
+
+    def lerp_yaw(a, b, t):
+        d = (b - a + 180) % 360 - 180
+        return (a + d * t) % 360
+
+    eyes = []
+    for mp in sorted((HERE / "flights").glob("*/meta.json")):
+        meta = json.loads(mp.read_text())
+        samples = meta.get("samples") or []
+        if len(samples) < 2:
+            continue
+        stem = mp.parent.name
+        video = next(iter((ROOT / "data/drive").rglob(stem + ".MP4")), None)
+        cov = load_coverage(video) if video else []
+        if not cov:
+            continue
+        ts = [s[0] for s in samples]
+        rows = []
+        step = meta.get("frame_step", 5.0)
+        for i in range(meta.get("n_frames") or 0):
+            t = i * step
+            row = nearest_cov(cov, t, max_dt=6.0)
+            if not row or not row[1]:
+                continue
+            j = min(max(bisect.bisect_left(ts, t), 1), len(samples) - 1)
+            a, b = samples[j - 1], samples[j]
+            u = 0.0 if b[0] == a[0] else max(0.0, min(1.0, (t - a[0]) / (b[0] - a[0])))
+            lat = a[1] + (b[1] - a[1]) * u
+            lon = a[2] + (b[2] - a[2]) * u
+            alt = a[3] + (b[3] - a[3]) * u
+            yaw = lerp_yaw(a[5], b[5], u)
+            pitch = a[6] + (b[6] - a[6]) * u
+            x, z = to_xy(lat, lon)
+            if not (0 <= x < w and 0 <= z < h):
+                continue
+            rows.append([i, x, z, round((alt - zmin) / BX, 2),
+                         round(yaw, 1), round(pitch, 1),
+                         round(row[1] * 1024 / 1920)])
+        if rows:
+            eyes.append(dict(v=stem, s=rows))
+    return eyes
+
+
 def build():
     dem = Dem(HMA_PATH)
     z, w, h = terrain(dem)
@@ -258,6 +313,7 @@ def build():
 
     apts = registry_points(z, zmin, w, h)
     cams, fan = drone_layer(dem, zmin, w, h)
+    eye = eye_layer(zmin, w, h)
 
     # появление: над ледником севернее кластера вещей, взгляд на юг —
     # в кадре сразу склон с находками, стена LOOK и гребень
@@ -277,7 +333,7 @@ def build():
         kinds=[dict(id=k, title=t) for k, t in KINDS],
         statuses=STATUSES, lines=lines,
         camps=camps, wpts=wpts,
-        items=[], finds=[], shel=[], cams=cams, fan=fan)
+        items=[], finds=[], shel=[], cams=cams, fan=fan, eye=eye)
 
     html = TEMPLATE.read_text("utf-8").replace(
         "__PAYLOAD__", json.dumps(payload, ensure_ascii=False, separators=(",", ":")))
