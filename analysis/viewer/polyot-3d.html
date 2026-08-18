@@ -382,16 +382,22 @@ uniform int uEyeOn;uniform mat4 uEyeVP0,uEyeVP1,uEyeVP2,uEyeVP3,uEyeVP4,uEyeVP5,
 uniform sampler2D uEyeT0,uEyeT1,uEyeT2,uEyeT3,uEyeT4,uEyeT5,
   uEyeT6,uEyeT7,uEyeT8,uEyeT9,uEyeT10,uEyeT11;
 uniform vec4 uEyeWa,uEyeWb,uEyeWc;
+uniform vec4 uEyeC0,uEyeC1,uEyeC2,uEyeC3,uEyeC4,uEyeC5,
+  uEyeC6,uEyeC7,uEyeC8,uEyeC9,uEyeC10,uEyeC11;  // (точка съёмки xyz, радиус пятна)
 out vec4 o;
-vec3 eyeApply(mat4 M,sampler2D T,float w,vec3 c,vec3 wp){
+vec3 eyeApply(mat4 M,sampler2D T,float w,vec4 FP,vec3 c,vec3 wp){
   if(w<0.004)return c;
+  // кадр честен только у своей точки съёмки: за пределами пятна гасим,
+  // иначе он размазывается по касательному рельефу и «протекает» вдаль
+  float k=1.0-smoothstep(FP.w,FP.w*1.8,distance(wp,FP.xyz));
+  if(k<=0.0)return c;
   vec4 pp=M*vec4(wp,1.0);
   if(pp.w<=0.0)return c;
   vec3 nd=pp.xyz/pp.w;
   if(abs(nd.x)>=1.0||abs(nd.y)>=1.0)return c;
   vec4 s=texture(T,vec2(nd.x*0.5+0.5,0.5-nd.y*0.5));
   float edge=1.0-smoothstep(0.80,1.0,max(abs(nd.x),abs(nd.y)));
-  return mix(c,s.rgb,w*edge);
+  return mix(c,s.rgb,w*edge*k);
 }
 void main(){
   vec3 c=vCol;
@@ -411,18 +417,18 @@ void main(){
     // «глазами дрона»: настоящие кадры проецируются из поз дрона; 12
     // проекторов (слабый -> сильный), сильнейший кадр перекрывает остальных.
     vec3 wp=vec3(vXZ.x,vY,vXZ.y);
-    c=eyeApply(uEyeVP0,uEyeT0,uEyeWa.x,c,wp);
-    c=eyeApply(uEyeVP1,uEyeT1,uEyeWa.y,c,wp);
-    c=eyeApply(uEyeVP2,uEyeT2,uEyeWa.z,c,wp);
-    c=eyeApply(uEyeVP3,uEyeT3,uEyeWa.w,c,wp);
-    c=eyeApply(uEyeVP4,uEyeT4,uEyeWb.x,c,wp);
-    c=eyeApply(uEyeVP5,uEyeT5,uEyeWb.y,c,wp);
-    c=eyeApply(uEyeVP6,uEyeT6,uEyeWb.z,c,wp);
-    c=eyeApply(uEyeVP7,uEyeT7,uEyeWb.w,c,wp);
-    c=eyeApply(uEyeVP8,uEyeT8,uEyeWc.x,c,wp);
-    c=eyeApply(uEyeVP9,uEyeT9,uEyeWc.y,c,wp);
-    c=eyeApply(uEyeVP10,uEyeT10,uEyeWc.z,c,wp);
-    c=eyeApply(uEyeVP11,uEyeT11,uEyeWc.w,c,wp);
+    c=eyeApply(uEyeVP0,uEyeT0,uEyeWa.x,uEyeC0,c,wp);
+    c=eyeApply(uEyeVP1,uEyeT1,uEyeWa.y,uEyeC1,c,wp);
+    c=eyeApply(uEyeVP2,uEyeT2,uEyeWa.z,uEyeC2,c,wp);
+    c=eyeApply(uEyeVP3,uEyeT3,uEyeWa.w,uEyeC3,c,wp);
+    c=eyeApply(uEyeVP4,uEyeT4,uEyeWb.x,uEyeC4,c,wp);
+    c=eyeApply(uEyeVP5,uEyeT5,uEyeWb.y,uEyeC5,c,wp);
+    c=eyeApply(uEyeVP6,uEyeT6,uEyeWb.z,uEyeC6,c,wp);
+    c=eyeApply(uEyeVP7,uEyeT7,uEyeWb.w,uEyeC7,c,wp);
+    c=eyeApply(uEyeVP8,uEyeT8,uEyeWc.x,uEyeC8,c,wp);
+    c=eyeApply(uEyeVP9,uEyeT9,uEyeWc.y,uEyeC9,c,wp);
+    c=eyeApply(uEyeVP10,uEyeT10,uEyeWc.z,uEyeC10,c,wp);
+    c=eyeApply(uEyeVP11,uEyeT11,uEyeWc.w,uEyeC11,c,wp);
   }
   int m=int(vCls+0.5);
   int k=m&7;                       // класс покрытия из ручного KML
@@ -790,6 +796,8 @@ const uT={};['uVP','uEye','uGrid','uFog','uOn','uOn2','uSky','uYS','uPhoto',
   'uEyeVP6','uEyeVP7','uEyeVP8','uEyeVP9','uEyeVP10','uEyeVP11',
   'uEyeT0','uEyeT1','uEyeT2','uEyeT3','uEyeT4','uEyeT5',
   'uEyeT6','uEyeT7','uEyeT8','uEyeT9','uEyeT10','uEyeT11',
+  'uEyeC0','uEyeC1','uEyeC2','uEyeC3','uEyeC4','uEyeC5',
+  'uEyeC6','uEyeC7','uEyeC8','uEyeC9','uEyeC10','uEyeC11',
   'uEyeWa','uEyeWb','uEyeWc']
   .forEach(n=>uT[n]=gl.getUniformLocation(PT,n));
 
@@ -900,10 +908,14 @@ const EYE_MARG=25;                 // гистерезис в блоках (~200
 const EYE={list:[],cache:new Map(),
   slots:Array.from({length:EYE_N},()=>({key:null,e:null,tex:null,w:0,tgt:0,ok:false}))};
 // fx/fz/fy — точка съёмки (куда упёрся луч оси камеры в рельеф), fd — длина
-// луча в блоках: мера детальности (чем короче — тем крупнее снят объект)
+// луча в блоках: мера детальности (чем короче — тем крупнее снят объект).
+// r — радиус пятна кадра на рельефе (блоки): полуширина кадра на земле
+// fd·512/f с запасом ×2.2; за пятном проекция гасится в шейдере, чтобы кадр
+// не «протекал» на дальний рельеф размазнёй (жалобы «хрень», «вкрапление»)
 (P.eye||[]).forEach(f=>f.s.forEach(s=>EYE.list.push(
   {v:f.v,i:s[0],x:s[1],z:s[2],y:s[3],yaw:s[4],pitch:s[5],f:s[6],
-   fx:s[7],fz:s[8],fy:s[9],fd:s[10]})));
+   fx:s[7],fz:s[8],fy:s[9],fd:s[10],
+   r:Math.min(80,Math.max(10,2.2*s[10]*512/s[6]))})));
 function eyeFrame(e){
   const k=e.v+'/'+e.i;
   if(EYE.cache.has(k)){const v=EYE.cache.get(k);
@@ -921,17 +933,44 @@ function eyeLoad(slot){
   gl.bindTexture(gl.TEXTURE_2D,slot.tex);
   gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,im);
   slot.ok=true;}
-const eyeW=d=>0.96*Math.pow(1-d/EYE_R,0.5);   // вес по дистанции точка съёмки↔прицел
+const eyeW=d=>0.96*Math.pow(1-d/EYE_R,0.5);   // вес по дистанции точка съёмки↔якорь
+function eyeMarch(dx,dy,dz){
+  let x=cam.x,y=cam.y,z=cam.z;
+  for(let i=0;i<400;i++){x+=dx*3;y+=dy*3;z+=dz*3;
+    if(y<=ground(x,z))return [x,ground(x,z),z];
+    if(x<-50||z<-50||x>W+50||z>H+50||y>1200)break;}
+  return null;}
+function eyeAnchors(){
+  // якоря подбора: рельеф в прицеле + сетка 3x3 по полю зрения — связка
+  // распределяется по всему видимому склону, а не липнет к перекрестью
+  // (жалоба «в прицеле кадр хороший, вокруг пустота»)
+  const d=dir();
+  const rt=[Math.sin(cam.yaw-Math.PI/2),0,Math.cos(cam.yaw-Math.PI/2)];
+  const up=[d[1]*rt[2]-d[2]*rt[1],d[2]*rt[0]-d[0]*rt[2],d[0]*rt[1]-d[1]*rt[0]];
+  const tY=Math.tan(0.56)*0.62,tX=tY*(innerWidth/innerHeight);
+  const A=[];
+  for(let j=-1;j<=1;j++)for(let i=-1;i<=1;i++){
+    const rx=d[0]+i*tX*rt[0]+j*tY*up[0],
+          ry=d[1]+i*tX*rt[1]+j*tY*up[1],
+          rz=d[2]+i*tX*rt[2]+j*tY*up[2];
+    const n=Math.hypot(rx,ry,rz);
+    const p=eyeMarch(rx/n,ry/n,rz/n);
+    if(!p)continue;
+    if(A.some(a=>Math.hypot(a[0]-p[0],a[1]-p[1],a[2]-p[2])<30))continue;
+    A.push(p);}
+  if(!A.length){const [tx,tz]=lookAt();A.push([tx,ground(tx,tz),tz]);}
+  return A;}
 function eyeUpdate(dt){
-  // якорь подбора — точка прицела на рельефе. Кадр оценивается по тому, куда
-  // он СНИМАЛ (точка съёмки fx/fz/fy), а не где висел дрон: поза рядом ничего
-  // не гарантирует — камера могла смотреть в другую сторону (жалоба «пятно
-  // вещей отснято подробно, а рельеф над ним голый»). Ближняя съёмка в
-  // приоритете: к дистанции добавляется штраф 0.25·fd — детальный кадр
-  // вытесняет мыльный дальний с того же места.
-  const [tx,tz]=lookAt();
-  const T=[tx,ground(tx,tz),tz];
-  const dOf=e=>Math.hypot(e.fx-T[0],e.fy-T[1],e.fz-T[2]);
+  // Кадр оценивается по тому, куда он СНИМАЛ (точка съёмки fx/fz/fy), а не
+  // где висел дрон: поза рядом ничего не гарантирует — камера могла смотреть
+  // в другую сторону. Дистанция — до БЛИЖАЙШЕГО якоря поля зрения. Ближняя
+  // съёмка в приоритете: штраф 0.25·fd — детальный кадр вытесняет мыльный
+  // дальний с того же места.
+  const AN=eyeAnchors();
+  const dOf=e=>{let m=1e9;
+    for(const a of AN){const d_=Math.hypot(e.fx-a[0],e.fy-a[1],e.fz-a[2]);
+      if(d_<m)m=d_;}
+    return m;};
   const used=new Set();
   for(const sl of EYE.slots){
     sl.df=sl.e?dOf(sl.e):1e9;
@@ -1197,10 +1236,13 @@ function loop(now){
       uT.uEyeVP6,uT.uEyeVP7,uT.uEyeVP8,uT.uEyeVP9,uT.uEyeVP10,uT.uEyeVP11];
     const txU=[uT.uEyeT0,uT.uEyeT1,uT.uEyeT2,uT.uEyeT3,uT.uEyeT4,uT.uEyeT5,
       uT.uEyeT6,uT.uEyeT7,uT.uEyeT8,uT.uEyeT9,uT.uEyeT10,uT.uEyeT11];
+    const cU=[uT.uEyeC0,uT.uEyeC1,uT.uEyeC2,uT.uEyeC3,uT.uEyeC4,uT.uEyeC5,
+      uT.uEyeC6,uT.uEyeC7,uT.uEyeC8,uT.uEyeC9,uT.uEyeC10,uT.uEyeC11];
     const ws=[0,0,0,0,0,0,0,0,0,0,0,0];
     eyeSlots.forEach((sl,i)=>{
       ws[i]=sl.e&&sl.ok?sl.w:0;
       gl.uniformMatrix4fv(vpU[i],false,sl.e?eyeMatrix(sl.e):EM);
+      gl.uniform4f(cU[i],sl.e?sl.e.fx:0,sl.e?sl.e.fy:0,sl.e?sl.e.fz:0,sl.e?sl.e.r:1);
       gl.uniform1i(txU[i],3+i);
       gl.activeTexture(gl.TEXTURE3+i);
       gl.bindTexture(gl.TEXTURE_2D,sl.tex||ORTHO.win[0]);});
