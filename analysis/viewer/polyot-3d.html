@@ -1131,10 +1131,21 @@ function splatInit(){
     gl.bindBuffer(gl.ARRAY_BUFFER,SPL.quad);
     gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-2,-2,2,-2,2,2,-2,2]),gl.STATIC_DRAW);
     for(const sc of man.scenes){
-      const S={id:sc.id,title:sc.title,G:splatGeo(sc.geo),n:0,tex:null,idxBuf:null,
-               vao:null,worker:null,ready:false,lastPost:0};
+      // ленивая загрузка: сцена качается, когда камера рядом (см. drawSplats)
+      const g=sc.geo;
+      const ax=(g.anchor[1]-P.LON0)*P.MLO/BX, az=(P.LAT1-g.anchor[0])*P.MLA/BX;
+      const S={id:sc.id,title:sc.title,G:splatGeo(g),n:0,tex:null,idxBuf:null,
+               vao:null,worker:null,ready:false,loading:false,parts:sc.parts,
+               ax,az,lastPost:0};
       SPL.scenes.push(S);
-      const parts=await Promise.all(sc.parts.map(u=>fetch(u).then(r=>{
+    }
+    SPL.state=2;dirty=true;
+  }).catch(()=>{el('splat-note').textContent='Ошибка загрузки сцен.';SPL.state=-1;});
+}
+async function splatLoad(S){
+  if(S.loading)return;S.loading=true;
+  try{
+      const parts=await Promise.all(S.parts.map(u=>fetch(u).then(r=>{
         if(!r.ok)throw new Error(u);return r.arrayBuffer();})));
       const blob=new Blob(parts);
       const buf=new Uint8Array(await blob.arrayBuffer());
@@ -1175,12 +1186,9 @@ function splatInit(){
         }
       };
       S.worker.postMessage({buffer:buf.buffer,vertexCount:S.n},[buf.buffer]);
-      el('splat-note').textContent='Сцены: '+SPL.scenes.map(s=>s.title+
-        (s.ready?'':' (грузится)')).join(' · ');
-    }
-    SPL.state=2;dirty=true;
-  }).catch(()=>{el('splat-note').textContent='Ошибка загрузки сцен.';SPL.state=-1;});
+  }catch(e){S.loading=false;}
 }
+const SPL_NEAR=280;   // блоков (~2.2 км): ближе — сцена подгружается
 function drawSplats(VP,w,h){
   if(!O.splat.checked)return;
   if(SPL.state===0)splatInit();
@@ -1193,14 +1201,16 @@ function drawSplats(VP,w,h){
   gl.blendFuncSeparate(gl.ONE,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
   gl.depthMask(false);
   for(const S of SPL.scenes){
-    notes.push(S.title+(S.ready?'':' (грузится)'));
-    if(S.worker&&S.n){
+    const dnear=Math.hypot(S.ax-cam.x,S.az-cam.z);
+    if(!S.worker&&!S.loading&&dnear<SPL_NEAR)splatLoad(S);
+    notes.push(S.title+(S.ready?'':(S.loading?' (грузится)':' (далеко)')));
+    if(S.worker&&S.n&&dnear<SPL_NEAR*1.5){
       // воркер просыпается только от матрицы вида: шлём всегда, иначе
       // депа-док — он ждёт вид, мы ждём его depthIndex
       const evp0=mul(VP,S.G);
       S.worker.postMessage({view:Array.from(evp0)});
     }
-    if(!S.ready||!S.tex)continue;
+    if(!S.ready||!S.tex||dnear>SPL_NEAR*2)continue;
     const evp=mul(VP,S.G);
     // V_t: движковый вид с z вперёд (флип z) в координатах сцены
     const Ve=view([cam.x,cam.y,cam.z],dir());
