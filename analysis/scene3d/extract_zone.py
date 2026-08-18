@@ -27,6 +27,8 @@ def main():
     dist_max = float(sys.argv[6]) if len(sys.argv) > 6 else 2500.0
     per_video = int(sys.argv[7]) if len(sys.argv) > 7 else 60
     total_cap = int(sys.argv[8]) if len(sys.argv) > 8 else 700
+    # фильтр роликов подстрокой имени: день (20260815) или камера (_W)
+    stem_filter = sys.argv[9] if len(sys.argv) > 9 else ""
     out = Path(__file__).resolve().parent / "data" / name / "images"
     out.mkdir(parents=True, exist_ok=True)
 
@@ -34,6 +36,8 @@ def main():
     for mp in sorted(FLIGHTS.glob("*/meta.json")):
         meta = json.loads(mp.read_text())
         stem = mp.parent.name
+        if stem_filter and stem_filter not in stem:
+            continue
         times = []
         for s in meta.get("samples", []):
             ctr = s[8] if len(s) > 8 else None

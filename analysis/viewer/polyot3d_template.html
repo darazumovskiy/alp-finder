@@ -1211,7 +1211,10 @@ function drawSplats(VP,w,h){
   gl.enable(gl.BLEND);
   gl.blendFuncSeparate(gl.ONE,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
   gl.depthMask(false);
-  for(const S of SPL.scenes){
+  // дальние сцены раньше ближних: перекрытия блендятся в верном порядке
+  const ordered=[...SPL.scenes].sort((a,b)=>
+    Math.hypot(b.ax-cam.x,b.az-cam.z)-Math.hypot(a.ax-cam.x,a.az-cam.z));
+  for(const S of ordered){
     const dnear=Math.hypot(S.ax-cam.x,S.az-cam.z);
     if(!S.worker&&!S.loading&&dnear<SPL_NEAR)splatLoad(S);
     if(S.worker&&S.n&&dnear<SPL_NEAR*1.5){
