@@ -49,9 +49,22 @@ def main():
           f"гиганты >3м: {(ss[:, 2] >= 3.0).sum()} — выброшены")
     pos, scale, rot, col, op = (a[good] for a in (pos, scale, rot, col, op))
 
+    # почти прозрачные мазки — шум
+    vis = op >= 0.02
+    pos, scale, rot, col, op = (a[vis] for a in (pos, scale, rot, col, op))
+
+    # при превышении лимита — РАВНОМЕРНАЯ выборка: сохраняет распределение
+    # мелкой детали. Урок 19.08: отбор «по весомости» (объём×оп) оставлял
+    # крупные полупрозрачные кляксы и выбрасывал детальные мазки поверхности —
+    # веб-версия превращалась в «облако из шума» при идеальных eval-рендерах.
+    n_all = len(pos)
+    if n_all > cap:
+        rng = np.random.default_rng(7)
+        pick = rng.choice(n_all, cap, replace=False)
+        pos, scale, rot, col, op = (a[pick] for a in (pos, scale, rot, col, op))
+    # порядок в файле — по весомости (прогрессивная загрузка), но БЕЗ отсечки
     weight = scale.prod(axis=1) * op
-    order = np.argsort(-weight)[:cap]
-    # обратно отсортируем по весомости для прогрессивной загрузки
+    order = np.argsort(-weight)
     pos, scale, rot, col, op = (a[order] for a in (pos, scale, rot, col, op))
 
     n = len(pos)
