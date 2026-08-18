@@ -44,4 +44,10 @@ for v in "$D"/koshki-1608/splats-v*/; do
   step=$(echo "${ev:-$ply}" | grep -o "[0-9]*" | tail -1)
   [ -n "$ply$ev" ] && echo "  $(basename "$v"): шаг ${step:-?} ${ply:+ply:$ply}"
 done
+echo "== очередь линии падения =="
+if [ -f "$SCRATCH/queue.log" ]; then
+  grep -E "^=== зона|ГОТОВА|пропущена|пропуск|ОШИБКА|итого" "$SCRATCH/queue.log" | tail -6
+  q=$(grep -c "ГОТОВА и задеплоена" "$SCRATCH/queue.log")
+  echo "  готово зон: $q"
+fi
 echo "(проценты матчинга и камеры сборки — из логов текущей сессии)"
