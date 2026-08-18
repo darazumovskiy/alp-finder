@@ -1131,6 +1131,7 @@ function splatInit(){
     gl.bindBuffer(gl.ARRAY_BUFFER,SPL.quad);
     gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-2,-2,2,-2,2,2,-2,2]),gl.STATIC_DRAW);
     for(const sc of man.scenes){
+      if(sc.rough)continue;   // черновая привязка (RMS>20 м) — не показываем
       // ленивая загрузка: сцена качается, когда камера рядом (см. drawSplats)
       const g=sc.geo;
       const ax=(g.anchor[1]-P.LON0)*P.MLO/BX, az=(P.LAT1-g.anchor[0])*P.MLA/BX;
