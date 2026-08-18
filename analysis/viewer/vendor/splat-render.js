@@ -756,7 +756,7 @@ async function main() {
     // url= может быть списком через запятую (файлы >25 МБ режутся частями
     // из-за лимита хостинга) — части качаются и склеиваются перед показом
     let url;
-    const urlParam = params.get("url") || "scene.splat";
+    const urlParam = params.get("url") || window.DEFAULT_SPLAT_URL || "scene.splat";
     if (urlParam.includes(",")) {
         const parts = await Promise.all(urlParam.split(",").map(u =>
             fetch(new URL(u, location.href)).then(r => {
