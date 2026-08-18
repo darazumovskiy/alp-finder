@@ -1144,12 +1144,23 @@ function splatInit(){
   }).catch(()=>{el('splat-note').textContent='Ошибка загрузки сцен.';SPL.state=-1;});
 }
 async function splatLoad(S){
-  if(S.loading)return;S.loading=true;
+  if(S.loading)return;S.loading=true;S.mb=0;
   try{
-      const parts=await Promise.all(S.parts.map(u=>fetch(u).then(r=>{
-        if(!r.ok)throw new Error(u);return r.arrayBuffer();})));
-      const blob=new Blob(parts);
-      const buf=new Uint8Array(await blob.arrayBuffer());
+      // стримим по частям со счётчиком мегабайт — видно, что идёт загрузка
+      const chunks=[];
+      for(const u of S.parts){
+        const r=await fetch(u);
+        if(!r.ok)throw new Error(u);
+        const reader=r.body.getReader();
+        for(;;){
+          const {done,value}=await reader.read();
+          if(done)break;
+          chunks.push(value);
+          S.mb+=value.length/1048576;
+          dirty=true;
+        }
+      }
+      const buf=new Uint8Array(await new Blob(chunks).arrayBuffer());
       S.n=Math.floor(buf.length/32);
       S.worker=new Worker(URL.createObjectURL(new Blob(
         ["(",splatSorterFn.toString(),")(self)"],{type:"application/javascript"})));
@@ -1204,7 +1215,8 @@ function drawSplats(VP,w,h){
   for(const S of SPL.scenes){
     const dnear=Math.hypot(S.ax-cam.x,S.az-cam.z);
     if(!S.worker&&!S.loading&&dnear<SPL_NEAR)splatLoad(S);
-    notes.push(S.title+(S.ready?'':(S.loading?' (грузится)':' (далеко)')));
+    notes.push(S.title+(S.ready?'':(S.loading?
+      ` (грузится, ${(S.mb||0).toFixed(0)} МБ…)`:' (далеко)')));
     if(S.worker&&S.n&&dnear<SPL_NEAR*1.5){
       // воркер просыпается только от матрицы вида: шлём всегда, иначе
       // депа-док — он ждёт вид, мы ждём его depthIndex
