@@ -130,8 +130,8 @@ body.hidepanels #toggle{display:block}
       подгружается сантиметровая деталь вокруг прицела.</div>
     <label><input type="checkbox" id="L-eye"><span class="sw" style="background:#ffb7e6"></span>глазами дрона — кадр у трека</label>
     <div class="note" id="eye-note">Наведи прицел на склон — на рельеф лягут
-      кадры, которые СНИМАЛИ это место (до 12 сразу, детальная съёмка в
-      приоритете). Кадры есть только там, где летал дрон.</div>
+      кадры, снимавшие это место. <b>G</b> — сесть в глаза дрона: камера
+      встаёт в точку съёмки, совпадение идеальное; ещё G — следующий кадр.</div>
 
     <h2 style="margin-top:12px">Покрытие съёмкой (87 роликов)</h2>
     <label><input type="checkbox" id="L-cov3"><span class="sw" style="background:#38d972"></span>детально — предмет ≤ 20 см</label>
@@ -199,6 +199,7 @@ body.hidepanels #toggle{display:block}
     на телефоне: палец — обзор, два пальца — вперёд/назад<br>
     <kbd>Space</kbd>/<kbd>Shift</kbd> вверх-вниз &nbsp; <kbd>Ctrl</kbd> быстрее &nbsp; <kbd>колесо</kbd> скорость<br>
     <kbd>R</kbd> к вещам &nbsp; <kbd>T</kbd> к съёмке 15.08 &nbsp; <kbd>F</kbd> вверх<br>
+    <kbd>G</kbd> сесть в глаза дрона (ещё G — следующий кадр)<br>
     <kbd>E</kbd> кадр/плеер &nbsp; <kbd>H</kbd> — спрятать панели
   </div>
 </div>
@@ -648,6 +649,7 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyT'&&P.cams.length){const c=P.cams.find(c=>c[3].startsWith('20260815'))||P.cams[0];
     cam.x=c[0];cam.z=c[1];cam.y=yOf(c[2]);}
   if(e.code==='KeyF'){cam.y=Math.max(cam.y,ground(cam.x,cam.z)+140);cam.pitch=-1.25;}
+  if(e.code==='KeyG'&&EYE.list.length){if(!O.eye.checked)O.eye.checked=true;eyeSit();}
   if(e.code==='KeyE'&&cur&&(cur.fb||cur.f||cur.url))openBig(cur);
   if(e.code==='KeyH')document.body.classList.toggle('hidepanels');
   if(['Space','ShiftLeft','KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();});
@@ -912,9 +914,11 @@ const EYE={list:[],cache:new Map(),
 // r — радиус пятна кадра на рельефе (блоки): полуширина кадра на земле
 // fd·512/f с запасом ×2.2; за пятном проекция гасится в шейдере, чтобы кадр
 // не «протекал» на дальний рельеф размазнёй (жалобы «хрень», «вкрапление»)
+// wd — ширина кадра на земле в блоках (fd·1024/f): зум-кадр с 90 м покрывает
+// ~15 м — «конфетти» меньше двух вокселей, проектором его не разглядеть
 (P.eye||[]).forEach(f=>f.s.forEach(s=>EYE.list.push(
   {v:f.v,i:s[0],x:s[1],z:s[2],y:s[3],yaw:s[4],pitch:s[5],f:s[6],
-   fx:s[7],fz:s[8],fy:s[9],fd:s[10],
+   fx:s[7],fz:s[8],fy:s[9],fd:s[10],wd:s[10]*1024/s[6],
    r:Math.min(80,Math.max(10,2.2*s[10]*512/s[6]))})));
 function eyeFrame(e){
   const k=e.v+'/'+e.i;
@@ -962,19 +966,22 @@ function eyeAnchors(){
   return A;}
 function eyeUpdate(dt){
   // Кадр оценивается по тому, куда он СНИМАЛ (точка съёмки fx/fz/fy), а не
-  // где висел дрон: поза рядом ничего не гарантирует — камера могла смотреть
-  // в другую сторону. Дистанция — до БЛИЖАЙШЕГО якоря поля зрения. Ближняя
-  // съёмка в приоритете: штраф 0.25·fd — детальный кадр вытесняет мыльный
-  // дальний с того же места.
-  const AN=eyeAnchors();
+  // где висел дрон. Дистанция — до БЛИЖАЙШЕГО якоря поля зрения. Ранг:
+  // дистанция + штраф дальней съёмки (0.25·fd) + штраф «конфетти»
+  // (200/wd — узкий зум-кадр покрывает пару вокселей, слот на него жалко;
+  // его место — телепорт G и плеер по E).
+  const nowA=performance.now();
+  if(!EYE.anch||nowA-EYE.anchT>300){EYE.anch=eyeAnchors();EYE.anchT=nowA;}
+  const AN=EYE.anch;
   const dOf=e=>{let m=1e9;
     for(const a of AN){const d_=Math.hypot(e.fx-a[0],e.fy-a[1],e.fz-a[2]);
       if(d_<m)m=d_;}
     return m;};
+  const rankOf=(e,df)=>df+0.25*e.fd+200/Math.max(e.wd,2);
   const used=new Set();
   for(const sl of EYE.slots){
     sl.df=sl.e?dOf(sl.e):1e9;
-    sl.d=sl.e?sl.df+0.25*sl.e.fd:1e9;
+    sl.d=sl.e?rankOf(sl.e,sl.df):1e9;
     sl.tgt=sl.e&&sl.df<EYE_R?eyeW(sl.df):0;
     if(sl.key)used.add(sl.key);}
   // до 24 лучших по рангу — дальше отсев по разносу точек съёмки
@@ -983,7 +990,7 @@ function eyeUpdate(dt){
     if(used.has(e.v+'/'+e.i))continue;
     const df=dOf(e);
     if(df>=EYE_R)continue;
-    const r=df+0.25*e.fd;
+    const r=rankOf(e,df);
     if(cand.length<24)cand.push({e,df,r});
     else{let mi=0;for(let i=1;i<24;i++)if(cand[i].r>cand[mi].r)mi=i;
       if(r<cand[mi].r)cand[mi]={e,df,r};}}
@@ -1024,6 +1031,43 @@ function eyeUpdate(dt){
   else el('eye-note').textContent='В прицеле нет покрытия — наведись на склон с голубыми маркерами.';
   // слоты по возрастанию веса: сильнейший рисуется последним и перекрывает
   return [...EYE.slots].sort((a,b)=>a.w-b.w);}
+const EYE_SIT={list:null,idx:0,cx:0,cy:0,cz:0,t:0};
+function eyeSit(){
+  // «сесть в глаза дрона» (G): камера встаёт точно в позу съёмки лучшего
+  // кадра у прицела, взгляд — как у подвеса. Совпадение кадра с рельефом
+  // идеально ПО ПОСТРОЕНИЮ: из самой точки съёмки нет ни параллакса, ни
+  // ошибок рельефа/телеметрии. Повторное G — следующий кадр этого места.
+  if(!EYE.list.length)return;
+  const now=performance.now();
+  const still=EYE_SIT.list&&now-EYE_SIT.t<120000&&
+    Math.hypot(cam.x-EYE_SIT.cx,cam.y-EYE_SIT.cy,cam.z-EYE_SIT.cz)<1;
+  if(!still){
+    const [tx,tz]=lookAt();
+    const T=[tx,ground(tx,tz),tz];
+    const sc=[];
+    for(const e of EYE.list){
+      const d=Math.hypot(e.fx-T[0],e.fy-T[1],e.fz-T[2]);
+      if(d<EYE_R)sc.push({e,r:d+0.25*e.fd});}
+    if(!sc.length){el('eye-note').textContent='У прицела нет кадров — наведись на отснятый склон.';return;}
+    sc.sort((a,b)=>a.r-b.r);
+    EYE_SIT.list=sc.slice(0,12).map(s=>s.e);EYE_SIT.idx=-1;}
+  EYE_SIT.idx=(EYE_SIT.idx+1)%EYE_SIT.list.length;
+  const e=EYE_SIT.list[EYE_SIT.idx];
+  cam.x=e.x;cam.y=e.y;cam.z=e.z;
+  cam.yaw=Math.PI-e.yaw*Math.PI/180;   // компасный yaw подвеса -> yaw движка
+  cam.pitch=Math.max(-1.55,Math.min(1.55,e.pitch*Math.PI/180));
+  EYE_SIT.cx=cam.x;EYE_SIT.cy=cam.y;EYE_SIT.cz=cam.z;EYE_SIT.t=now;
+  // выбранный кадр — сразу в слот, не дожидаясь отбора
+  const k=e.v+'/'+e.i;
+  if(!EYE.slots.some(s=>s.key===k)){
+    let sl=null;
+    for(const s of EYE.slots)if(!sl||s.d>sl.d)sl=s;
+    sl.key=k;sl.e=e;sl.d=0;sl.df=0;sl.tgt=0.96;sl.w=Math.min(sl.w,0.05);sl.ok=false;
+    if(!sl.tex)sl.tex=mkTex();
+    eyeLoad(sl);}
+  dbg(`G: сел в глаза дрона ${e.v.replace('DJI_','')}#${e.i} (${EYE_SIT.idx+1} из ${EYE_SIT.list.length} у этого места)`);
+  el('eye-note').textContent=`в глазах дрона: кадр ${e.v.replace('DJI_','')} #${e.i} · ещё G — следующий (${EYE_SIT.idx+1}/${EYE_SIT.list.length})`;
+  touch();}
 function eyeMatrix(e){
   const yr=e.yaw*Math.PI/180,pr=e.pitch*Math.PI/180,cp=Math.cos(pr);
   // сетка: x — восток, z — юг, y — вверх; компасный yaw 0=север по часовой
