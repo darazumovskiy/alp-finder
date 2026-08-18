@@ -39,12 +39,14 @@ def main():
     col = 0.5 + SH0 * v[:, [idx["f_dc_0"], idx["f_dc_1"], idx["f_dc_2"]]]
     op = 1.0 / (1.0 + np.exp(-v[:, idx["opacity"]]))
 
-    # фильтр «игл»: паразитные лучи — мазки, вытянутые вдоль луча зрения
-    # в десятки раз сильнее своей толщины; убираем и гигантов-туманов
-    aniso = scale.max(axis=1) / np.maximum(scale.min(axis=1), 1e-9)
-    good = (aniso < 12.0) & (scale.max(axis=1) < 3.0)
-    print(f"иглы (анизотропия>12): {(~good & (aniso >= 12)).sum()}, "
-          f"гиганты >3м: {(~good & (scale.max(axis=1) >= 3)).sum()} — выброшены")
+    # фильтр «игл»: игла = одно большое измерение и два малых (луч),
+    # а «блин» (два больших, одно тонкое) — нормальный поверхностный мазок,
+    # его НЕ трогаем (урок 18.08: фильтр по макс/мин вырезал поверхность)
+    ss = np.sort(scale, axis=1)                  # s0 <= s1 <= s2
+    needle = ss[:, 2] / np.maximum(ss[:, 1], 1e-9)
+    good = (needle < 8.0) & (ss[:, 2] < 3.0)
+    print(f"иглы (s2/s1>=8): {(needle >= 8.0).sum()}, "
+          f"гиганты >3м: {(ss[:, 2] >= 3.0).sum()} — выброшены")
     pos, scale, rot, col, op = (a[good] for a in (pos, scale, rot, col, op))
 
     weight = scale.prod(axis=1) * op
