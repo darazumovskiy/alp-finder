@@ -128,6 +128,10 @@ body.hidepanels #toggle{display:block}
     <div class="note" id="photo-note">Ортомозаика из всех роликов: рельеф
       обтянут настоящими кадрами там, где дрон снимал. При подлёте близко
       подгружается сантиметровая деталь вокруг прицела.</div>
+    <label><input type="checkbox" id="L-ebake"><span class="sw" style="background:#ffd9a8"></span>фон из кадров (запечённый)</label>
+    <div class="note">Все ~2100 кадров съёмки заранее спроецированы на рельеф,
+      для каждого места взят самый детальный. Сплошное покрытие там, где
+      летал дрон; точность — эвристика (телеметрия), не фотограмметрия.</div>
     <label><input type="checkbox" id="L-eye"><span class="sw" style="background:#ffb7e6"></span>глазами дрона — кадр у трека</label>
     <div class="note" id="eye-note">Наведи прицел на склон — на рельеф лягут
       кадры, снимавшие это место. <b>G</b> — сесть в глаза дрона: камера
@@ -385,6 +389,7 @@ uniform sampler2D uEyeT0,uEyeT1,uEyeT2,uEyeT3,uEyeT4,uEyeT5,
 uniform vec4 uEyeWa,uEyeWb,uEyeWc;
 uniform vec4 uEyeC0,uEyeC1,uEyeC2,uEyeC3,uEyeC4,uEyeC5,
   uEyeC6,uEyeC7,uEyeC8,uEyeC9,uEyeC10,uEyeC11;  // (точка съёмки xyz, радиус пятна)
+uniform int uEBOn;uniform sampler2D uEB;uniform vec2 uEBInv; // запечённый фон
 out vec4 o;
 vec3 eyeApply(mat4 M,sampler2D T,float w,vec4 FP,vec3 c,vec3 wp){
   if(w<0.004)return c;
@@ -412,6 +417,11 @@ void main(){
       if(q.x>0.001&&q.x<0.999&&q.y>0.001&&q.y<0.999){vec4 s=texture(uOW1,q);if(s.a>0.5)t=s;}}
     if(t.a<0.5){q=(vXZ-uBBox.xy)*uBBox.zw;
       if(q.x>0.001&&q.x<0.999&&q.y>0.001&&q.y<0.999){vec4 s=texture(uOB,q);if(s.a>0.5)t=s;}}
+    if(t.a>0.5)c=t.rgb;
+  }
+  if(uEBOn==1){
+    // запечённый фон: лучшие кадры всей съёмки, спроецированные заранее
+    vec4 t=texture(uEB,vXZ*uEBInv);
     if(t.a>0.5)c=t.rgb;
   }
   if(uEyeOn==1){
@@ -718,10 +728,11 @@ addEventListener('wheel',e=>{
 
 const O={};['gap','run','fine','coarse','find','thing','spot','shel','cam','fan','grid','fog',
   'steep','coul','cont','acov','alp','route','fall','corr','prio','camp','ring',
-  'cov1','cov2','cov3','photo','eye']
+  'cov1','cov2','cov3','photo','eye','ebake']
   .forEach(k=>O[k]=el('L-'+k));
 if(location.hash.indexOf('photo')>=0)O.photo.checked=true;  // ссылка сразу с обоями
-if(location.hash.indexOf('eye')>=0)O.eye.checked=true;      // и глазами дрона
+if(location.hash.indexOf('eye')>=0){O.eye.checked=true;     // глазами дрона +
+  O.ebake.checked=true;}                                    // запечённый фон
 el('n-alp').textContent=P.apts.length;
 function flyTo(o){
   // камера с северной (нижней по долине) стороны, гарантированно над рельефом
@@ -800,7 +811,7 @@ const uT={};['uVP','uEye','uGrid','uFog','uOn','uOn2','uSky','uYS','uPhoto',
   'uEyeT6','uEyeT7','uEyeT8','uEyeT9','uEyeT10','uEyeT11',
   'uEyeC0','uEyeC1','uEyeC2','uEyeC3','uEyeC4','uEyeC5',
   'uEyeC6','uEyeC7','uEyeC8','uEyeC9','uEyeC10','uEyeC11',
-  'uEyeWa','uEyeWb','uEyeWc']
+  'uEyeWa','uEyeWb','uEyeWc','uEBOn','uEB','uEBInv']
   .forEach(n=>uT[n]=gl.getUniformLocation(PT,n));
 
 // ---------- отладка: запись состояния для разбора жалоб оператора ----------
@@ -1187,6 +1198,18 @@ function orthoInit(){
     im.src='ortho/base.webp';
   }).catch(()=>{});}
 orthoInit();
+// ---------- запечённый фон из кадров (analysis/viewer/build_eye_bake.py) ----------
+const EB={ready:false,tex:null};
+fetch('eyebake/meta.json').then(r=>r.ok?r.json():null).then(m=>{
+  if(!m)return;
+  const im=new Image();
+  im.onload=()=>{EB.tex=mkTex();
+    gl.bindTexture(gl.TEXTURE_2D,EB.tex);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,im);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    EB.ready=true;touch();};
+  im.src='eyebake/base.webp';}).catch(()=>{});
 const uMV=gl.getUniformLocation(PM,'uVP'),uMS=gl.getUniformLocation(PM,'uScale');
 const uLV=gl.getUniformLocation(PL,'uVP'),uLC=gl.getUniformLocation(PL,'uCol');
 const SKY=[0.44,0.58,0.74];
@@ -1271,6 +1294,13 @@ function loop(now){
     gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,ORTHO.base);
     updWindow(0);updWindow(1);
   }
+  const ebOn=O.ebake.checked&&EB.ready;
+  gl.uniform1i(uT.uEBOn,ebOn?1:0);
+  if(ebOn){
+    gl.uniform2f(uT.uEBInv,1/W,1/H);
+    gl.uniform1i(uT.uEB,15);
+    gl.activeTexture(gl.TEXTURE15);gl.bindTexture(gl.TEXTURE_2D,EB.tex);
+    gl.activeTexture(gl.TEXTURE0);}
   let eyeSlots=null;
   if(O.eye.checked&&EYE.list.length)eyeSlots=eyeUpdate(dt);
   if(eyeSlots&&eyeSlots.some(s=>s.w>0.004)){
