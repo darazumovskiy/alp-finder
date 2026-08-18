@@ -754,10 +754,15 @@ const uT={};['uVP','uEye','uGrid','uFog','uOn','uOn2','uSky','uYS','uPhoto',
 
 // ---------- «глазами дрона»: проекция кадра из позы камеры дрона ----------
 // P.eye: на флайт {v, s:[[i, x, z, yb, yaw, pitch, f1024]…]} — кадры кеша
-// flights/<v>/f%04d.jpg. Ближайшая к камере поза в радиусе EYE_R блоков
-// проецируется на рельеф с весом, тающим с удалением от позы.
-const EYE_R=150;                   // блоков (×8 м): вдоль треков кадр есть всегда
+// flights/<v>/f%04d.jpg. Кадры выбираются вокруг точки ПРИЦЕЛА (куда смотрит
+// пользователь, марш взгляда до рельефа) — навёл камеру на склон, и связка
+// переезжает туда; вес тает с удалением позы от прицела.
+const EYE_R=150;                   // блоков (×8 м): радиус подбора вокруг прицела
 const EYE_N=6;                     // проекторов одновременно
+const EYE_SEP=12;                  // мин. разнос поз в связке (~100 м): 6 кадров
+                                   // покрывают склон, а не одну точку трека
+const EYE_MARG=25;                 // гистерезис в блоках (~200 м): новый кадр
+                                   // вытесняет худший, только если настолько ближе
 const EYE={list:[],cache:new Map(),
   slots:Array.from({length:EYE_N},()=>({key:null,e:null,tex:null,w:0,tgt:0,ok:false}))};
 (P.eye||[]).forEach(f=>f.s.forEach(s=>EYE.list.push(
@@ -772,42 +777,47 @@ function eyeFrame(e){
   EYE.cache.set(k,im);
   if(EYE.cache.size>48){EYE.cache.delete(EYE.cache.keys().next().value);}
   return im;}
-function eyeScore(e){
-  // только дистанция до позы: набор кадров не зависит от того, куда смотрит
-  // пользователь — иначе каждый поворот головы перетасовывал кадры (моргание)
-  const dist=Math.hypot(e.x-cam.x,e.y-cam.y,e.z-cam.z);
-  if(dist>EYE_R)return 0;
-  return 0.96*Math.pow(1-dist/EYE_R,0.30);}
 function eyeLoad(slot){
   const im=eyeFrame(slot.e);
   if(!im.__ok)return;
   gl.bindTexture(gl.TEXTURE_2D,slot.tex);
   gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,im);
   slot.ok=true;}
+const eyeW=d=>0.96*Math.pow(1-d/EYE_R,0.5);   // вес по дистанции поза↔прицел
 function eyeUpdate(dt){
-  // слоты «липкие»: занятый слот держит свою позу, пока кандидат не станет
-  // ощутимо лучше (×1.3) — состав меняется только при реальном перемещении
+  // якорь подбора — точка прицела на рельефе: кадры показываются там, куда
+  // смотришь. Гистерезис — в метрах (EYE_MARG), а не в отношении оценок:
+  // старая формула ×1.3 на пологой кривой была недостижима, связка замерзала.
+  const [tx,tz]=lookAt();
+  const T=[tx,ground(tx,tz),tz];
+  const dOf=e=>Math.hypot(e.x-T[0],e.y-T[1],e.z-T[2]);
   const used=new Set();
   for(const sl of EYE.slots){
-    sl.tgt=sl.e?eyeScore(sl.e):0;
+    sl.d=sl.e?dOf(sl.e):1e9;
+    sl.tgt=sl.e&&sl.d<EYE_R?eyeW(sl.d):0;
     if(sl.key)used.add(sl.key);}
+  // до 24 ближайших к прицелу поз — дальше отсев по разносу
   const cand=[];
   for(const e of EYE.list){
-    const k=e.v+'/'+e.i;
-    if(used.has(k))continue;
-    const s=eyeScore(e);
-    if(s<=0)continue;
-    if(cand.length<EYE_N)cand.push({e,s});
-    else{let mi=0;for(let i=1;i<EYE_N;i++)if(cand[i].s<cand[mi].s)mi=i;
-      if(s>cand[mi].s)cand[mi]={e,s};}}
-  cand.sort((a,b)=>b.s-a.s);
+    if(used.has(e.v+'/'+e.i))continue;
+    const d=dOf(e);
+    if(d>=EYE_R)continue;
+    if(cand.length<24)cand.push({e,d});
+    else{let mi=0;for(let i=1;i<24;i++)if(cand[i].d>cand[mi].d)mi=i;
+      if(d<cand[mi].d)cand[mi]={e,d};}}
+  cand.sort((a,b)=>a.d-b.d);
+  const taken=EYE.slots.filter(s=>s.e).map(s=>s.e);
   for(const c of cand){
-    let sl=null;
-    for(const s of EYE.slots)if(!sl||s.tgt<sl.tgt)sl=s;
-    if(!(c.s>sl.tgt*1.3+0.03))break;   // кандидаты дальше только слабее
-    sl.key=c.e.v+'/'+c.e.i;sl.e=c.e;sl.tgt=c.s;sl.w=Math.min(sl.w,0.05);sl.ok=false;
-    if(!sl.tex)sl.tex=mkTex();
-    eyeLoad(sl);}
+    // не ставить кадр вплотную к уже показанному — связка должна покрывать склон
+    if(taken.some(p=>Math.hypot(p.x-c.e.x,p.y-c.e.y,p.z-c.e.z)<EYE_SEP))continue;
+    let worst=null;
+    for(const s of EYE.slots)if(!worst||s.d>worst.d)worst=s;
+    if(worst.e&&c.d+EYE_MARG>=worst.d)break;  // дальше кандидаты только хуже
+    worst.key=c.e.v+'/'+c.e.i;worst.e=c.e;worst.d=c.d;worst.tgt=eyeW(c.d);
+    worst.w=Math.min(worst.w,0.05);worst.ok=false;
+    if(!worst.tex)worst.tex=mkTex();
+    eyeLoad(worst);
+    taken.push(c.e);}
   let anim=false,strong=null;
   for(const sl of EYE.slots){
     if(sl.e&&!sl.ok)eyeLoad(sl);     // кадр мог догрузиться
@@ -821,7 +831,7 @@ function eyeUpdate(dt){
     const d=Math.hypot(strong.e.x-cam.x,strong.e.y-cam.y,strong.e.z-cam.z)*BX;
     el('eye-note').textContent=`кадр ${strong.e.v.replace('DJI_','')} #${strong.e.i} · `+
       `дрон в ${Math.round(d)} м · вес ${strong.w.toFixed(2)} · кадров в связке ${EYE.slots.filter(s=>s.w>0.05).length}`;}
-  else el('eye-note').textContent='Рядом нет трека полёта — подлети к голубым маркерам.';
+  else el('eye-note').textContent='В прицеле нет покрытия — наведись на склон с голубыми маркерами.';
   // слоты по возрастанию веса: сильнейший рисуется последним и перекрывает
   return [...EYE.slots].sort((a,b)=>a.w-b.w);}
 function eyeMatrix(e){
