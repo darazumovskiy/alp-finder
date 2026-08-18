@@ -234,16 +234,37 @@ def drone_layer(dem, zmin, w, h):
     return cams, fan
 
 
-def eye_layer(zmin, w, h):
+def eye_layer(zt, zmin, w, h):
     """Индекс «глазами дрона»: поза камеры и фокусное каждого кадра кеша.
 
-    На флайт: dict(v=имя, s=[[i, x, z, yb, yaw, pitch, f1024]…]) — кадр
-    flights/<v>/f%04d.jpg номер i, позиция в сетке (x, z, yb — высота в блоках),
-    компасный yaw/pitch подвеса, фокусное в пикселях кадра шириной 1024.
+    На флайт: dict(v=имя, s=[[i, x, z, yb, yaw, pitch, f1024, fx, fz, fyb, fd]…])
+    — кадр flights/<v>/f%04d.jpg номер i, позиция в сетке (x, z, yb — высота
+    в блоках), компасный yaw/pitch подвеса, фокусное в пикселях кадра шириной
+    1024; fx/fz/fyb — ТОЧКА СЪЁМКИ: куда упёрся луч оси камеры в рельеф
+    (блоки), fd — длина луча в блоках (мера GSD: чем меньше, тем детальнее).
+    Рантайм подбирает кадры по близости точки съёмки к прицелу пользователя —
+    «покажи кадры, которые снимали то, куда я смотрю». Кадры, чей луч не
+    упирается в рельеф ближе 2.5 км (горизонт/небо), выбрасываются.
     Поза интерполируется по сэмплам меты (шаг 2 с), фокусное — coverage tsv;
     кадры без фокусного пропускаются (проецировать нечем).
     """
     import bisect
+
+    def footprint(x, zz, alt, yaw, pitch):
+        yr, pr = math.radians(yaw), math.radians(pitch)
+        cp = math.cos(pr)
+        dx, dy, dz = math.sin(yr) * cp, math.sin(pr), -math.cos(yr) * cp
+        px, py, pz = x * BX, alt, zz * BX
+        for _ in range(int(2500 / 6)):
+            px += dx * 6; py += dy * 6; pz += dz * 6
+            gx, gz = px / BX, pz / BX
+            if not (0 <= gx < w - 1 and 0 <= gz < h - 1):
+                return None
+            if py <= zt[int(gz), int(gx)]:
+                d = math.hypot(px - x * BX, py - alt, pz - zz * BX)
+                return (round(gx, 1), round(gz, 1),
+                        round((py - zmin) / BX, 1), round(d / BX, 1))
+        return None
     sys.path.insert(0, str(ROOT / "analysis"))
     from flight_cache import load_coverage, nearest_cov
 
@@ -281,9 +302,13 @@ def eye_layer(zmin, w, h):
             x, z = to_xy(lat, lon)
             if not (0 <= x < w and 0 <= z < h):
                 continue
+            fp = footprint(x, z, alt, yaw, pitch)
+            if fp is None:          # луч в небо/за горизонт — кадр не привязать
+                continue
             rows.append([i, x, z, round((alt - zmin) / BX, 2),
                          round(yaw, 1), round(pitch, 1),
-                         round(row[1] * 1024 / 1920)])
+                         round(row[1] * 1024 / 1920),
+                         fp[0], fp[1], fp[2], fp[3]])
         if rows:
             eyes.append(dict(v=stem, s=rows))
     return eyes
@@ -313,7 +338,7 @@ def build():
 
     apts = registry_points(z, zmin, w, h)
     cams, fan = drone_layer(dem, zmin, w, h)
-    eye = eye_layer(zmin, w, h)
+    eye = eye_layer(z, zmin, w, h)
 
     # появление: над ледником севернее кластера вещей, взгляд на юг —
     # в кадре сразу склон с находками, стена LOOK и гребень
