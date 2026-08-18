@@ -33,8 +33,8 @@
     усредниться — проверяй по исходным кадрам.
     <a href="polyot-3d.html#photo,eye">← Полёт 3D</a> ·
     <a href="map.html">Карта</a><br>
-    Сцены: <a href="scena-3d.html">кошки 16.08</a> ·
-    <a href="scena-3d.html?url=scenes/zona_aa%2Cscenes/zona_ab%2Cscenes/zona_ac#[0.9986,-0.0188,0.0487,0,0.0429,0.8288,-0.5579,0,-0.0299,0.5592,0.8285,0,-0.8689,-0.0461,-1.0735,1]">стена до вершины</a>
+    Сцены: <a href="scena-3d.html?scene=koshki">кошки 16.08</a> ·
+    <a href="scena-3d.html?scene=zona">стена до вершины</a>
   </div>
 </div>
 <div id="progress"></div>
@@ -44,13 +44,27 @@
 <div class="cube-wrapper"><div class="cube"></div></div>
 <canvas id="canvas"></canvas>
 <script>
-// сцена по умолчанию (двумя частями из-за лимита размера файла хостинга)
-window.DEFAULT_SPLAT_URL = "scenes/koshki6_aa,scenes/koshki6_ab,scenes/koshki6_ac,scenes/koshki6_ad";
-// стартовая камера — реальная поза дрона у сцены (кадр 114520 t=300),
-// если в ссылке не задан свой ракурс хэшем
-if (!location.hash || location.hash.length < 3)
-  location.hash = JSON.stringify([0.9983,0.0012,-0.0589,0,-0.0137,0.9769,
-    -0.2131,0,0.0573,0.2135,0.9753,0,0.5734,0.9325,0.4864,1]);
+// Сцены: ?scene=koshki (умолч.) | zona. Файлы частями из-за лимита хостинга;
+// стартовая камера каждой сцены — реальная поза дрона (хэш в ссылке сильнее).
+const SCENES = {
+  koshki: {
+    url: "scenes/koshki6_aa,scenes/koshki6_ab,scenes/koshki6_ac,scenes/koshki6_ad",
+    view: [0.9983,0.0012,-0.0589,0,-0.0137,0.9769,-0.2131,0,
+           0.0573,0.2135,0.9753,0,0.5734,0.9325,0.4864,1],
+    ttl: "Сцена 16.08 «кошки» — честная 3D (сплаты)"},
+  zona: {
+    url: "scenes/zona_aa,scenes/zona_ab,scenes/zona_ac",
+    view: [0.9986,-0.0188,0.0487,0,0.0429,0.8288,-0.5579,0,
+           -0.0299,0.5592,0.8285,0,-0.8689,-0.0461,-1.0735,1],
+    ttl: "Стена до вершины — честная 3D (сплаты)"},
+};
+{
+  const sc = SCENES[new URLSearchParams(location.search).get("scene")] || SCENES.koshki;
+  window.DEFAULT_SPLAT_URL = sc.url;
+  document.getElementById("ttl").textContent = sc.ttl;
+  if (!location.hash || location.hash.length < 3)
+    location.hash = JSON.stringify(sc.view);
+}
 </script>
 <script src="vendor/splat-render.js"></script>
 </body>
