@@ -48,6 +48,10 @@ from geoproject import Dem, _bilinear, at, load_rows  # noqa: E402
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data/drive"
 COV_DIR = ROOT / "analysis/coverage"
+# пер-ролик поправка привязки (align_ortho_anchors.py) — сдвиг позы камеры
+# в метрах; действует ТОЛЬКО на мозаику, расчётный конвейер координат
+# телеметрию не правит
+ANCHORS_TSV = COV_DIR / "ortho-anchors.tsv"
 OUT_DIR = ROOT / "analysis/viewer/ortho"
 WORK_DIR = ROOT / "analysis/ortho-work"
 TILES_DIR = WORK_DIR / "tiles"
@@ -207,6 +211,18 @@ def focal_at(cov, t, max_dt=6.0):
     return best[1] if best else None
 
 
+def load_anchors():
+    """{имя ролика: (dn_м, de_м)} — поправки позы камеры для укладки."""
+    if not ANCHORS_TSV.exists():
+        return {}
+    out = {}
+    for line in ANCHORS_TSV.read_text().splitlines()[1:]:
+        p = line.split("\t")
+        if len(p) >= 3:
+            out[p[0]] = (float(p[1]), float(p[2]))
+    return out
+
+
 # --- хранилище тайлов -----------------------------------------------------------
 
 
@@ -313,6 +329,15 @@ def composite_frame(dem, store, img, lat0, lon0, alt0, yaw, pitch, f_px):
     scg = score.reshape(nv, nu)
 
     src = cv2.resize(img, (W, H)) if img.shape[1] != W else img
+    # Пирамида префильтра: квад, ложащийся МЕЛЬЧЕ исходника, нельзя брать
+    # линейной выборкой прямо из кадра — она перескакивает пиксели и даёт
+    # муар-полосы. Уровень пирамиды выбирается по фактическому сжатию квада,
+    # чтобы шаг выборки был ~1 px исходника.
+    pyr = [src]
+    for _ in range(3):
+        p = pyr[-1]
+        pyr.append(cv2.resize(p, ((p.shape[1] + 1) // 2, (p.shape[0] + 1) // 2),
+                              interpolation=cv2.INTER_AREA))
     laid = 0
     for j in range(nv - 1):
         for i in range(nu - 1):
@@ -326,10 +351,21 @@ def composite_frame(dem, store, img, lat0, lon0, alt0, yaw, pitch, f_px):
             e = np.linalg.norm(np.roll(dst, -1, 0) - dst, axis=1)
             if e.max() > EDGE_MAX_PX or e.max() < 1e-3:
                 continue   # растянуло через заслон либо вырождение
+            # косой участок кадра вырождается в «лапшу»: длинная сторона в
+            # норме, короткая субпиксельная — заливка таких полигонов рисует
+            # пунктир, а выборка вдоль короткой оси даёт полосы-муар. Квадам
+            # тоньше пикселя тайла в этом зуме делать нечего (их место на
+            # грубых уровнях), уровень префильтра — по КОРОТКОЙ стороне
+            short = min(e[0] + e[2], e[1] + e[3]) / 2
+            if short < 1.2:
+                continue
             qs = float(scg[j:j + 2, i:i + 2].mean())
             sq = np.array([[uu[j, i], vv[j, i]], [uu[j, i + 1], vv[j, i]],
                            [uu[j, i + 1], vv[j + 1, i]], [uu[j, i], vv[j + 1, i]]],
                           np.float32)
+            scale = short / NODE_PX
+            lvl = (0 if scale >= 0.75
+                   else min(3, max(0, int(round(-math.log2(max(scale, 1e-6)))))))
             x0, y0 = int(np.floor(dst[:, 0].min())), int(np.floor(dst[:, 1].min()))
             x1, y1 = int(np.ceil(dst[:, 0].max())), int(np.ceil(dst[:, 1].max()))
             for tx in range(x0 // TILE, x1 // TILE + 1):
@@ -340,9 +376,10 @@ def composite_frame(dem, store, img, lat0, lon0, alt0, yaw, pitch, f_px):
                     if bx0 >= bx1 or by0 >= by1:
                         continue
                     local = dst - [ox + bx0, oy + by0]
-                    hm = cv2.getPerspectiveTransform(sq, local.astype(np.float32))
+                    hm = cv2.getPerspectiveTransform(sq / (1 << lvl),
+                                                     local.astype(np.float32))
                     patch = cv2.warpPerspective(
-                        src, hm, (bx1 - bx0, by1 - by0), flags=cv2.INTER_LINEAR,
+                        pyr[lvl], hm, (bx1 - bx0, by1 - by0), flags=cv2.INTER_LINEAR,
                         borderMode=cv2.BORDER_REPLICATE)
                     mask = np.zeros((by1 - by0, bx1 - bx0), np.uint8)
                     cv2.fillPoly(mask, [np.round(local).astype(np.int32)], 255)
@@ -360,7 +397,7 @@ def composite_frame(dem, store, img, lat0, lon0, alt0, yaw, pitch, f_px):
 # --- обработка ролика -----------------------------------------------------------
 
 
-def process(dem, store, video: Path, done: dict, force: bool):
+def process(dem, store, video: Path, done: dict, force: bool, anchors=None):
     if video.name in done and not force:
         print(f"{video.stem}: уже уложен, пропуск")
         return
@@ -369,6 +406,7 @@ def process(dem, store, video: Path, done: dict, force: bool):
     if not cov:
         print(f"{video.stem}: нет фокусного (coverage tsv) — пропуск", file=sys.stderr)
         return
+    anc = (anchors or {}).get(video.stem)
     cap = cv2.VideoCapture(str(video))
     dur = cap.get(cv2.CAP_PROP_FRAME_COUNT) / max(cap.get(cv2.CAP_PROP_FPS), 1)
     n_frames = n_laid = 0
@@ -377,6 +415,9 @@ def process(dem, store, video: Path, done: dict, force: bool):
     while t < dur:
         pose = [at(rows, t, k) for k in ("lat", "lon", "alt_m", "gb_yaw", "gb_pitch")]
         f_px = focal_at(cov, t)
+        if anc and math.isfinite(pose[0]):
+            pose[0] += anc[0] / 111132.0
+            pose[1] += anc[1] / (111320.0 * math.cos(math.radians(pose[0])))
         if all(math.isfinite(v) for v in pose) and f_px:
             cap.set(cv2.CAP_PROP_POS_MSEC, t * 1000)
             got, img = cap.read()
@@ -577,9 +618,12 @@ def main():
             raise SystemExit("нечего обрабатывать (ролики или --all)")
         dem = Dem()
         store = TileStore()
+        anchors = load_anchors()
+        if anchors:
+            print(f"поправки привязки: {len(anchors)} роликов (ortho-anchors.tsv)")
         for v in videos:
             try:
-                process(dem, store, v, done, args.force)
+                process(dem, store, v, done, args.force, anchors)
             except Exception as e:  # один битый ролик не валит прогон
                 print(f"{v.stem}: ОШИБКА {e}", file=sys.stderr)
         store.flush()

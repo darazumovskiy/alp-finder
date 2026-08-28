@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""«Полёт 3D»: воксельный облёт района на движке kurumdy-3d с нашими данными.
+"""«Полёт 3D»: облёт района на движке kurumdy-3d с нашими данными.
 
 Движок — открытая страница Николая (@nickoliuzzz, github.io/kurumdy-3d):
 самописный WebGL2 без библиотек, полёт WASD, прицел, карточки объектов.
+Исходно воксельный; рельеф заменён на гладкую треугольную сетку
+(вершины в центрах ячеек BX, высоты с квантом BZ).
 Здесь он используется как шаблон (polyot3d_template.html, вырезан payload),
 а данные собираются из нашего конвейера:
 
@@ -39,7 +41,7 @@ import cv2  # noqa: E402
 import numpy as np  # noqa: E402
 
 from geoproject import Dem, HMA_PATH, _bilinear  # noqa: E402
-from build_map import CAMPS, KINDS, POINTS, parse_gpx  # noqa: E402
+from build_map import CAMPS, HIDDEN_KINDS, KINDS, POINTS, parse_gpx  # noqa: E402
 
 OUT = HERE / "polyot-3d.html"
 TEMPLATE = HERE / "polyot3d_template.html"
@@ -53,8 +55,9 @@ STATUSES = [dict(id="confirmed", title="Подтверждено"),
 # Рамка полёта: район операции с запасом (внутри рамки HMA-сетки)
 LAT0, LAT1 = 39.450, 39.528
 LON0, LON1 = 73.552, 73.648
-BX = 8.0      # метров на воксель по горизонтали
-BZ = 2.5      # метров на уровень по высоте
+BX = 8.0      # метров на ячейку сетки по горизонтали
+BZ = 0.25     # метров на уровень по высоте (гладкая сетка: квант мельче ячейки,
+              # диапазон высот района ~2.4 км = ~9.6 тыс. уровней, uint16 хватает)
 MLA = 111320.0
 MLO = 111320.0 * math.cos(math.radians((LAT0 + LAT1) / 2))
 
@@ -128,7 +131,7 @@ def line3d(dem, pts, zmin, every=1):
             continue
         x, y = to_xy(lat, lon)
         if 0 <= x <= (LON1 - LON0) * MLO / BX and 0 <= y <= (LAT1 - LAT0) * MLA / BX:
-            out.append([x, round((z - zmin) / BZ + 2), y])
+            out.append([x, round((z - zmin + 3.0) / BZ), y])   # 3 м над рельефом
     return out
 
 
@@ -174,6 +177,8 @@ def registry_points(z, zmin, w, h):
     """
     apts = []
     for p in POINTS:
+        if p["kind"] in HIDDEN_KINDS:  # временно скрытые категории (см. build_map)
+            continue
         x, y = to_xy(p["lat"], p["lon"])
         if not (0 <= x < w and 0 <= y < h):
             continue
@@ -340,6 +345,28 @@ def build():
     cams, fan = drone_layer(dem, zmin, w, h)
     eye = eye_layer(z, zmin, w, h)
 
+    # детальные вставки сцен (bake_insert.py, scene3d_insert.py) — грузятся
+    # страницей лениво. Зонные insert_z-* заменены плитками склона и в
+    # список не идут (файлы остаются для истории)
+    inserts = []
+    for p in sorted((HERE / "ortho").glob("insert_*.json")):
+        if p.name.startswith("insert_z-"):
+            continue
+        try:
+            ins = json.loads(p.read_text())
+        except (json.JSONDecodeError, OSError):
+            continue
+        if ins.get("weak"):
+            continue
+        if ins.get("name") in HIDDEN_KINDS:  # вставка временно скрытой сцены
+            continue
+        inserts.append(dict(file=f"ortho/{p.name}",
+                            title=ins.get("title", p.stem)))
+
+    # плитки склона (slope_tiles.py): одна группа-галка, файлы лениво
+    tiles = [dict(file=f"ortho/tiles3d/{p.name}")
+             for p in sorted((HERE / "ortho/tiles3d").glob("t_*.json"))]
+
     # появление: над ледником севернее кластера вещей, взгляд на юг —
     # в кадре сразу склон с находками, стена LOOK и гребень
     sp_lat, sp_lon = 39.4915, 73.5850
@@ -355,10 +382,11 @@ def build():
         meta=b64(meta), acov=b64(acov),
         tex_a="", tex_b="",
         apts=apts,
-        kinds=[dict(id=k, title=t) for k, t in KINDS],
+        kinds=[dict(id=k, title=t) for k, t in KINDS if k not in HIDDEN_KINDS],
         statuses=STATUSES, lines=lines,
         camps=camps, wpts=wpts,
-        items=[], finds=[], shel=[], cams=cams, fan=fan, eye=eye)
+        items=[], finds=[], shel=[], cams=cams, fan=fan, eye=eye,
+        inserts=inserts, tiles=tiles)
 
     html = TEMPLATE.read_text("utf-8").replace(
         "__PAYLOAD__", json.dumps(payload, ensure_ascii=False, separators=(",", ":")))

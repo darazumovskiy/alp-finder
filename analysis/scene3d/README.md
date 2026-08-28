@@ -36,6 +36,16 @@ python analysis/scene3d/pack_scene3d.py               # HTML
 python -m pytest analysis/scene3d/tests/
 ```
 
+Зоны плотного прогона (14 облаков `data/_fused/<зона>/fused.ply`) во вставки
+«Полёт 3D»:
+
+```bash
+analysis/.venv/bin/python analysis/scene3d/georef_scene.py \
+  analysis/scene3d/data/<зона>/dense/sparse analysis/scene3d/data/<зона>/georef-dense.json
+analysis/.venv/bin/python analysis/scene3d/zone_insert.py [зона ...]   # вставки insert_z-*
+analysis/.venv/bin/python analysis/viewer/build_polyot3d.py            # пересборка страницы
+```
+
 Нужны: `numpy`, `scipy`, `opencv-python`, `pycolmap`, `rasterio`, `pyproj`, Python 3.12.
 
 **Про переносимость честно.** `src/drape.py` самодостаточен: кроме numpy, scipy и OpenCV

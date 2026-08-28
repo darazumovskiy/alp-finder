@@ -100,8 +100,6 @@ body.hidepanels #toggle{display:block}
     <button id="dbg-btn" style="background:#8c2f3a;color:#fff;border:0;border-radius:5px;
       padding:4px 10px;cursor:pointer;font:inherit;font-size:12px">⏺ запись</button>
     <span class="note" id="dbg-time" style="margin-left:6px"></span>
-    <div class="note">Запись → повторить проблему → комментарий →
-      копировать лог → прислать со скриншотами.</div>
     <div id="dbg-live" style="display:none">
       <div id="dbg-tail" style="font:10px ui-monospace,monospace;white-space:pre-wrap;
         color:#9fb8d0;background:#0a1017;border:1px solid #26456a;border-radius:5px;
@@ -117,16 +115,15 @@ body.hidepanels #toggle{display:block}
 
     <h2 style="margin-top:12px">Рельеф</h2>
     <label><input type="checkbox" id="L-coul"><span class="sw" style="background:#5a73fa"></span>кулуары и ложбины</label>
-    <div class="note">NASA HMA 8 м + патчи 2026 в пятне вещей. Карнизов и
-      трещин 1–5 м не видно.</div>
 
     <h2 style="margin-top:12px">Фото со съёмки</h2>
     <label><input type="checkbox" id="L-splat"><span class="sw" style="background:#9fe8a0"></span>сцены-сплаты: честная 3D</label>
-    <div class="note" id="splat-note">Реконструкции зон по кадрам (сплаты):
-      подгружаются при включении, рисуются поверх рельефа в своих местах.</div>
+    <div class="note" id="splat-note"></div>
     <label><input type="checkbox" id="L-eye"><span class="sw" style="background:#ffb7e6"></span>глазами дрона — кадр у трека</label>
-    <div class="note" id="eye-note">Кадры ложатся туда, куда смотрит прицел.
-      <b>G</b> — сесть в глаза дрона.</div>
+    <div class="note" id="eye-note"></div>
+    <label><input type="checkbox" id="L-photo"><span class="sw" style="background:#e8d29a"></span>фото-обои — орто из кадров</label>
+    <div class="note" id="photo-note"></div>
+    <div id="inslist"></div>
 
     <h2 style="margin-top:12px">Покрытие съёмкой (87 роликов)</h2>
     <label><input type="checkbox" id="L-cov3"><span class="sw" style="background:#38d972"></span>детально — предмет ≤ 20 см</label>
@@ -161,8 +158,6 @@ body.hidepanels #toggle{display:block}
       <option value="1.5" selected>1.5×</option><option value="2">2× (чётко)</option></select></label>
     <label><input type="checkbox" id="S-idle" checked>не рисовать, пока стоишь</label>
     <div class="note" id="S-stat">—</div>
-    <div class="note">Наведи перекрестье на маркер — подпись и кадр.
-      <kbd>E</kbd> — открыть кадр / плеер этого полёта.</div>
 
     <div style="display:none">
       <select id="S-tex"><option value="h" selected>по высоте</option></select>
@@ -209,7 +204,7 @@ body.hidepanels #toggle{display:block}
 <div id="splash"><div>
   <h1>Курумды — Полёт 3D</h1>
   <p>Рельеф NASA HMA 8 м с фотограмметрическими патчами 2026 г.,
-     воксель 8 м по горизонтали и 2.5 м по высоте.</p>
+     гладкая треугольная сетка 8 м, высоты с шагом 0.25 м.</p>
   <p>Данные проекта alp-finder: покрытие съёмкой по всем роликам,
      реестр находок, треки полётов.</p>
   <p style="color:#6f8399;font-size:12px">Управление как в Minecraft в режиме полёта.
@@ -260,62 +255,50 @@ function colOf(x,y,l){
   if(sl>42){const t=Math.min((sl-42)/30,1)*0.62;   // крутое — голая порода
     c=[c[0]*(1-t)+112*t,c[1]*(1-t)+104*t,c[2]*(1-t)+96*t];}
   const sh=SHADE[i]/255*1.35;
-  // тёплый свет / холодная тень
+  // тёплый свет / холодная тень; поячеечный шум убран — на гладкой сетке
+  // интерполяция цвета вершин превращала его в шахматную «лоскутность»
   const wr=sh>0.85?1.03:0.96, wb=sh>0.85?0.96:1.07;
-  const n=(((x*73856093)^(y*19349663)^(l*83492791))>>>0)%100/100, k=0.955+n*0.09;
-  return [Math.max(0,Math.min(255,c[0]*sh*wr*k))|0,
-          Math.max(0,Math.min(255,c[1]*sh*k))|0,
-          Math.max(0,Math.min(255,c[2]*sh*wb*k))|0];
+  return [Math.max(0,Math.min(255,c[0]*sh*wr))|0,
+          Math.max(0,Math.min(255,c[1]*sh))|0,
+          Math.max(0,Math.min(255,c[2]*sh*wb))|0];
 }
 
 // ---------- меш ----------
-const NBR=[[1,0],[-1,0],[0,1],[0,-1]];
-const skirt=l=>Math.max(l-6,0);
+// Гладкий рельеф: вершина в центре каждой ячейки, между соседними — два
+// треугольника. Форму читает непрерывная поверхность с предрасчитанной
+// отмывкой в цвете вершин; вертикальных «бортов» вокселей больше нет.
 let NQ=0,pos,col,meta,idx;
 const CH=32,CX=Math.ceil(W/CH),CZ=Math.ceil(H/CH);
 let CHUNKS=[];
 function buildMesh(){
-  let nq=W*H;                      // счёт обязан в точности повторять заполнение ниже
-  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const l=lev(x,y);
-    for(const [dx,dy] of NBR){
-      const nx=x+dx,ny=y+dy,edge=(nx<0||ny<0||nx>=W||ny>=H);
-      if((edge?skirt(l):lev(nx,ny))<l)nq++;}}
-  pos=new Float32Array(nq*12); col=new Uint8Array(nq*16); meta=new Uint8Array(nq*16);
-  idx=new Uint32Array(nq*6);
-  let p=0,c=0,m=0,q=0;
-  const put=(v,rgb,cl,face,ac)=>{
-    for(let i=0;i<4;i++){
-      pos[p++]=v[i][0];pos[p++]=v[i][1];pos[p++]=v[i][2];
-      col[c++]=rgb[0];col[c++]=rgb[1];col[c++]=rgb[2];col[c++]=255;
-      meta[m++]=cl;meta[m++]=face;meta[m++]=ac;meta[m++]=0;}
-    const b=q*4;
-    idx[q*6]=b;idx[q*6+1]=b+1;idx[q*6+2]=b+2;
-    idx[q*6+3]=b;idx[q*6+4]=b+2;idx[q*6+5]=b+3;q++;};
-  // Квады раскладываются по блокам 24x24 колонки, чтобы за кадр рисовать
+  pos=new Float32Array(W*H*3); col=new Uint8Array(W*H*4); meta=new Uint8Array(W*H*4);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    const i=y*W+x,l=lev(x,y),rgb=colOf(x,y,l);
+    pos[i*3]=x+0.5;pos[i*3+1]=l+1;pos[i*3+2]=y+0.5;
+    col[i*4]=rgb[0];col[i*4+1]=rgb[1];col[i*4+2]=rgb[2];col[i*4+3]=255;
+    meta[i*4]=META[i];meta[i*4+1]=0;meta[i*4+2]=ACOV[i];meta[i*4+3]=0;}
+  // Индексы раскладываются по кускам 32x32 ячейки, чтобы за кадр рисовать
   // только те куски рельефа, что реально попали в поле зрения.
   CHUNKS=[];
+  let total=0;
+  const blocks=[];
   for(let cz=0;cz<CZ;cz++)for(let cx=0;cx<CX;cx++){
-    const bx0=cx*CH,bx1=Math.min(bx0+CH,W),bz0=cz*CH,bz1=Math.min(bz0+CH,H);
+    const bx0=cx*CH,bx1=Math.min(bx0+CH,W-1),bz0=cz*CH,bz1=Math.min(bz0+CH,H-1);
+    const n=(bx1-bx0)*(bz1-bz0);
+    if(n>0){blocks.push([bx0,bx1,bz0,bz1]);total+=n;}}
+  idx=new Uint32Array(total*6);
+  let q=0;
+  for(const [bx0,bx1,bz0,bz1] of blocks){
     const first=q; let lo=1e9,hi=-1e9;
     for(let y=bz0;y<bz1;y++)for(let x=bx0;x<bx1;x++){
-      const i=y*W+x,l=lev(x,y),rgb=colOf(x,y,l),cl=META[i],ac=ACOV[i],t=l+1;
-      if(l<lo)lo=l; if(l>hi)hi=l;
-      put([[x,t,y+1],[x+1,t,y+1],[x+1,t,y],[x,t,y]],rgb,cl,0,ac);
-      for(const [dx,dy] of NBR){
-        const nx=x+dx,ny=y+dy,edge=(nx<0||ny<0||nx>=W||ny>=H);
-        const nl=edge?skirt(l):lev(nx,ny);
-        if(nl>=l)continue;
-        if(nl<lo)lo=nl;
-        const f=dx?0.87:0.94;
-        const dk=[rgb[0]*f|0,rgb[1]*f|0,rgb[2]*f|0];
-        let v;
-        if(dx===1)      v=[[x+1,nl+1,y],[x+1,nl+1,y+1],[x+1,l+1,y+1],[x+1,l+1,y]];
-        else if(dx===-1)v=[[x,nl+1,y+1],[x,nl+1,y],[x,l+1,y],[x,l+1,y+1]];
-        else if(dy===1) v=[[x+1,nl+1,y+1],[x,nl+1,y+1],[x,l+1,y+1],[x+1,l+1,y+1]];
-        else            v=[[x,nl+1,y],[x+1,nl+1,y],[x+1,l+1,y],[x,l+1,y]];
-        put(v,dk,cl,dx?1:2,ac);}}
-    if(q>first) CHUNKS.push({off:first*6*4,cnt:(q-first)*6,
-      x0:bx0,x1:bx1,z0:bz0,z1:bz1,y0:lo*S,y1:(hi+1)*S});
+      const a=y*W+x,b=a+1,c=a+W,d=c+1;
+      idx[q*6]=a;idx[q*6+1]=b;idx[q*6+2]=c;
+      idx[q*6+3]=b;idx[q*6+4]=d;idx[q*6+5]=c;q++;
+      const mn=Math.min(lev(x,y),lev(x+1,y),lev(x,y+1),lev(x+1,y+1));
+      const mx=Math.max(lev(x,y),lev(x+1,y),lev(x,y+1),lev(x+1,y+1));
+      if(mn<lo)lo=mn; if(mx>hi)hi=mx;}
+    CHUNKS.push({off:first*6*4,cnt:(q-first)*6,
+      x0:bx0,x1:bx1+1,z0:bz0,z1:bz1+1,y0:lo*S,y1:(hi+1)*S});
   }
   NQ=q;
 }
@@ -355,11 +338,32 @@ const PT=prog(`#version 300 es
 precision highp float;
 layout(location=0) in vec3 aPos;layout(location=1) in vec4 aCol;layout(location=2) in vec4 aMeta;
 uniform mat4 uVP;uniform vec3 uEye;uniform float uYS;
+// рельеф под 3D-вставками (мэш со своей геометрией) продавливается под их низ:
+// контур — параллелограмм плана (uInsM — обратная матрица осей), uInsP —
+// плоскость вставки, uInsB — (целевой уровень под плоскостью, потолок глубины),
+// uInsN — сколько вставок активно; растянутые переходные грани у контура
+// сами запечатывают стык
+// uInsK — атлас вставок (4x4 слота): R — есть ли под этой точкой измеренная
+// поверхность (в прогалинах рельеф не трогается, иначе копались бы воронки),
+// G — высота модели над её плоскостью, нормированная в uInsB.xy. Рельеф
+// прижимается вплотную под модель, а не до низа наклонной плиты
+uniform int uInsN;uniform vec2 uInsO[16];uniform vec4 uInsM[16];
+uniform vec4 uInsP[16];uniform vec4 uInsB[16];uniform sampler2D uInsK;
 out vec3 vCol;out float vCls;out float vAcov;out float vDist;out vec2 vUV;out vec2 vXZ;out float vY;
 void main(){
   // Y хранится в уровнях по 5 м, X/Z — в блоках по 15 м: приводим к одному масштабу,
   // иначе рельеф выглядел бы втрое круче, чем он есть
   vec3 p=vec3(aPos.x,aPos.y*uYS,aPos.z);
+  for(int i=0;i<uInsN;i++){
+    vec2 rp=p.xz-uInsO[i];
+    float a=uInsM[i].x*rp.x+uInsM[i].y*rp.y,b=uInsM[i].z*rp.x+uInsM[i].w*rp.y;
+    if(a>0.0&&a<1.0&&b>0.0&&b<1.0){
+      vec2 kt=(vec2(float(i-(i/4)*4),float(i/4))+vec2(a,b))*0.25;
+      vec2 k=texture(uInsK,kt).rg;
+      if(k.r<0.5)continue;
+      float mh=uInsB[i].x+k.g*(uInsB[i].y-uInsB[i].x)-uInsB[i].z;
+      float ex=dot(p,uInsP[i].xyz)-uInsP[i].w-mh;
+      if(ex>0.0)p.y-=ex/uInsP[i].y;}}
   vCol=aCol.rgb;vCls=aMeta.x;vAcov=aMeta.z;vDist=length(p-uEye);vXZ=p.xz;vY=p.y;
   int f=int(aMeta.y+0.5);
   if(f==0)      vUV=p.xz;
@@ -377,7 +381,20 @@ uniform sampler2D uEyeT0,uEyeT1,uEyeT2,uEyeT3,uEyeT4,uEyeT5,
 uniform vec4 uEyeWa,uEyeWb,uEyeWc;
 uniform vec4 uEyeC0,uEyeC1,uEyeC2,uEyeC3,uEyeC4,uEyeC5,
   uEyeC6,uEyeC7,uEyeC8,uEyeC9,uEyeC10,uEyeC11;  // (точка съёмки xyz, радиус пятна)
+// фото-обои: ковёр района + 3 каскада детали. Привязка каждого слота —
+// аффинная «сетка (x,z) -> uv окна», предвычисленная на CPU в double:
+// глобальные меркатор-доли в float32 квантуются с шагом ~2 м и превращали
+// детальную текстуру в одноцветные квадраты.
+uniform int uPhOn;
+uniform sampler2D uPhT0,uPhT1,uPhT2,uPhT3;       // 0 ковёр, 1..3 всё детальнее
+uniform vec4 uPhM0,uPhM1,uPhM2,uPhM3;            // (ax, ay, bx, by): uv=a*xz+b
 out vec4 o;
+vec4 phPick(sampler2D T,vec4 M,vec2 xz){
+  if(M.x<=0.0)return vec4(0.0);
+  vec2 uv=vec2(M.x*xz.x+M.z,M.y*xz.y+M.w);
+  if(uv.x<0.002||uv.x>0.998||uv.y<0.002||uv.y>0.998)return vec4(0.0);
+  return texture(T,uv);
+}
 vec3 eyeApply(mat4 M,sampler2D T,float w,vec4 FP,vec3 c,vec3 wp){
   if(w<0.004)return c;
   // кадр честен только у своей точки съёмки: за пределами пятна гасим,
@@ -394,6 +411,15 @@ vec3 eyeApply(mat4 M,sampler2D T,float w,vec4 FP,vec3 c,vec3 wp){
 }
 void main(){
   vec3 c=vCol;
+  if(uPhOn==1){
+    // выбирается самый детальный каскад, чья рамка накрывает точку и в котором
+    // есть съёмка (альфа); дыры проваливаются в грубые уровни и ковёр
+    vec4 s=phPick(uPhT3,uPhM3,vXZ);
+    if(s.a<0.55)s=phPick(uPhT2,uPhM2,vXZ);
+    if(s.a<0.55)s=phPick(uPhT1,uPhM1,vXZ);
+    if(s.a<0.55)s=phPick(uPhT0,uPhM0,vXZ);
+    c=mix(c,s.rgb,s.a);
+  }
   if(uEyeOn==1){
     // «глазами дрона»: настоящие кадры проецируются из поз дрона; 12
     // проекторов (слабый -> сильный), сильнейший кадр перекрывает остальных.
@@ -453,22 +479,27 @@ void main(){gl_Position=uVP*vec4(aPos,1.0);}`,
 `#version 300 es
 precision highp float;uniform vec4 uCol;out vec4 o;void main(){o=uCol;}`);
 
+// текстурированный мэш-патч (детальные вставки сцен, bake_insert.py)
+const PI=prog(`#version 300 es
+precision highp float;layout(location=0) in vec3 aPos;layout(location=1) in vec2 aUV;
+uniform mat4 uVP;out vec2 vUV;
+void main(){vUV=aUV;gl_Position=uVP*vec4(aPos,1.0);}`,
+`#version 300 es
+precision highp float;in vec2 vUV;uniform sampler2D uTex;out vec4 o;
+void main(){vec3 c=texture(uTex,vUV).rgb;
+  // чёрное в текстуре вставки = «не отснято», сквозь него виден рельеф
+  if(c.r+c.g+c.b<0.02)discard;
+  o=vec4(c,1.0);}`);
+const uIV=gl.getUniformLocation(PI,'uVP'),uIT=gl.getUniformLocation(PI,'uTex');
+
 function buf(t,d){const b=gl.createBuffer();gl.bindBuffer(t,b);gl.bufferData(t,d,gl.STATIC_DRAW);return b;}
 let vaoT,colBuf;
 // перекраска рельефа без пересборки геометрии: обход обязан повторять buildMesh
 function recolor(){
-  const c2=new Uint8Array(NQ*16); let c=0;
-  const putc=(r,g2,b2)=>{for(let i=0;i<4;i++){c2[c++]=r;c2[c++]=g2;c2[c++]=b2;c2[c++]=255;}};
-  for(let cz=0;cz<CZ;cz++)for(let cx=0;cx<CX;cx++){
-    const bx0=cx*CH,bx1=Math.min(bx0+CH,W),bz0=cz*CH,bz1=Math.min(bz0+CH,H);
-    for(let y=bz0;y<bz1;y++)for(let x=bx0;x<bx1;x++){
-      const l=lev(x,y),rgb=colOf(x,y,l);
-      putc(rgb[0],rgb[1],rgb[2]);
-      for(const [dx,dy] of NBR){
-        const nx=x+dx,ny=y+dy,edge=(nx<0||ny<0||nx>=W||ny>=H);
-        if((edge?skirt(l):lev(nx,ny))>=l)continue;
-        const f=dx?0.87:0.94;
-        putc(rgb[0]*f|0,rgb[1]*f|0,rgb[2]*f|0);}}}
+  const c2=new Uint8Array(W*H*4);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    const i=y*W+x,rgb=colOf(x,y,lev(x,y));
+    c2[i*4]=rgb[0];c2[i*4+1]=rgb[1];c2[i*4+2]=rgb[2];c2[i*4+3]=255;}
   gl.bindBuffer(gl.ARRAY_BUFFER,colBuf);gl.bufferSubData(gl.ARRAY_BUFFER,0,c2);dirty=true;
 }
 function uploadTerrain(){
@@ -548,7 +579,7 @@ function buildAlp(){
   gAlp=group(arr.map(o=>[o.x,o.y,o.l]),i=>alpColor(arr[i]),0.26,0.45);
 }
 function buildScene(){
-  // маркеры намеренно мелкие: предмет ~1 м, а воксель 15 м — крупный куб
+  // маркеры намеренно мелкие: предмет ~1 м, а ячейка сетки 8 м — крупный куб
   // склеивал бы соседей и врал про расстояния между ними
   gFind =group(P.finds.map(o=>[o.x,o.y,o.l]),[1,.44,.06,1],0.30,0.55);
   gThing=group(P.items.map(o=>[o.x,o.y,o.l]),[1,.82,.25,1],0.18,0.25);
@@ -599,8 +630,13 @@ const BPK=PICK.find(o=>o.c==='alp'&&/Синий рюкзак/i.test(o.n))||null;
 
 // ---------- камера ----------
 const cam={x:W*0.5,y:0,z:H*0.72,yaw:Math.PI,pitch:-0.45,spd:12.0};
-const ground=(x,z)=>{const a=Math.floor(x),b=Math.floor(z);
-  return (a<0||b<0||a>=W||b>=H)?0:yOf(lev(a,b));};
+// билинейная высота гладкой сетки (вершины в центрах ячеек, т.е. x-0.5)
+const ground=(x,z)=>{
+  const fx=Math.min(Math.max(x-0.5,0),W-1.001),fz=Math.min(Math.max(z-0.5,0),H-1.001);
+  const a=Math.floor(fx),b=Math.floor(fz),tx=fx-a,tz=fz-b;
+  const a1=Math.min(a+1,W-1),b1=Math.min(b+1,H-1);
+  return ((lev(a,b)*(1-tx)+lev(a1,b)*tx)*(1-tz)
+         +(lev(a,b1)*(1-tx)+lev(a1,b1)*tx)*tz+1)*S;};
 const dir=()=>[Math.cos(cam.pitch)*Math.sin(cam.yaw),Math.sin(cam.pitch),Math.cos(cam.pitch)*Math.cos(cam.yaw)];
 function mul(a,b){const r=new Float32Array(16);
   for(let i=0;i<4;i++)for(let j=0;j<4;j++){let s=0;
@@ -698,10 +734,11 @@ addEventListener('wheel',e=>{
 
 const O={};['gap','run','fine','coarse','find','thing','spot','shel','cam','fan','grid','fog',
   'steep','coul','cont','acov','alp','route','fall','corr','prio','camp','ring',
-  'cov1','cov2','cov3','eye','splat']
+  'cov1','cov2','cov3','eye','splat','photo']
   .forEach(k=>O[k]=el('L-'+k));
 if(location.hash.indexOf('eye')>=0)O.eye.checked=true;      // ссылка сразу с режимом
 if(location.hash.indexOf('splat')>=0)O.splat.checked=true;  // и сцены-сплаты
+if(location.hash.indexOf('photo')>=0)O.photo.checked=true;  // и фото-обои
 // ---------- сцены-сплаты: гауссовы сплаты зон, привязанные к сетке ----------
 // Данные: scenes/manifest.json (части .splat + геопривязка scene->ENU->сетка).
 // Сортировщик и математика ковариаций — antimatter15/splat (MIT), порт:
@@ -1328,7 +1365,10 @@ const uT={};['uVP','uEye','uGrid','uFog','uOn','uOn2','uSky','uYS',
   'uEyeT6','uEyeT7','uEyeT8','uEyeT9','uEyeT10','uEyeT11',
   'uEyeC0','uEyeC1','uEyeC2','uEyeC3','uEyeC4','uEyeC5',
   'uEyeC6','uEyeC7','uEyeC8','uEyeC9','uEyeC10','uEyeC11',
-  'uEyeWa','uEyeWb','uEyeWc']
+  'uEyeWa','uEyeWb','uEyeWc',
+  'uPhOn','uPhT0','uPhT1','uPhT2','uPhT3',
+  'uPhM0','uPhM1','uPhM2','uPhM3',
+  'uInsN','uInsO','uInsM','uInsP','uInsB','uInsK']
   .forEach(n=>uT[n]=gl.getUniformLocation(PT,n));
 
 // ---------- отладка: запись состояния для разбора жалоб оператора ----------
@@ -1613,8 +1653,10 @@ function eyeMatrix(e){
 // ---------- фото-обои: ортомозаика из кадров съёмки ----------
 // Тайлы analysis/build_ortho.py: веб-меркатор XYZ, тайл 512 px в сетке gz
 // (эффективный зум gz+1). Базовый ковёр — один webp на весь район; вокруг
-// точки, куда смотрит прицел, два «окна» из тайлов: среднее (gz 18, ~23 см/пикс)
-// и детальное (gz 21, ~3 см/пикс — ботинок 20 см = 7 пикселей).
+// точки, куда смотрит прицел, три «окна» из суперблоков ortho/{gz}/{sx}_{sy}.webp,
+// зум точного окна подбирается по дистанции прицела (при подлёте — до gz 23,
+// ~0.7 см/пикс), два запасных — на 2 и 4 зума грубее: дыры тонкого уровня
+// проваливаются в них, а не в чёрное.
 function gridll(x,z){return [P.LAT1-z*BX/P.MLA,P.LON0+x*BX/P.MLO];}
 function mkTex(){const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
@@ -1635,6 +1677,395 @@ function lookAt(){
   return [cam.x,cam.z];}
 // прозрачная заглушка для незанятых сэмплеров проекторов
 const TEX0=mkTex();
+
+const PH_TILE=512,PH_WIN=4096,MERC_R=6378137;
+const PHOTO={on:false,meta:null,maxTex:gl.getParameter(gl.MAX_TEXTURE_SIZE),
+  A:null,B:null,slots:[null,null,null,null],win:[null,null,null],
+  busy:false,last:0};
+const mercXY=(lat,lon)=>[(lon+180)/360,
+  (1-Math.asinh(Math.tan(lat*Math.PI/180))/Math.PI)/2];
+function phTexFromImage(src){
+  let img=src;
+  const k=Math.min(1,PHOTO.maxTex/Math.max(src.width,src.height));
+  if(k<1){const c=document.createElement('canvas');
+    c.width=Math.round(src.width*k);c.height=Math.round(src.height*k);
+    c.getContext('2d').drawImage(src,0,0,c.width,c.height);img=c;}
+  const t=mkTex();gl.bindTexture(gl.TEXTURE_2D,t);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,img);
+  return t;}
+async function phInit(){
+  if(PHOTO.meta!==null)return !!PHOTO.meta;
+  try{PHOTO.meta=await (await fetch('ortho/meta.json')).json();}
+  catch(e){PHOTO.meta=false;return false;}
+  // сетка (x,z) -> доли меркатора: по x точно, по y меркатор на рамке района
+  // линеен с ошибкой меньше метра
+  const y0=mercXY(P.LAT1,0)[1],y1=mercXY(P.LAT0,0)[1];
+  PHOTO.A=[BX/(P.MLO*360),(y1-y0)/((P.LAT1-P.LAT0)*P.MLA/BX)];
+  PHOTO.B=[(P.LON0+180)/360,y0];
+  const b=PHOTO.meta.base;
+  if(b){const im=new Image();im.src='ortho/base.webp';
+    try{await im.decode();}catch(e){}
+    if(im.width){
+      const [x0,yy0]=mercXY(b.lat_n,b.lon_w),[x1,yy1]=mercXY(b.lat_s,b.lon_e);
+      PHOTO.slots[0]={tex:phTexFromImage(im),
+        M:[PHOTO.A[0]/(x1-x0),PHOTO.A[1]/(yy1-yy0),
+           (PHOTO.B[0]-x0)/(x1-x0),(PHOTO.B[1]-yy0)/(yy1-yy0)]};dirty=true;}}
+  return true;}
+function phGz(distM,lat){
+  // пиксель точного каскада ~ пиксель экрана на этой дистанции
+  const need=Math.max(distM,12)/1400;
+  const s=2*Math.PI*MERC_R*Math.cos(lat*Math.PI/180);
+  const gz=Math.round(Math.log2(s/(PH_TILE*need)));
+  return Math.max(PHOTO.meta.minz,Math.min(PHOTO.meta.maxz,gz));}
+async function phWindow(k,gz,lat,lon){
+  const m=PHOTO.meta,s=PH_TILE*Math.pow(2,gz);
+  const [X,Y]=mercXY(lat,lon);
+  const half=PH_WIN/2;
+  // якорь окна на сетке полуокна: при движении блоки берутся из HTTP-кеша
+  const cx=Math.round(X*s/half-1)*half,cy=Math.round(Y*s/half-1)*half;
+  const cur=PHOTO.win[k];
+  if(cur&&cur.gz===gz&&cur.cx===cx&&cur.cy===cy)return;
+  PHOTO.win[k]={gz,cx,cy};
+  const blk=(m.blockz&&m.blockz[gz])||m.block,bpx=blk*PH_TILE;
+  const cvs=document.createElement('canvas');cvs.width=PH_WIN;cvs.height=PH_WIN;
+  const ctx=cvs.getContext('2d');
+  const jobs=[];
+  for(let sx=Math.floor(cx/bpx);sx*bpx<cx+PH_WIN;sx++)
+    for(let sy=Math.floor(cy/bpx);sy*bpx<cy+PH_WIN;sy++)jobs.push([sx,sy]);
+  let got=0;
+  await Promise.all(jobs.map(([sx,sy])=>new Promise(res=>{
+    const im=new Image();
+    im.onload=()=>{ctx.drawImage(im,sx*bpx-cx,sy*bpx-cy);got++;res();};
+    im.onerror=()=>res();
+    im.src=`ortho/${gz}/${sx}_${sy}.webp`;})));
+  const w2=PHOTO.win[k];
+  if(!w2||w2.gz!==gz||w2.cx!==cx||w2.cy!==cy)return;  // окно перезаказано
+  if(!got){PHOTO.slots[k+1]=null;dirty=true;return;}
+  const tex=(PHOTO.slots[k+1]&&PHOTO.slots[k+1].tex)||mkTex();
+  gl.bindTexture(gl.TEXTURE_2D,tex);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,cvs);
+  PHOTO.slots[k+1]={tex,M:[PHOTO.A[0]*s/PH_WIN,PHOTO.A[1]*s/PH_WIN,
+                           (PHOTO.B[0]*s-cx)/PH_WIN,(PHOTO.B[1]*s-cy)/PH_WIN]};
+  dirty=true;}
+async function phUpdate(){
+  if(PHOTO.busy||!PHOTO.meta)return;
+  const now=performance.now();
+  if(now-PHOTO.last<300)return;
+  PHOTO.last=now;PHOTO.busy=true;
+  try{
+    // Каскады вокруг КАМЕРЫ (как каскады теней): ближний детален по высоте
+    // полёта независимо от того, куда смотрит прицел — иначе взгляд вдаль
+    // огрублял бы землю прямо под дроном. Центр каждого каскада вынесен
+    // вперёд по взгляду на треть охвата — детали достаются видимой земле.
+    const [latC]=gridll(cam.x,cam.z);
+    const agl=Math.max((cam.y-ground(cam.x,cam.z))*BX,10);
+    const g0=phGz(agl,latC);
+    const d=dir();
+    const hn=Math.hypot(d[0],d[2])||1e-6;
+    const jobs=[];
+    for(let k=0;k<3;k++){
+      const gz=Math.max(PHOTO.meta.minz,g0-2*k);
+      const res=2*Math.PI*MERC_R*Math.cos(latC*Math.PI/180)
+                /(PH_TILE*Math.pow(2,gz));
+      const offG=PH_WIN*res*0.33/BX;
+      const [la,lo]=gridll(cam.x+d[0]/hn*offG,cam.z+d[2]/hn*offG);
+      jobs.push(phWindow(2-k,gz,la,lo));   // слот 3 — самый детальный
+    }
+    await Promise.all(jobs);
+  }finally{PHOTO.busy=false;}}
+O.photo.onchange=async e=>{
+  PHOTO.on=e.target.checked;
+  if(PHOTO.on&&!(await phInit())){
+    el('photo-note').textContent='рядом со страницей нет ortho/ — соберите analysis/build_ortho.py';
+    PHOTO.on=false;e.target.checked=false;}
+  dirty=true;};
+if(O.photo.checked)O.photo.onchange({target:O.photo});
+
+// ---------- детальные вставки сцен ----------
+const INS=(P.inserts||[]).map(o=>({...o,on:false,state:0,vao:null,n:0,tex:null}));
+INS.forEach(it=>{
+  const lab=document.createElement('label');
+  lab.innerHTML='<input type="checkbox"><span class="sw" style="background:#ffd9a0"></span>вставка: '+it.title;
+  lab.querySelector('input').onchange=e=>{
+    it.on=e.target.checked;
+    if(it.on&&!it.state)insLoad(it);
+    dirty=true;};
+  el('inslist').appendChild(lab);});
+// плитки склона: одна галка на всю группу, грузятся лениво при включении
+const TILES=(P.tiles||[]).map(o=>({...o,on:false,state:0,vao:null,n:0,tex:null}));
+if(TILES.length){
+  const lab=document.createElement('label');
+  lab.innerHTML='<input type="checkbox"><span class="sw" style="background:#c8e6ff"></span>плотная 3D: склон из плиток';
+  lab.querySelector('input').onchange=e=>{
+    for(const it of TILES){
+      it.on=e.target.checked;
+      if(it.on&&!it.state)insLoad(it);}
+    dirty=true;};
+  el('inslist').appendChild(lab);
+  INS.push(...TILES);
+}
+function b64bytes(s){
+  const b=atob(s);
+  const u=new Uint8Array(b.length);
+  for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);
+  return u;}
+// атлас вставок (занятость + карта высот модели): 4x4 слота, слот
+// назначается порядком активных вставок в кадре, заливается при смене
+// владельца слота
+const INS_MASK_N=256,INS_MASK_U=16;
+const INS_ATLAS=(()=>{
+  const t=gl.createTexture();
+  gl.activeTexture(gl.TEXTURE0+INS_MASK_U);
+  gl.bindTexture(gl.TEXTURE_2D,t);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RG8,INS_MASK_N*4,INS_MASK_N*4,0,gl.RG,
+                gl.UNSIGNED_BYTE,null);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+  gl.activeTexture(gl.TEXTURE0);
+  return t;})();
+const INS_SLOT=new Array(16).fill(null);
+// вставка без карты высот (старый формат): занято всюду, высота = верх плиты
+const INS_FULL=(()=>{const a=new Uint8Array(INS_MASK_N*INS_MASK_N*2);
+  a.fill(255);return a;})();
+function insMaskSlot(it,slot){
+  if(INS_SLOT[slot]===it)return;
+  INS_SLOT[slot]=it;
+  gl.activeTexture(gl.TEXTURE0+INS_MASK_U);
+  gl.bindTexture(gl.TEXTURE_2D,INS_ATLAS);
+  gl.texSubImage2D(gl.TEXTURE_2D,0,(slot%4)*INS_MASK_N,
+    ((slot/4)|0)*INS_MASK_N,INS_MASK_N,INS_MASK_N,gl.RG,gl.UNSIGNED_BYTE,
+    it.mask||INS_FULL);
+  gl.activeTexture(gl.TEXTURE0);}
+async function insLoad(it){
+  it.state=1;
+  const d=await (await fetch(it.file)).json();
+  let pos,uv,idx;
+  if(d.mesh){
+    // мэш со СВОЕЙ геометрией (плотная фотограмметрия): вершины ENU-метры
+    // от origin + высоты движка, uv — проекция на плоскость текстуры;
+    // рельеф под контуром продавливается (uInsN/uInsO/uInsM/uInsP/uInsB в PT)
+    const bin=new Float32Array(b64bytes(d.verts_b64).buffer);
+    const sup=b64bytes(d.support_b64);
+    const R=d.rows,C=d.cols,N=R*C;
+    pos=new Float32Array(N*3);uv=new Float32Array(N*2);
+    const MLO2=P.MLO,ox=(d.origin_lon-P.LON0)*MLO2/BX,oz=(P.LAT1-d.origin_lat)*P.MLA/BX;
+    const pl=d.plane,pu=pl.u,pv=pl.v,po=pl.o;
+    for(let k=0;k<N;k++){
+      const e=bin[k*3],n2=bin[k*3+1],alt=bin[k*3+2];
+      const x=ox+e/BX,z=oz-n2/BX;
+      pos[k*3]=x;pos[k*3+2]=z;
+      // 255 = ячейка не измерена реконструкцией — вершина садится на рельеф
+      // движка, иначе в вырезе рельефа сквозила бы дыра в небо
+      pos[k*3+1]=sup[k]===255?ground(x,z)+0.04:(alt-ZMIN)/BX;
+      const le=e-po[0],ln=n2-po[1],lz=(alt-d.alt0)-po[2];
+      const a=le*pu[0]+ln*pu[1]+lz*pu[2],b=le*pv[0]+ln*pv[1]+lz*pv[2];
+      uv[k*2]=(a-pl.u0)/(pl.u1-pl.u0);uv[k*2+1]=(b-pl.v0)/(pl.v1-pl.v0);}
+    if(d.trim){
+      // посадка на рельеф движка полем поправок: низкие частоты высоты берёт
+      // рельеф (его привязка на месте), мелкий рельеф — от модели. Медианный
+      // сдвиг сажает верно только в среднем: у зон в сотни метров края
+      // висят над землёй на десятки метров.
+      let dh=new Float32Array(N),wt=new Float32Array(N);
+      for(let k=0;k<N;k++){
+        if(sup[k]===255)continue;
+        dh[k]=ground(pos[k*3],pos[k*3+2])-pos[k*3+1];wt[k]=1;}
+      const rad=Math.max(8,Math.round(Math.max(R,C)*0.2));
+      const blur=(src,w2,horiz)=>{
+        const out=new Float32Array(N),ow=new Float32Array(N);
+        const outer=horiz?R:C,inner=horiz?C:R;
+        const at=(o,i)=>horiz?o*C+i:i*C+o;
+        for(let o=0;o<outer;o++){
+          let s=0,sw=0;
+          for(let i=0;i<Math.min(rad+1,inner);i++){const k=at(o,i);s+=src[k];sw+=w2[k];}
+          for(let i=0;i<inner;i++){
+            const k=at(o,i);out[k]=s;ow[k]=sw;
+            const add=i+rad+1,rem=i-rad;
+            if(add<inner){const ka=at(o,add);s+=src[ka];sw+=w2[ka];}
+            if(rem>=0){const kr=at(o,rem);s-=src[kr];sw-=w2[kr];}}}
+        return [out,ow];};
+      for(let pass=0;pass<2;pass++){
+        [dh,wt]=blur(dh,wt,true);
+        [dh,wt]=blur(dh,wt,false);}
+      for(let k=0;k<N;k++){
+        if(sup[k]===255||wt[k]<=0)continue;
+        pos[k*3+1]+=dh[k]/wt[k];}}
+    idx=[];
+    if(d.trim){
+      // рисуются только измеренные ячейки (все 4 вершины с support), по
+      // границе — фартук до рельефа движка
+      const ok=k=>sup[k]!==255;
+      const keep=(r,c2)=>r>=0&&r<R-1&&c2>=0&&c2<C-1&&
+        ok(r*C+c2)&&ok(r*C+c2+1)&&ok((r+1)*C+c2)&&ok((r+1)*C+c2+1);
+      const extraPos=[],extraUV=[],aprIdx=new Map();
+      // фартук: кромка уводится наружу двумя полосами и садится на рельеф
+      // движка. Вылет адаптивный — не короче 8 м и не круче ~34° к перепаду
+      // (рельеф движка врёт против модели на метры, и крутой фартук
+      // читался бы вертикальными полосами-шторами), но не длиннее 35 м
+      const apron=(k,step)=>{
+        const key=k*4+step;
+        let j=aprIdx.get(key);
+        if(j!==undefined)return j;
+        const shift=[C,-C,1,-1][step];
+        const kn=k+shift,kb=k-shift;
+        const x0=pos[k*3],z0=pos[k*3+2],y0=pos[k*3+1];
+        let dx,dz;
+        if(kn>=0&&kn<N){dx=pos[kn*3]-x0;dz=pos[kn*3+2]-z0;}
+        else{dx=x0-pos[kb*3];dz=z0-pos[kb*3+2];}
+        const dl=Math.hypot(dx,dz)||1e-6;
+        const drop=Math.abs(ground(x0+dx/dl*(8/BX),z0+dz/dl*(8/BX))-y0);
+        // вылет от шага сетки вставки: у мелкой сетки (0.25 м) длинный
+        // минимальный фартук торчит иглами длиннее самих деталей
+        const minL=Math.min(8/BX,dl*10);
+        const len=Math.min(Math.max(minL,drop*1.5),35/BX);
+        dx=dx/dl*len;dz=dz/dl*len;
+        j=N+extraPos.length/3;
+        for(const t of [0.5,1.0]){
+          const x=x0+dx*t,z=z0+dz*t,g=ground(x,z)-0.25;
+          extraPos.push(x,y0+(g-y0)*t,z);
+          extraUV.push(uv[k*2],uv[k*2+1]);}
+        aprIdx.set(key,j);
+        return j;};
+      const edge=(k1,k2,step)=>{
+        const j1=apron(k1,step),j2=apron(k2,step);
+        idx.push(k1,k2,j1,k2,j2,j1);
+        idx.push(j1,j2,j1+1,j2,j2+1,j1+1);};
+      for(let r=0;r<R-1;r++)for(let c2=0;c2<C-1;c2++){
+        if(!keep(r,c2))continue;
+        const a=r*C+c2,b=a+1,c3=a+C,e2=c3+1;
+        idx.push(a,b,c3,b,e2,c3);
+        // плитки склона (tile=1) рисуются без фартуков: обрыв данных —
+        // честная дыра, а не штора с растянутым текселем
+        if(d.tile)continue;
+        if(!keep(r-1,c2))edge(a,b,1);
+        if(!keep(r+1,c2))edge(c3,e2,0);
+        if(!keep(r,c2-1))edge(a,c3,3);
+        if(!keep(r,c2+1))edge(b,e2,2);}
+      const M=extraPos.length/3;
+      const pos2=new Float32Array((N+M)*3),uv2=new Float32Array((N+M)*2);
+      pos2.set(pos);pos2.set(extraPos,N*3);
+      uv2.set(uv);uv2.set(extraUV,N*2);
+      pos=pos2;uv=uv2;
+    }else{
+    for(let r=0;r<R-1;r++)for(let c2=0;c2<C-1;c2++){
+      const a=r*C+c2,b=a+1,c3=a+C,e2=c3+1;
+      idx.push(a,b,c3,b,e2,c3);}
+    // юбка по периметру: край модели и край выреза рельефа лежат на разных
+    // высотах, в щель между ними сквозит небо — глушится вертикальной
+    // шторой вниз от каждой краевой вершины
+    const rim=[];
+    for(let c2=0;c2<C;c2++)rim.push(c2);
+    for(let r=1;r<R;r++)rim.push(r*C+C-1);
+    for(let c2=C-2;c2>=0;c2--)rim.push((R-1)*C+c2);
+    for(let r=R-2;r>=1;r--)rim.push(r*C);
+    const base=N,M=rim.length;
+    const pos2=new Float32Array((N+M)*3),uv2=new Float32Array((N+M)*2);
+    pos2.set(pos);uv2.set(uv);
+    rim.forEach((k,i)=>{
+      const x=pos[k*3],z=pos[k*3+2];
+      // штора тянется от кромки модели до рельефа движка с запасом
+      // в любую сторону: рельеф у кромки бывает и ниже, и выше модели
+      const g=ground(x,z),y0=pos[k*3+1];
+      pos2[(base+i)*3]=x;
+      pos2[(base+i)*3+1]=g>y0?g+0.4:g-1.0;
+      pos2[(base+i)*3+2]=z;
+      uv2[(base+i)*2]=uv[k*2];uv2[(base+i)*2+1]=uv[k*2+1];});
+    for(let i=0;i<M;i++){
+      const j=(i+1)%M,a=rim[i],b=rim[j];
+      idx.push(a,b,base+i,b,base+j,base+i);}
+    pos=pos2;uv=uv2;
+    }
+    // контур выреза: углы плоскости текстуры в плане движка.
+    // Плитки склона рельеф не продавливают (foot не строится): их сотни,
+    // атлас держит 16, а посадка полем поправок и polygon offset достаточны
+    if(!d.tile){
+    const cr=(uu,vv)=>{
+      const ee=po[0]+pu[0]*uu+pv[0]*vv,nn=po[1]+pu[1]*uu+pv[1]*vv;
+      return [ox+ee/BX,oz-nn/BX];};
+    const c00=cr(pl.u0,pl.v0),c10=cr(pl.u1,pl.v0),c01=cr(pl.u0,pl.v1);
+    const U=[c10[0]-c00[0],c10[1]-c00[1]],V=[c01[0]-c00[0],c01[1]-c00[1]];
+    const det=U[0]*V[1]-U[1]*V[0];
+    // плита выреза: нормаль плоскости вставки в осях движка (x=e, y=up,
+    // z=-n; масштаб равномерный) и диапазон отклонений вершин модели от неё
+    const ne=[pu[1]*pv[2]-pu[2]*pv[1],pu[2]*pv[0]-pu[0]*pv[2],pu[0]*pv[1]-pu[1]*pv[0]];
+    let nx=ne[0],ny=ne[2],nz=-ne[1];
+    const nl=Math.hypot(nx,ny,nz);nx/=nl;ny/=nl;nz/=nl;
+    const pox=ox+po[0]/BX,poy=(d.alt0+po[2]-ZMIN)/BX,poz=oz-po[1]/BX;
+    const pd=nx*pox+ny*poy+nz*poz;
+    // отклонения измеренных вершин от плоскости вставки — по ним и низ плиты,
+    // и карта высот модели для прижатия рельефа
+    const sd=new Float32Array(N),sds=[];
+    for(let k=0;k<N;k++){
+      if(sup[k]===255)continue;
+      sd[k]=nx*pos[k*3]+ny*pos[k*3+1]+nz*pos[k*3+2]-pd;
+      sds.push(sd[k]);}
+    sds.sort((a,b)=>a-b);
+    // низ и верх плиты — по перцентилям, а не по крайним вершинам: одна
+    // мусорная вершина иначе утапливает рельеф на десятки метров
+    const lo=d.trim?sds[Math.floor(sds.length*0.02)]:sds[0];
+    const hi=d.trim?sds[Math.floor(sds.length*0.98)]:sds[sds.length-1];
+    // атлас вставки в координатах контура: R — занято (с раздутием на клетку,
+    // чтобы кромка попадала внутрь), G — высота модели над плоскостью,
+    // нормированная в [lo, hi]; клетка берёт минимум высоты своих вершин,
+    // раздутие тоже идёт по минимуму — рельеф прижимается под самую низкую
+    // часть модели рядом, а не проступает сквозь неё
+    const KN=INS_MASK_N,span=Math.max(hi-lo,1e-6);
+    const occ=new Uint8Array(KN*KN),hgt=new Float32Array(KN*KN).fill(Infinity);
+    for(let k=0;k<N;k++){
+      if(sup[k]===255)continue;
+      const ai=Math.floor(uv[k*2]*KN),bi=Math.floor(uv[k*2+1]*KN);
+      if(ai<0||ai>=KN||bi<0||bi>=KN)continue;
+      const c2=bi*KN+ai;occ[c2]=255;
+      if(sd[k]<hgt[c2])hgt[c2]=sd[k];}
+    const mask=new Uint8Array(KN*KN*2);
+    for(let b2=0;b2<KN;b2++)for(let a2=0;a2<KN;a2++){
+      let h=Infinity;
+      for(let db=-1;db<=1;db++)for(let da=-1;da<=1;da++){
+        const bb=b2+db,aa=a2+da;
+        if(bb<0||bb>=KN||aa<0||aa>=KN)continue;
+        const c2=bb*KN+aa;
+        if(occ[c2]&&hgt[c2]<h)h=hgt[c2];}
+      if(!isFinite(h))continue;
+      const c3=(b2*KN+a2)*2;
+      mask[c3]=255;
+      mask[c3+1]=Math.max(0,Math.min(255,Math.round((h-lo)/span*255)));}
+    it.mask=mask;
+    // зазор: рельеф уходит чуть ниже модели, чтобы не спорил с ней за пиксели.
+    // Вставка без карты высот (старый формат) продавливает рельеф под низ
+    // плиты по всему контуру — как было до карты высот
+    it.foot={o:c00,m:[V[1]/det,-V[0]/det,-U[1]/det,U[0]/det],
+             p:[nx,ny,nz,pd],
+             r:d.trim?[lo,hi]:[lo-0.4,lo-0.4],gap:d.trim?0.6/BX:0};
+    }
+  }else{
+    const n=d.n;pos=new Float32Array(n*n*3);uv=new Float32Array(n*n*2);
+    for(let i=0;i<n;i++)for(let j=0;j<n;j++){
+      const k=i*n+j;
+      const lat=d.lat0+i*d.dlat,lon=d.lon0+j*d.dlon;
+      const x=(lon-P.LON0)*P.MLO/BX,z=(P.LAT1-lat)*P.MLA/BX;
+      pos[k*3]=x;
+      // высота — по сетке самого движка (не по d.h из сырого DEM): грани
+      // 8-м сетки на кривизне расходятся с мелкой выборкой DEM на метры,
+      // и патч тонет под рельефом; +0.5 м чтобы выйти из z-борьбы
+      pos[k*3+1]=ground(x,z)+0.0625;
+      pos[k*3+2]=z;
+      uv[k*2]=d.u[k];uv[k*2+1]=d.v[k];}
+    idx=[];
+    for(let i=0;i<n-1;i++)for(let j=0;j<n-1;j++){
+      const a=i*n+j,b=a+1,c=a+n,e2=c+1;idx.push(a,b,c,b,e2,c);}
+  }
+  const vao=gl.createVertexArray();gl.bindVertexArray(vao);
+  buf(gl.ARRAY_BUFFER,pos);gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+  buf(gl.ARRAY_BUFFER,uv);gl.enableVertexAttribArray(1);gl.vertexAttribPointer(1,2,gl.FLOAT,false,0,0);
+  buf(gl.ELEMENT_ARRAY_BUFFER,new Uint32Array(idx));gl.bindVertexArray(null);
+  it.vao=vao;it.n=idx.length;
+  const im=new Image();im.src=d.tex;
+  try{await im.decode();}catch(e){}
+  if(im.width){it.tex=mkTex();gl.bindTexture(gl.TEXTURE_2D,it.tex);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,im);}
+  it.state=2;dirty=true;}
+
 const uMV=gl.getUniformLocation(PM,'uVP'),uMS=gl.getUniformLocation(PM,'uScale');
 const uLV=gl.getUniformLocation(PL,'uVP'),uLC=gl.getUniformLocation(PL,'uCol');
 const SKY=[0.44,0.58,0.74];
@@ -1647,6 +2078,11 @@ document.getElementById('layers').addEventListener('change',touch);
 document.getElementById('layers').addEventListener('input',touch);
 addEventListener('keydown',touch); addEventListener('keyup',touch);
 addEventListener('wheel',touch,{passive:true});
+// служебный хук QC-скриншотов: постановка камеры из консоли (yaw 180 = север)
+window.__qc=(lat,lon,alt,yawDeg,pitchDeg)=>{
+  cam.x=(lon-P.LON0)*P.MLO/BX;cam.z=(P.LAT1-lat)*P.MLA/BX;
+  cam.y=(alt-ZMIN)/BX;cam.yaw=yawDeg*Math.PI/180;
+  cam.pitch=pitchDeg*Math.PI/180;dirty=true;};
 
 el('go').onclick=()=>{
   el('go').textContent='строю рельеф…';
@@ -1706,6 +2142,37 @@ function loop(now){
   gl.uniform4f(uT.uOn,O.coarse.checked?1:0,O.fine.checked?1:0,O.run.checked?1:0,O.gap.checked?1:0);
   gl.uniform4f(uT.uOn2,(O.cov1.checked?1:0)+(O.cov2.checked?2:0)+(O.cov3.checked?4:0),O.steep.checked?1:0,O.coul.checked?1:0,O.cont.checked?1:0);
   gl.uniform3f(uT.uSky,SKY[0],SKY[1],SKY[2]);
+  if(PHOTO.on&&PHOTO.meta){
+    gl.uniform1i(uT.uPhOn,1);
+    // юниты 0-2 и 15 свободны от «глазами дрона» (тот держит 3-14);
+    // сплаты биндят 15 позже в кадре, поэтому перевязка каждый кадр
+    const us=[uT.uPhT0,uT.uPhT1,uT.uPhT2,uT.uPhT3];
+    const ms=[uT.uPhM0,uT.uPhM1,uT.uPhM2,uT.uPhM3];
+    const un=[0,1,2,15];
+    for(let i=0;i<4;i++){const s=PHOTO.slots[i];
+      gl.uniform1i(us[i],un[i]);
+      gl.activeTexture(gl.TEXTURE0+un[i]);
+      gl.bindTexture(gl.TEXTURE_2D,s?s.tex:TEX0);
+      const m=s?s.M:[0,0,0,0];
+      gl.uniform4f(ms[i],m[0],m[1],m[2],m[3]);}
+    gl.activeTexture(gl.TEXTURE0);
+    phUpdate();
+  }else gl.uniform1i(uT.uPhOn,0);
+  const insCuts=INS.filter(it=>it.on&&it.state===2&&it.tex&&it.foot).slice(0,16);
+  gl.uniform1i(uT.uInsN,insCuts.length);
+  if(insCuts.length){
+    const io=[],im2=[],ip=[],ib=[];
+    insCuts.forEach((it,i)=>{
+      io.push(it.foot.o[0],it.foot.o[1]);im2.push(...it.foot.m);
+      ip.push(...it.foot.p);
+      ib.push(it.foot.r[0],it.foot.r[1],it.foot.gap,0);
+      insMaskSlot(it,i);});
+    gl.uniform2fv(uT.uInsO,io);gl.uniform4fv(uT.uInsM,im2);
+    gl.uniform4fv(uT.uInsP,ip);gl.uniform4fv(uT.uInsB,ib);
+    gl.uniform1i(uT.uInsK,INS_MASK_U);
+    gl.activeTexture(gl.TEXTURE0+INS_MASK_U);
+    gl.bindTexture(gl.TEXTURE_2D,INS_ATLAS);
+    gl.activeTexture(gl.TEXTURE0);}
   let eyeSlots=null;
   if(O.eye.checked&&EYE.list.length)eyeSlots=eyeUpdate(dt);
   if(eyeSlots&&eyeSlots.some(s=>s.w>0.004)){
@@ -1738,6 +2205,16 @@ function loop(now){
     gl.drawElements(gl.TRIANGLES,c.cnt,gl.UNSIGNED_INT,c.off);
     drawn++;tris+=c.cnt;}
   shownChunks=drawn;shownTris=tris;
+  if(INS.some(it=>it.on&&it.state===2&&it.tex)){
+    gl.useProgram(PI);gl.uniformMatrix4fv(uIV,false,VP);gl.uniform1i(uIT,0);
+    gl.enable(gl.POLYGON_OFFSET_FILL);gl.polygonOffset(-2,-2);
+    gl.activeTexture(gl.TEXTURE0);
+    for(const it of INS){
+      if(!(it.on&&it.state===2&&it.tex))continue;
+      gl.bindTexture(gl.TEXTURE_2D,it.tex);
+      gl.bindVertexArray(it.vao);
+      gl.drawElements(gl.TRIANGLES,it.n,gl.UNSIGNED_INT,0);}
+    gl.disable(gl.POLYGON_OFFSET_FILL);gl.bindVertexArray(null);}
   drawSplats(VP,w,h);
 
   gl.useProgram(PL);gl.uniformMatrix4fv(uLV,false,VP);
