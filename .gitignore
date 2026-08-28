@@ -71,3 +71,14 @@ nasa.token.txt
 # регенерируются из видео, в git не кладём
 analysis/ortho-work/
 analysis/viewer/ortho/
+
+# Мониторинг снега (analysis/osadki): снимки регенерируются render_s2/s1/viirs.py; data/ уже под правилом data/
+# (кроме рукописного журнала — он лежит в analysis/osadki/fakt-vs-model.tsv, не в data/)
+analysis/osadki/scenes/
+
+# Орто-слой в 3D (analysis/viewer/build_ortho3d.py): текстуры регенерируются
+analysis/viewer/ortho3d/
+# Тяжёлые QC-артефакты пилотов орто/якорей (регенерируются; выводы — в docs/video-analysis.md)
+analysis/pilot/ortho-qc/
+analysis/pilot/ortho-repro/
+analysis/pilot/anchor-qc/

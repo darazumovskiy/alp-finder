@@ -1070,6 +1070,9 @@ KINDS = [
     ("object", "Объекты без интерпретации"),
     ("bird", "Птицы / животные"),
 ]
+# Временно скрытые на карте категории (данные в POINTS остаются, на карту не
+# попадают ни точки, ни фильтр). Убрать из набора, чтобы вернуть показ.
+HIDDEN_KINDS = {"koshki"}
 SRCS = [
     ("ai", "Наш конвейер (детектор + ИИ)"),
     ("tg", "TG-волонтёры"),
@@ -1357,6 +1360,8 @@ def build():
 
     pts = []
     for p in POINTS:
+        if p["kind"] in HIDDEN_KINDS:
+            continue
         d_fall = dist_to_line_m(p["lat"], p["lon"], fall)
         d_route = dist_to_line_m(p["lat"], p["lon"], track)
         d_desc = min(dist_to_line_m(p["lat"], p["lon"], line) for _, line in descents)
@@ -1391,7 +1396,7 @@ def build():
         return out
 
     data = dict(
-        kinds=[dict(id=k, title=t) for k, t in KINDS],
+        kinds=[dict(id=k, title=t) for k, t in KINDS if k not in HIDDEN_KINDS],
         srcs=[dict(id=s, title=t) for s, t in SRCS],
         statuses=[dict(id=s, title=t) for s, t in STATUSES],
         points=pts,
@@ -1607,6 +1612,8 @@ header a { color:#4da3ff; text-decoration:none; }
 <a href="model-3d.html">3D-модель</a>
 <a href="coverage-3d.html">3D-покрытие</a>
 <a href="polyot-3d.html">Полёт 3D</a>
+<a href="osadki-monitoring.html">Снег и погода</a>
+<a href="otchety.html">Отчёты</a>
 <a href="#" id="flightBtn">Полёт ▶</a>
 </nav></header>
 <div id="wrap">

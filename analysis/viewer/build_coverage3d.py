@@ -173,6 +173,8 @@ TEMPLATE = r"""<!doctype html>
 <a href="model-3d.html">3D-модель</a>
 <a href="coverage-3d.html"><b>3D-покрытие</b></a>
 <a href="polyot-3d.html">Полёт 3D</a>
+<a href="osadki-monitoring.html">Снег и погода</a>
+<a href="otchety.html">Отчёты</a>
 </nav></header>
 <div id="scene"></div>
 <div id="panel">

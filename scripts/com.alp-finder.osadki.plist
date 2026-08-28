@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.alp-finder.osadki</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/d.razumovskiy/work/alp-finder/scripts/osadki_daily.sh</string>
+  </array>
+  <key>WorkingDirectory</key><string>/Users/d.razumovskiy/work/alp-finder</string>
+  <!-- 08:00 и 18:00 по Бишкеку (UTC+6) = 05:00 и 15:00 при часовом поясе Mac UTC+3 -->
+  <key>StartCalendarInterval</key>
+  <array>
+    <dict><key>Hour</key><integer>5</integer><key>Minute</key><integer>0</integer></dict>
+    <dict><key>Hour</key><integer>15</integer><key>Minute</key><integer>0</integer></dict>
+  </array>
+  <key>RunAtLoad</key><false/>
+  <key>StandardOutPath</key><string>/Users/d.razumovskiy/work/alp-finder/analysis/osadki/data/launchd.out</string>
+  <key>StandardErrorPath</key><string>/Users/d.razumovskiy/work/alp-finder/analysis/osadki/data/launchd.err</string>
+  <key>EnvironmentVariables</key>
+  <dict><key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string></dict>
+</dict>
+</plist>
