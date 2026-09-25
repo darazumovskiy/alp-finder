@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<title>Район вещей: стена, кулуар, рюкзак (гигапанорама)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  html, body { margin: 0; height: 100%; background: #111; }
+  #pano { width: 100%; height: 100%; }
+  .mark { border: 2px solid #ffd200; border-radius: 50%;
+           width: 26px; height: 26px; margin: -13px 0 0 -13px; }
+  .mark span { position: absolute; left: 28px; top: -2px; color: #ffd200;
+                font: bold 13px sans-serif; white-space: nowrap;
+                text-shadow: 0 0 4px #000, 0 0 4px #000; }
+  #orient { position: fixed; left: 10px; bottom: 10px; z-index: 10;
+           background: #000a; color: #d7dbe0; padding: 6px 10px;
+           border-radius: 6px; font: 12px/1.4 sans-serif; max-width: 340px; }
+  #back { position: fixed; left: 10px; top: 10px; z-index: 10;
+          background: #000a; padding: 6px 12px; border-radius: 6px;
+          font: bold 13px sans-serif; }
+  #back a { color: #7ab8ff; text-decoration: none; }
+</style></head><body>
+<div id="pano"></div>
+<div id="back"><a href="../../panoramy.html">&larr; Панорамы</a> &nbsp;
+<a href="../../map.html">Карта</a></div>
+<div id="orient">Вид на склон «в лоб» с воздуха, с С-З: верх — вверх по склону (Ю-В), лево — С-В. Это не карта: север не вверху, расстояния не мерить.</div>
+<script src="https://cdn.jsdelivr.net/npm/openseadragon@4.1/build/openseadragon/openseadragon.min.js"></script>
+<script>
+const marks = [{"x": 68217.95274898, "y": 31979.01617294, "label": "Рюкзак 4663м"}, {"x": 75726.52707232018, "y": 97746.28472772129, "label": "Палка Komperdell 4529м"}, {"x": 77197.77370715818, "y": 97226.14719999624, "label": "Крышка 4531м"}, {"x": 68462.54699306196, "y": 30201.812856897242, "label": "≈ Смятая ткань у рюкзака 14.08"}, {"x": 68383.64440211753, "y": 30392.234219705926, "label": "≈ Ткань с белой полосой 14.08"}, {"x": 74131.0, "y": 104257.0, "label": "≈ Стакан 4552м"}, {"x": 80258.0, "y": 97687.0, "label": "≈ Спальник"}, {"x": 96112.0, "y": 102124.0, "label": "≈ Борозды U"}];
+const viewer = OpenSeadragon({
+  id: "pano", tileSources: "pano.dzi", prefixUrl:
+  "https://cdn.jsdelivr.net/npm/openseadragon@4.1/build/openseadragon/images/",
+  maxZoomPixelRatio: 3, showNavigator: true,
+});
+viewer.addHandler("open", () => {
+  const w = viewer.world.getItemAt(0).getContentSize().x;
+  for (const m of marks) {
+    const el = document.createElement("div");
+    el.className = "mark";
+    el.innerHTML = "<span>" + m.label + "</span>";
+    viewer.addOverlay(el, new OpenSeadragon.Point(m.x / w, m.y / w));
+  }
+});
+</script></body></html>

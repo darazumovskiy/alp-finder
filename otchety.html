@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Курумды — отчёты</title>
+<style>
+  :root { --bg:#101216; --panel:#181b21; --panel2:#1e222a; --text:#d7dbe0; --muted:#8b93a0; --accent:#7ab8ff; --line:#2a2f38; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; background:var(--bg); color:var(--text); font:15.5px/1.6 -apple-system,"Segoe UI",Roboto,sans-serif; }
+  header { position:sticky; top:0; z-index:5; background:#101216ee; border-bottom:1px solid var(--line); padding:10px 16px; backdrop-filter:blur(6px); }
+  header nav { display:flex; gap:16px; flex-wrap:wrap; align-items:baseline; max-width:980px; margin:0 auto; }
+  header .title { font-weight:700; } header a { color:var(--accent); text-decoration:none; }
+  main { max-width:980px; margin:0 auto; padding:20px 16px 80px; }
+  h1 { font-size:26px; margin:18px 0 6px; } h2 { font-size:19px; margin:32px 0 8px; color:var(--muted); font-weight:600; }
+  .sub { color:var(--muted); }
+  .list { display:grid; gap:10px; }
+  a.card { display:block; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 18px; color:var(--text); text-decoration:none; }
+  a.card:hover { border-color:var(--accent); }
+  a.card b { color:var(--accent); display:block; margin-bottom:2px; }
+  a.card span { color:var(--muted); font-size:14px; }
+</style>
+</head>
+<body>
+<header><nav>
+<span class="title">Курумды</span>
+<a href="index.html">Кандидаты</a>
+<a href="montages.html">Все монтажные листы</a>
+<a href="map.html">Карта</a>
+<a href="panoramy.html">Панорамы</a>
+<a href="model-3d.html">3D-модель</a>
+<a href="coverage-3d.html">3D-покрытие</a>
+<a href="polyot-3d.html">Полёт 3D</a>
+<a href="osadki-monitoring.html">Снег и погода</a>
+<a href="otchety.html">Отчёты</a>
+</nav></header>
+<main>
+<h1>Отчёты</h1>
+<p class="sub">Все текстовые отчёты и концепции, опубликованные на сайте. Новые — сверху.</p>
+
+<h2>Снег и погода</h2>
+<div class="list">
+<a class="card" href="osadki-monitoring.html"><b>Снег на склоне Курумды: следим «с дивана»</b><span>Концепция мониторинга, индикатор «доля камней» по спутнику, осадки и температура по высотам, климатология сентября, как это будет работать. Обновляется автоматически.</span></a>
+<a class="card" href="sverka-avgust-2026.html"><b>Сверка 11–17 августа: очевидец, модель, спутник</b><span>День за днём: что видел оператор дрона на горе, что дала погодная модель, что снял спутник. Выводы о доверии к каждому источнику и погрешности. 28.08.2026.</span></a>
+</div>
+
+<h2>Отсмотр видео</h2>
+<div class="list">
+<a class="card" href="otchet-2026-08-17-koshki-pokrytie.html"><b>Сцена 16.08: видели ли мы это место и почему покрытие «зелёное»</b><span>Разбор конкретного кадра против карты покрытия. 17.08.2026.</span></a>
+<a class="card" href="otchet-2026-08-16-part2.html"><b>Догруженные ролики вечера 15.08</b><span>Дополнение к отчёту отсмотра. 16.08.2026.</span></a>
+<a class="card" href="otchet-2026-08-16.html"><b>Отчёт отсмотра 15→16.08</b><span>Что найдено на съёмке 15 августа, кандидаты и статусы. 16.08.2026.</span></a>
+</div>
+
+<h2>Прочее</h2>
+<div class="list">
+<a class="card" href="otchet-tg-aktivnost.html"><b>Активность волонтёров в TG-группе</b><span>Кто и когда участвовал в обсуждениях.</span></a>
+</div>
+</main>
+</body>
+</html>

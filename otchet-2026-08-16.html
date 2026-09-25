@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Курумды — отчёт отсмотра 15→16.08</title>
+<style>
+  :root {
+    --bg:#101216; --panel:#181b21; --panel2:#1e222a; --text:#d7dbe0;
+    --muted:#8b93a0; --accent:#7ab8ff; --line:#2a2f38;
+    --uv4:#ff9d42; --uv3:#ffd200; --uv2:#8b93a0; --ok:#5fd38a; --warn:#ff6b6b;
+  }
+  * { box-sizing:border-box; }
+  html,body { margin:0; background:var(--bg); color:var(--text);
+    font:15px/1.55 -apple-system,"Segoe UI",Roboto,sans-serif; }
+  header { position:sticky; top:0; z-index:5; background:#101216ee;
+    border-bottom:1px solid var(--line); padding:10px 16px; backdrop-filter:blur(6px); }
+  header nav { display:flex; gap:16px; flex-wrap:wrap; align-items:baseline;
+    max-width:980px; margin:0 auto; }
+  header .title { font-weight:700; }
+  header a { color:var(--accent); text-decoration:none; }
+  main { max-width:980px; margin:0 auto; padding:20px 16px 80px; }
+  h1 { font-size:26px; line-height:1.25; margin:18px 0 6px; }
+  h2 { font-size:21px; margin:44px 0 10px; padding-top:14px;
+    border-top:2px solid var(--line); }
+  h2 .num { color:var(--accent); margin-right:8px; }
+  h3 { font-size:16px; margin:26px 0 8px; }
+  p { margin:8px 0; }
+  .sub { color:var(--muted); }
+  .lead { font-size:16px; }
+  .toc { background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    padding:14px 18px; margin:18px 0; }
+  .toc a { color:var(--accent); text-decoration:none; display:block; padding:2px 0; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:16px; margin:18px 0; }
+  .card h3 { margin-top:0; }
+  .imgrow { display:flex; gap:10px; flex-wrap:wrap; margin:10px 0; }
+  .imgrow figure { margin:0; flex:1 1 300px; min-width:260px; }
+  .imgrow img { width:100%; border-radius:8px; border:1px solid var(--line);
+    display:block; background:#000; }
+  figcaption { font-size:12.5px; color:var(--muted); padding:4px 2px 0; }
+  a img:hover { outline:2px solid var(--accent); }
+  table.meta { width:100%; border-collapse:collapse; font-size:13.5px; margin:8px 0 2px; }
+  table.meta td { padding:4px 8px; border-top:1px solid var(--line); vertical-align:top; }
+  table.meta td:first-child { color:var(--muted); white-space:nowrap; width:150px; }
+  .uv { display:inline-block; font-weight:700; font-size:12px; border-radius:5px;
+    padding:1px 8px; color:#101216; }
+  .uv4 { background:var(--uv4); } .uv3 { background:var(--uv3); }
+  .uv2 { background:var(--uv2); }
+  .tag { display:inline-block; font-size:12px; border:1px solid var(--line);
+    border-radius:5px; padding:1px 8px; color:var(--muted); margin-left:6px; }
+  .note { border-left:3px solid var(--accent); background:var(--panel2);
+    padding:10px 14px; border-radius:0 8px 8px 0; margin:14px 0; }
+  .warnbox { border-left:3px solid var(--warn); background:var(--panel2);
+    padding:10px 14px; border-radius:0 8px 8px 0; margin:14px 0; }
+  .okbox { border-left:3px solid var(--ok); background:var(--panel2);
+    padding:10px 14px; border-radius:0 8px 8px 0; margin:14px 0; }
+  ul { margin:6px 0 6px 4px; padding-left:20px; }
+  li { margin:4px 0; }
+  code { background:var(--panel2); border-radius:4px; padding:1px 5px; font-size:13px; }
+  .stat { display:flex; gap:12px; flex-wrap:wrap; margin:14px 0; }
+  .stat div { background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    padding:10px 16px; }
+  .stat b { display:block; font-size:20px; color:#fff; }
+  .stat span { font-size:12.5px; color:var(--muted); }
+  footer { max-width:980px; margin:0 auto; padding:0 16px 40px; color:var(--muted);
+    font-size:13px; }
+</style>
+</head>
+<body>
+<header><nav>
+  <span class="title">Курумды — отсмотр 15→16.08</span>
+  <a href="index.html">Кандидаты</a>
+  <a href="map.html">Карта</a>
+  <a href="montages.html">Монтажи</a>
+  <a href="panoramy.html">Панорамы</a>
+</nav></header>
+<main>
+
+<h1>Сплошной отсмотр архива съёмки: итоги ночи 15→16.08</h1>
+<p class="lead sub">Ночь 15→16 августа 2026. Прогнан <b>весь</b> неотсмотренный
+остаток архива съёмки. Каждый сильный кандидат перепроверен по исходному видео.</p>
+
+<div class="stat">
+  <div><b>~75</b><span>проходов ИИ-отсмотра</span></div>
+  <div><b>~3400</b><span>треков детекторов разобрано</span></div>
+  <div><b>100%</b><span>выдачи 15.08 закрыто (было ~5–12% на ролик)</span></div>
+  <div><b>360</b><span>кропов панорамы в полном разрешении (впервые)</span></div>
+  <div><b>4</b><span>узла новых зацепок</span></div>
+</div>
+
+<div class="toc">
+  <b>Содержание</b>
+  <a href="#kak-chitat">Как читать отчёт</a>
+  <a href="#kupol">1. Вершинный купол (6015–6056 м) — самый плотный кластер операции</a>
+  <a href="#koridor">2. Новый сегмент коридора ниже вещей (4410–4440 м)</a>
+  <a href="#c0020">3. «Лежащая фигура» C0020 — впервые есть сектор + трасса на стене</a>
+  <a href="#sinie">4. Синие элементы у верёвок и восточная сторона гребня</a>
+  <a href="#prochee">5. Прочие незакрытые цели</a>
+  <a href="#lozhnyaki">6. Что закрыто честно (ложняки)</a>
+  <a href="#zadanie">7. Приоритеты следующих вылетов</a>
+  <a href="#predely">8. Пределы и процессные дыры</a>
+</div>
+
+<h2 id="kak-chitat">Как читать отчёт</h2>
+<p><b>Уверенность (ув.)</b>: <span class="uv uv4">4</span> — очень похоже на
+рукотворное/значимое; <span class="uv uv3">3</span> — нельзя исключить, нужна
+проверка на месте; ниже 3 в отчёт не выносится. Ни один пункт не является
+подтверждённой находкой — это цели для проверки дроном.</p>
+<p><b>Координаты</b> — это позиция ДРОНА в момент кадра (лестница координат не
+пройдена). Для целеуказания этого достаточно: при съёмке в надир с 25–65 м
+объект лежит в пределах десятков метров от точки; для косых ракурсов дан
+азимут. На каждом полном кадре цель обведена красным эллипсом.</p>
+
+<h2 id="kupol"><span class="num">1</span>Вершинный купол, 6015–6056 м — самый плотный кластер операции</h2>
+<p>Ролик <code>DJI_20260815153424_0002_Z</code> (15:34, съёмка купола с 30–65 м,
+детализация 1–2 см/пиксель). Купол — путь группы 2.08; мульда лагеря 3 рядом
+никогда не осматривалась. За ночь здесь сошлись <b>разнотипные</b> признаки:
+предметы, линии-верёвки, цепочки следов и полость-укрытие — всё на одном пятне.
+Точка зависания дрона: 39.46890, 73.58830.</p>
+
+<div class="card">
+  <h3>1.1. Вход-полость под снежным козырьком <span class="uv uv3">3</span><span class="tag">= TG-заявка «пещера 1:02»</span></h3>
+  <div class="imgrow">
+    <figure><a href="/analysis/review/findings-2026-08-16/n8_kupol_polost_full.jpg"><img src="analysis/review/findings-2026-08-16/n8_kupol_polost_full.jpg" alt="Полость — полный кадр"></a><figcaption>Полный кадр 0:59, цель обведена</figcaption></figure>
+    <figure><a href="/analysis/review/findings-2026-08-16/kupol_polost_343_ctx.jpg"><img src="analysis/review/findings-2026-08-16/kupol_polost_343_ctx.jpg" alt="Полость крупно"></a><figcaption>Крупно: тёмный проём под кромкой, над ним перемятый снег</figcaption></figure>
+  </div>
+  <table class="meta">
+    <tr><td>Видео, таймкоды</td><td>153424 — 0:39, 0:43, 0:56, 0:59, 1:02, 1:05 (шесть ракурсов, возможно два входа)</td></tr>
+    <tr><td>Что видно</td><td>Тёмный проём ~1–2 м под нависающей снежной кромкой; снег над полостью взломан/перемят; от полости вниз уходит борозда со сдвоенным участком (слой следов, 0:39–0:41)</td></tr>
+    <tr><td>Чем ещё может быть</td><td>Бергшрунд/провал моста трещины; «перемятость» может быть ветровой</td></tr>
+    <tr><td>Что делать</td><td>Зависнуть и заглянуть зумом внутрь проёма</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h3>1.2. Кластер из 4–5 предметов вдоль ложбины <span class="uv uv4">4</span></h3>
+  <div class="imgrow">
+    <figure><a href="/analysis/review/findings-2026-08-16/kupol_klaster_1680_ctx.jpg"><img src="analysis/review/findings-2026-08-16/kupol_klaster_1680_ctx.jpg" alt="Кластер предметов"></a><figcaption>Кадр 1:09: цепочка тёмных предметов вдоль ложбины, вертикальный предмет с расширенной верхушкой</figcaption></figure>
+    <figure><a href="/analysis/scans/DJI_20260815153424_0002_Z/crops/t1721_01m10s.jpg"><img src="analysis/scans/DJI_20260815153424_0002_Z/crops/t1721_01m10s.jpg" alt="Кластер, второй трек"></a><figcaption>Второй ракурс (1:10): Г-образный предмет + линия вниз от кластера</figcaption></figure>
+  </div>
+  <table class="meta">
+    <tr><td>Видео, таймкоды</td><td>153424 — 1:05–1:15; три независимых трека детектора (t1680/t1721/t1089)</td></tr>
+    <tr><td>Что видно</td><td>Верхний крюкообразный предмет 30–50 см (профиль ледоруба), два угловатых фрагмента, вертикально-вытянутый ~0.5–0.8 м; от кластера вниз тонкая линия постоянной толщины</td></tr>
+    <tr><td>Чем ещё может быть</td><td>Выходы камней вдоль трещины с ветровыми хвостами</td></tr>
+    <tr><td>Проверено человеком</td><td>Да — сцена реальная, предметы угловатые, у группы общий шлейф</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h3>1.3. «Мешковый» объект у скал <span class="uv uv3">3–4</span></h3>
+  <div class="imgrow">
+    <figure><a href="/analysis/review/findings-2026-08-16/n9_kupol_meshok_full.jpg"><img src="analysis/review/findings-2026-08-16/n9_kupol_meshok_full.jpg" alt="Мешковый объект — полный кадр"></a><figcaption>Полный кадр 1:23</figcaption></figure>
+    <figure><a href="/analysis/review/findings-2026-08-16/kupol_meshok_589_ctx.jpg"><img src="analysis/review/findings-2026-08-16/kupol_meshok_589_ctx.jpg" alt="Мешковый объект крупно"></a><figcaption>Второй ракурс (1:28): палевый объект мягче и пятнистее окружающих скал</figcaption></figure>
+  </div>
+  <table class="meta">
+    <tr><td>Видео, таймкоды</td><td>153424 — 1:23 / 1:27 / 1:28 (три ракурса + крупный план)</td></tr>
+    <tr><td>Что видно</td><td>Округлый серо-коричневый объект ~0.5–1 м, стоит поодаль от тёмных скал; рядом чёрный зубчатый элемент; снег вокруг нарушен. Ниже (1:26) — цепочка вмятин равного шага вниз по кулуару</td></tr>
+    <tr><td>Чем ещё может быть</td><td>Светлый валун. Напомним: рюкзак Сергея — большой СЕРЫЙ, не найден</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h3>1.4. Линии на куполе: сдвоенная «верёвка», жгут, след траверсом <span class="uv uv3">3</span></h3>
+  <div class="imgrow">
+    <figure><a href="/analysis/review/findings-2026-08-16/kupol_sdvoennaya_795_ctx.jpg"><img src="analysis/review/findings-2026-08-16/kupol_sdvoennaya_795_ctx.jpg" alt="Сдвоенная линия"></a><figcaption>2:38 — прямая тонкая линия с «узелком» на конце</figcaption></figure>
+    <figure><a href="/analysis/review/findings-2026-08-16/n10_kupol_sled_full.jpg"><img src="analysis/review/findings-2026-08-16/n10_kupol_sled_full.jpg" alt="След траверсом"></a><figcaption>1:15 — извилистая линия траверсом (не по линии падения)</figcaption></figure>
+    <figure><a href="/analysis/review/findings-2026-08-16/kupol_borozda_617_ctx.jpg"><img src="analysis/review/findings-2026-08-16/kupol_borozda_617_ctx.jpg" alt="Борозда с предметами"></a><figcaption>0:34 — борозда-шлейф упирается в группу угловатых предметов, один Г-образный</figcaption></figure>
+  </div>
+  <table class="meta">
+    <tr><td>Сдвоенная линия</td><td>Прослежена на 40–50+ м через сцены 2:07–2:55 (двенадцатью треками слоя следов); толщина нитей 2–4 см; на 2:07 — полоса из 4–6 нитей с перехлёстом «жгутом», нетипичным для фирна</td></tr>
+    <tr><td>Цепочки следов</td><td>Три независимые цепочки вмятин равного шага: 0:48 (у полости), 1:58, 2:42–2:44 — согласуются с движением человека между точками кластера</td></tr>
+    <tr><td>След траверсом</td><td>Виден в 0:37–0:39 (три кадра) и 1:15; по архиву операции «на вершине следов нет» — любой след здесь значим</td></tr>
+    <tr><td>Честная оговорка</td><td>Ветровые формы умеют имитировать каждый признак поодиночке; вес — в концентрации разнотипных признаков на одном пятне маршрута</td></tr>
+  </table>
+</div>
+
+<h2 id="koridor"><span class="num">2</span>Новый сегмент коридора ниже вещей, 4410–4440 м</h2>
+<p>Ролик <code>DJI_20260815194339_0001_Z</code> (19:43) висел над сегментом
+39.4859–39.4862 — это <b>на 150–190 м ниже по коридору падения</b>, чем самая
+нижняя известная находка (бирюзовая стропа, 39.4846). Всё найденное — на
+территории, которую никто никогда не видел. Детализация ~1 см/пиксель — лучшая
+за операцию. Одно зависание с дальномером закрывает все цели: они в радиусе 100 м.</p>
+
+<div class="card">
+  <h3>2.1. Новый ярко-бирюзовый предмет <span class="uv uv4">4</span></h3>
+  <div class="imgrow">
+    <figure><a href="/analysis/review/findings-2026-08-16/n1_biryuzovyy_novyy_full.jpg"><img src="analysis/review/findings-2026-08-16/n1_biryuzovyy_novyy_full.jpg" alt="Бирюзовый — полный кадр"></a><figcaption>Полный кадр 4:21</figcaption></figure>
+    <figure><a href="/analysis/review/findings-2026-08-16/n1_biryuzovyy_novyy_crop.jpg"><img src="analysis/review/findings-2026-08-16/n1_biryuzovyy_novyy_crop.jpg" alt="Бирюзовый крупно"></a><figcaption>Крупно: гладкий компактный предмет ~10–15 см, рядом тёмная полоса</figcaption></figure>
+  </div>
+  <table class="meta">
+    <tr><td>Видео, таймкод</td><td>194339 — 4:21</td></tr>
+    <tr><td>Позиция дрона</td><td>39.48591, 73.58580 (съёмка близка к надиру с ~25 м)</td></tr>
+    <tr><td>Почему не «известный бирюзовый»</td><td>Известная стропа (4439.5 м) лежит в расщелине на 150 м выше; этот — на открытой осыпи у кромки трещины. Сеттинг другой</td></tr>
+    <tr><td>Чем ещё может быть</td><td>Зелёная минерализация (много в выносе), но фактура гладкая, объект одиночный</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h3>2.2. Крюкообразный элемент у трещины (клюв ледоруба?) <span class="uv uv3">3</span></h3>
+  <div class="imgrow">
+    <figure><a href="/analysis/review/findings-2026-08-16/n2_kryuk_u_treshchiny_full.jpg"><img src="analysis/review/findings-2026-08-16/n2_kryuk_u_treshchiny_full.jpg" alt="Крюк — полный кадр"></a><figcaption>Полный кадр 5:16</figcaption></figure>
+    <figure><a href="/analysis/review/findings-2026-08-16/n2_kryuk_u_treshchiny_crop.jpg"><img src="analysis/review/findings-2026-08-16/n2_kryuk_u_treshchiny_crop.jpg" alt="Крюк крупно"></a><figcaption>Крупно: изогнутый элемент постоянной толщины 30–50 см у кромки</figcaption></figure>
+  </div>
+  <table class="meta">
+    <tr><td>Видео, таймкод</td><td>194339 — 5:16</td></tr>
+    <tr><td>Позиция дрона</td><td>39.48601, 73.58570</td></tr>
+    <tr><td>Что видно</td><td>Г-образный крюкообразный элемент, частично в трещине — именно туда сваливается упавшее сверху</td></tr>
+    <tr><td>Чем ещё может быть</td><td>Изогнутый скальный отщеп на кромке</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h3>2.3. Предмет с ровным «ободом» в трещине <span class="uv uv3">3</span></h3>
+  <div class="imgrow">
+    <figure><a href="/analysis/review/findings-2026-08-16/n3_obod_v_treshchine_full.jpg"><img src="analysis/review/findings-2026-08-16/n3_obod_v_treshchine_full.jpg" alt="Обод — полный кадр"></a><figcaption>Полный кадр 5:37: взгляд внутрь трещины</figcaption></figure>
+    <figure><a href="/analysis/review/findings-2026-08-16/n3_obod_v_treshchine_crop.jpg"><img src="analysis/review/findings-2026-08-16/n3_obod_v_treshchine_crop.jpg" alt="Обод крупно"></a><figcaption>Крупно: округлый объект ~25–30 см со светлой дугой по краю</figcaption></figure>
+  </div>
+  <table class="meta">
+    <tr><td>Видео, таймкод</td><td>194339 — 5:37</td></tr>
+    <tr><td>Позиция дрона</td><td>39.48603, 73.58563</td></tr>
+    <tr><td>Что видно</td><td>Внутри трещины округлый объект с ровным «ободом» — котелок? каска? ботинок?</td></tr>
+    <tr><td>Чем ещё может быть</td><td>Обточенный водой ледяной желвак</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h3>2.4. «Шнур» поперёк линии стока + синий фрагмент + борозды <span class="uv uv3">3</span></h3>
+  <div class="imgrow">
+    <figure><a href="/analysis/review/findings-2026-08-16/n4_siniy_fragment_full.jpg"><img src="analysis/review/findings-2026-08-16/n4_siniy_fragment_full.jpg" alt="Синий фрагмент"></a><figcaption>2:16 — ярко-синий вытянутый фрагмент ~10–15 см у тени трещины</figcaption></figure>
+    <figure><a href="/analysis/review/findings-2026-08-16/koridor_parnaya_borozda_66_ctx.jpg"><img src="analysis/review/findings-2026-08-16/koridor_parnaya_borozda_66_ctx.jpg" alt="Парная борозда"></a><figcaption>2:37 — парная борозда ~3 м постоянной ширины, без камней в конце</figcaption></figure>
+    <figure><a href="/analysis/review/findings-2026-08-16/koridor_treshchina_massa_531.jpg"><img src="analysis/review/findings-2026-08-16/koridor_treshchina_massa_531.jpg" alt="Масса в трещине"></a><figcaption>5:31 — на дне трещины округлая гладкая бело-голубая масса</figcaption></figure>
+  </div>
+  <table class="meta">
+    <tr><td>«Шнур»</td><td>Тонкая линия постоянной толщины ПОПЕРЁК линии стока (все природные линии сцены идут вдоль); держится 13 треками двух независимых проходов на 5:21–5:44. Позиция дрона 39.4860, 73.5856 — там же, где «крюк» и «обод»</td></tr>
+    <tr><td>Сцена борозд</td><td>2:30–2:50: парная борозда + вытянутые углубления 2–2.5 м с суженным концом + продолжение парной борозды на 2:44–2:50</td></tr>
+    <tr><td>Масса в трещине</td><td>Вероятен лёд, но так же выглядел бы занесённый серый рюкзак/мешок — заглянуть при облёте</td></tr>
+  </table>
+</div>
+
+<h2 id="c0020"><span class="num">3</span>«Лежащая фигура» C0020 — впервые есть сектор; трасса на стене</h2>
+<p>Кадр вертолёта Saykal 14.08 (<code>C0020.MP4</code>, 3:22) — главный
+незакрытый кандидат операции: вытянутый светло-серый объект человеческих
+пропорций с тёмным «оголовком» на чистом снегу у надува. У вертолёта нет GPS —
+координат не было вовсе. Этой ночью сцена привязана к рельефу.</p>
+
+<div class="card">
+  <h3>3.1. Фигура и её сектор <span class="uv uv3">3–4</span></h3>
+  <div class="imgrow">
+    <figure><a href="/analysis/review/findings-2026-08-16/c0020_kadr_202.jpg"><img src="analysis/review/findings-2026-08-16/c0020_kadr_202.jpg" alt="C0020 полный кадр"></a><figcaption>Полный кадр 3:22 — объект у правого края, на чистом снегу у надува</figcaption></figure>
+    <figure><a href="/analysis/review/findings-2026-08-16/c0020_figura_zoom.jpg"><img src="analysis/review/findings-2026-08-16/c0020_figura_zoom.jpg" alt="Фигура зум"></a><figcaption>Зум: вытянутое тело, тёмный «оголовок», тёмная поперечина</figcaption></figure>
+    <figure><a href="/analysis/review/findings-2026-08-16/c0020_morfologia.jpg"><img src="analysis/review/findings-2026-08-16/c0020_morfologia.jpg" alt="Морфологическое сравнение"></a><figcaption>Сравнение сцен C0020 ↔ дрон 152800: тот же серак-барьер</figcaption></figure>
+  </div>
+  <table class="meta">
+    <tr><td>Сектор (рабочая гипотеза)</td><td><b>Купол у кромки серак-барьера на СЗ склоне гребня C2→C3: ≈39.4757, 73.5896, ~5470 м, ±250 м</b> — стык зоны интереса 5385–5485 и неосмотренного участка C2–C3</td></tr>
+    <tr><td>Что подтверждает</td><td>Морфологическая цепочка сцен (стена → купол → кромка → разорванный ледник) совпадает с панорамой дрона 152800; телеметрия дрона подтверждает перекрытие секторов съёмки</td></tr>
+    <tr><td>Что НЕ подтверждено</td><td>SIFT-автоматика не сцепилась (противоположные ракурсы + смена снега за сутки — гомографией не взять). Передавать как сектор с кадром, не как координату</td></tr>
+    <tr><td>Как закрыть</td><td>Пролёт дрона над куполом сверху (ракурс вертолёта, зум в точку) — один заход</td></tr>
+    <tr><td>Попутно</td><td>C0020 на зеркале обрезан: 4:20 из 9:03 по описи — запросить у штаба полный файл</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h3>3.2. Стена 5440–5530 м: трасса от седловины гребня <span class="uv uv3">3</span><span class="tag">тот же сектор</span></h3>
+  <div class="imgrow">
+    <figure><a href="/analysis/review/findings-2026-08-16/n7_stena_klaster_lozhbina_full.jpg"><img src="analysis/review/findings-2026-08-16/n7_stena_klaster_lozhbina_full.jpg" alt="Кластер в ложбине"></a><figcaption>0:42 — кластер тёмных объектов 20–40 см в ложбине + цепочка вмятин</figcaption></figure>
+    <figure><a href="/analysis/review/findings-2026-08-16/stena_dvuhdolnyy_487_ctx.jpg"><img src="analysis/review/findings-2026-08-16/stena_dvuhdolnyy_487_ctx.jpg" alt="Двухдольный объект"></a><figcaption>2:03 — изолированный тёмный вытянутый объект ~1–1.5 м на чистом склоне</figcaption></figure>
+    <figure><a href="/analysis/review/findings-2026-08-16/stena_s_liniya_187_ctx.jpg"><img src="analysis/review/findings-2026-08-16/stena_s_liniya_187_ctx.jpg" alt="S-линия"></a><figcaption>1:39 — S-линия постоянной толщины, изгиб не по рельефу («верёвка на снегу»?)</figcaption></figure>
+  </div>
+  <table class="meta">
+    <tr><td>Видео</td><td>152800 (15:28, стена с 90–200 м, детализация 1.2–2.6 см; участок линии спуска, в таком масштабе снят впервые). Позиция дрона 39.47667, 73.58994; цели по кадрам, азимуты 109–148°</td></tr>
+    <tr><td>Трасса</td><td>Слой следов (31 лист) подтвердил все зоны цветового слоя десятками треков: <b>дорожка ступенчатых вмятин от седловинки гребня (0:24) → длинная прямая борозда (0:22–0:37, 7+ треков) → кластер объектов в ложбине (0:32–0:42)</b>; отдельно зона 1:37–1:55 (борозда + S-линия + вмятины) и воронка удара 3:42 с 4 бороздами вокруг</td></tr>
+    <tr><td>Прочее</td><td>Объект с красноватым потёком (2:31); объект со «шнуром»-линией (0:37, 2 детекции); вытянутая форма 1.2–1.5 м под кромкой надува (2:33) — не совпадает с фигурой C0020 по месту, отдельная цель</td></tr>
+  </table>
+</div>
+
+<h2 id="sinie"><span class="num">4</span>Синие элементы у верёвок и восточная сторона гребня</h2>
+<p>Ключевой факт от близких группы: <b>вторая верёвка группы — синяя</b>
+(красная осталась дома), и свежие спусковые петли группа всегда вешала свои.
+Любой свежий синий элемент на перилах — маркер их прохода. За ночь в полном
+разрешении панорамы найдено <b>три независимых синих элемента</b> — до этого
+панорама смотрелась в 1/4 разрешения, где они физически не читались.</p>
+
+<div class="card">
+  <h3>4.1. Три синих элемента <span class="uv uv3">3–4</span></h3>
+  <div class="imgrow">
+    <figure><a href="/analysis/review/findings-2026-08-16/siniy_element_perila_zoom.jpg"><img src="analysis/review/findings-2026-08-16/siniy_element_perila_zoom.jpg" alt="Синий элемент у перил"></a><figcaption>Тайл 10: перильная верёвка через жандарм; у точки прохода — отдельный компактный ярко-синий элемент (петля? оттяжка?)</figcaption></figure>
+    <figure><a href="/analysis/review/findings-2026-08-16/siniy_shnur_tile15.jpg"><img src="analysis/review/findings-2026-08-16/siniy_shnur_tile15.jpg" alt="Синий шнур на полке"></a><figcaption>Тайл 15: ярко-синий шнур ~0.5–1 м вдоль границы снег/скала на восточной полке</figcaption></figure>
+    <figure><a href="/analysis/review/findings-2026-08-16/sinyaya_duga_tile22_zoom.png"><img src="analysis/review/findings-2026-08-16/sinyaya_duga_tile22_zoom.png" alt="Синяя дуга"></a><figcaption>Тайл 22: насыщенно-синяя дуга с провисом на границе снег/камень (возможен ложняк «синий зазор» — рядом похожая тень)</figcaption></figure>
+  </div>
+  <table class="meta">
+    <tr><td>Источник</td><td>Панорама SUPR <code>DJI_20260815200355</code> (20:03, зависание 39.48156, 73.59197, 5102 м — гребень с верёвкой седловины и жандармы)</td></tr>
+    <tr><td>Смысл</td><td>Если хоть один элемент — их, группа прошла седловину, и авария ниже неё. Это меняет вес версии «все верёвки — старые перила»</td></tr>
+    <tr><td>Проверка</td><td>Исходные тайлы 4000×3000 в <code>data/drive/2026-08-15/dron-part2/DJI_20260815200355_0001_SUPR/</code>; сверка параллаксом по соседним тайлам</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h3>4.2. Восточная сторона гребня — впервые с находками <span class="uv uv3">3</span></h3>
+  <div class="imgrow">
+    <figure><a href="/analysis/review/findings-2026-08-16/vostok_dorozhka_tile6_21.jpg"><img src="analysis/review/findings-2026-08-16/vostok_dorozhka_tile6_21.jpg" alt="Дорожка вмятин восток 1"></a><figcaption>Тайл 6: дорожка вмятин с примерно равным шагом через снежные ленты</figcaption></figure>
+    <figure><a href="/analysis/review/findings-2026-08-16/vostok_dorozhka_tile6_32.jpg"><img src="analysis/review/findings-2026-08-16/vostok_dorozhka_tile6_32.jpg" alt="Дорожка вмятин восток 2"></a><figcaption>Продолжение той же дорожки на соседнем кропе</figcaption></figure>
+    <figure><a href="/analysis/review/findings-2026-08-16/vostok_nit_tile6_20.jpg"><img src="analysis/review/findings-2026-08-16/vostok_nit_tile6_20.jpg" alt="Вертикальная нить"></a><figcaption>Вертикальная «нить» на стене над снежным галстуком — возможен свисающий на восток конец верёвки</figcaption></figure>
+  </div>
+  <table class="meta">
+    <tr><td>Контекст</td><td>Восточные полки гребня 5000–5250 м — зона, которую дважды просили осмотреть (сток с гребня останавливается в 20–60 м) и которая не снималась никогда. Дорожка + линия волочения + «нить» — первые сигналы оттуда</td></tr>
+    <tr><td>Чем ещё может быть</td><td>Дорожка — след камня или работы спасателей при провеске; «нить» — потёк/шов склейки панорамы</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h3>4.3. Станция с синей верёвкой и тёмный ком (ролик, выпавший из конвейера) <span class="uv uv4">4</span></h3>
+  <div class="imgrow">
+    <figure><a href="/analysis/review/findings-2026-08-16/n11_stantsiya_komok_full.jpg"><img src="analysis/review/findings-2026-08-16/n11_stantsiya_komok_full.jpg" alt="Станция — полный кадр"></a><figcaption>Полный кадр 0:05</figcaption></figure>
+    <figure><a href="/analysis/review/findings-2026-08-16/n11_stantsiya_komok_crop.jpg"><img src="analysis/review/findings-2026-08-16/n11_stantsiya_komok_crop.jpg" alt="Станция крупно"></a><figcaption>Крупно: на голубом льду кулуара тёмная смятая масса ~0.5–1 м, от неё линия к станции</figcaption></figure>
+    <figure><a href="/analysis/review/findings-2026-08-16/n12_predmet_s_petley_crop.jpg"><img src="analysis/review/findings-2026-08-16/n12_predmet_s_petley_crop.jpg" alt="Предмет с петлёй"></a><figcaption>3:25 — предмет с явной петлёй на полке среди жандармов</figcaption></figure>
+  </div>
+  <table class="meta">
+    <tr><td>Видео</td><td><code>DJI_20260815114221_0001_Z</code> (11:42) — ролик ВЫПАЛ из разбора дня, его выдача никем не отсматривалась; закрыто этой ночью</td></tr>
+    <tr><td>Что видно</td><td>Лучший кадр «синей верёвки со станцией», которую волонтёры нашли на 1:15–1:16; рядом со станцией лежит тёмный смятый ком — бухта? вещь? Идентифицировать зумом</td></tr>
+    <tr><td>Позиция дрона</td><td>39.47956, 73.59224, 5220 м; станция — на СВ ниже перил; предмет с петлёй — азимут ~126°</td></tr>
+    <tr><td>Не закрыто</td><td>«Синее пятно» на 2:45 — кадры смазаны, нужен отдельный заход ближе</td></tr>
+  </table>
+</div>
+
+<h2 id="prochee"><span class="num">5</span>Прочие незакрытые цели</h2>
+<div class="card">
+  <h3>5.1. «Дорожка спуска» в кулуаре под гребнем (заявка волонтёра #4230)</h3>
+  <div class="imgrow">
+    <figure><a href="/data/telegram/pod-voprosom/4230.jpg"><img src="data/telegram/pod-voprosom/4230.jpg" alt="Заявка 4230"></a><figcaption>Скриншот волонтёра: цепочка вмятин по снежному языку кулуара (200442, 1:38–3:18)</figcaption></figure>
+  </div>
+  <table class="meta">
+    <tr><td>Статус</td><td>Заявка от 19:14 15.08, не разобрана; на наших кадрах дорожка тоже читается. Детализация ролика слабая (мин. предмет 128 см) — нужен зум-облёт кулуара. Сектор — ЮВ от 39.48156, 73.59197</td></tr>
+  </table>
+</div>
+<div class="card">
+  <h3>5.2. Объекты на гребне снижения (~5600 м)</h3>
+  <table class="meta">
+    <tr><td>153424 — 4:34</td><td>Изолированный тёмный объект 1–2 м на чистом снегу, два независимых трека, борозды камнепада нет. Позиция дрона 39.4837–39.4840, 73.5913 <span class="uv uv3">3</span></td></tr>
+    <tr><td>153424 — 4:09 / 4:30 / 4:46</td><td>Ещё три одиночных объекта 0.5–1.5 м на чистом снегу; у объекта 4:09 к воронке сходятся бороздки <span class="uv uv3">3</span></td></tr>
+    <tr><td>153424 — 3:45–4:14</td><td>Линии-траверсы постоянной толщины на спусковой части (4 места) <span class="uv uv3">3</span></td></tr>
+  </table>
+</div>
+
+<h2 id="lozhnyaki"><span class="num">6</span>Что закрыто честно (главные ложняки ночи)</h2>
+<div class="card">
+  <h3>«Красное пятно на снегу» — НЕ кровь</h3>
+  <div class="imgrow">
+    <figure><a href="/analysis/review/findings-2026-08-16/lozhnyak_krasnoe_pyatno.jpg"><img src="analysis/review/findings-2026-08-16/lozhnyak_krasnoe_pyatno.jpg" alt="Красное пятно"></a><figcaption>152800, 3:35 — розовое пятно с мягкими краями при резкой сцене</figcaption></figure>
+    <figure><a href="/analysis/review/findings-2026-08-16/lozhnyak_krasnoe_kontrol_213.jpg"><img src="analysis/review/findings-2026-08-16/lozhnyak_krasnoe_kontrol_213.jpg" alt="Контрольный кадр"></a><figcaption>Контроль (3:33): на соседних кадрах пятна нет — оно держится за кадром, не за рельефом</figcaption></figure>
+  </div>
+  <p class="sub">Три независимых прохода сошлись: расфокусный передний план у объектива
+  (красноватая кромка гребня), появляется только на 3:19–3:35 в одном положении кадра.
+  Так же закрыты: «стёганая фактура» (слоистость породы), дорожка вмятин 1:37 со
+  «камнем в конце» (профиль камнепада), «рука и брошенный камень» из TG (по консенсусу
+  волонтёров — падение камня), треки вершинного купола 0:27–0:30 (выходы породы).</p>
+</div>
+
+<h2 id="zadanie"><span class="num">7</span>Приоритеты следующих вылетов</h2>
+<div class="okbox">
+  <p><b>Четыре вылета — полное задание с целями и кадрами:
+  <code>docs/zadanie-dronu-2026-08-16.md</code></b></p>
+  <ul>
+    <li><b>Вылет 1.</b> Зависание с дальномером над коридором 39.4859–39.4862 —
+      десять целей разом (бирюзовый, крюк, обод, синий фрагмент, шнур, борозды,
+      устья трещин).</li>
+    <li><b>Вылет 2.</b> Купол/мульда C3 — зум внутрь полости, кластер предметов,
+      «мешок», линии; на обратном пути объекты гребня снижения (~5600 м).</li>
+    <li><b>Вылет 3.</b> Стена 5440–5530 (кадровые цели + сектор фигуры C0020
+    сверху, ракурсом вертолёта) и восточные полки 5000–5250.</li>
+    <li><b>Вылет 4.</b> Добивки: ком у станции с синей верёвкой, «синее пятно» 2:45,
+      кулуар #4230, синие элементы панорамы.</li>
+  </ul>
+</div>
+
+<h2 id="predely"><span class="num">8</span>Пределы и процессные дыры</h2>
+<div class="warnbox">
+  <ul>
+    <li>Ни один пункт отчёта не является подтверждённой находкой — это цели для
+      проверки. Уровни честные; всё, что удалось закрыть как природное, закрыто.</li>
+    <li>Координаты — позиции дрона; лучи в рельеф для новых целей не трассировались
+      (для целеуказания при облёте это не нужно).</li>
+    <li><b>C0009.MP4</b> (вертолёт Saykal 14.08, 16.5 мин) так и не залит на зеркало —
+      единственный полностью неотсмотренный ролик архива. <b>C0020</b> на зеркале
+      обрезан (4:20 из 9:03). <b>165537</b> — есть только телеметрия, видео нет.
+      Всё это запросить у штаба.</li>
+    <li>Сектор фигуры C0020 — рабочая гипотеза (±250 м): автоматическая сверка
+      не сцепилась из-за противоположных ракурсов, морфология не опровергнута.</li>
+  </ul>
+</div>
+
+<p class="sub">Полный текст с трек-номерами и всеми второстепенными кандидатами:
+<code>analysis/review/2026-08-16-final-night.md</code>. Итоги ночи: закрыт весь
+остаток выдачи детекторов за 15.08 (до этого отсматривалось 5–12% на ролик),
+панорама — впервые в родном разрешении, ролик 114221 возвращён в конвейер.</p>
+
+</main>
+<footer>Отчёт собран автоматическим конвейером alp-finder в ночь 15→16.08.2026.
+Все кандидаты требуют проверки человеком на месте. Связь: TG-группа волонтёров.</footer>
+</body>
+</html>

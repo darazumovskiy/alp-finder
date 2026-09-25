@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Сцена 3D — сплаты</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0b1119; overflow: hidden;
+               font: 13px/1.45 -apple-system, "Segoe UI", sans-serif; color: #e8eef5; }
+  #canvas { width: 100%; height: 100%; touch-action: none; }
+  #info { position: fixed; left: 10px; top: 10px; background: rgba(11,17,25,.85);
+          border: 1px solid #24425f; border-radius: 8px; padding: 8px 12px; max-width: 340px; }
+  #info h1 { font-size: 14px; margin: 0 0 4px; color: #7ec3ff; }
+  #info .note { color: #8fa3b8; font-size: 12px; }
+  #info a { color: #7ec3ff; }
+  #spinner { position: fixed; inset: 0; display: flex; align-items: center;
+             justify-content: center; color: #8fa3b8; pointer-events: none; }
+  #progress { position: fixed; left: 0; top: 0; height: 3px; background: #3d8fd6; width: 0; }
+  #quality { position: fixed; right: 10px; top: 10px; background: rgba(11,17,25,.85);
+             border: 1px solid #24425f; border-radius: 8px; padding: 6px 10px;
+             color: #8fa3b8; font-size: 12px; display: none; }
+  #message { display: none; position: fixed; inset: 30% 20%; color: #ff9a8a; }
+  .cube-wrapper { display: none; }
+</style>
+</head>
+<body>
+<div id="info">
+  <h1 id="ttl">Сцена 16.08 «кошки» — честная 3D (сплаты)</h1>
+  <div class="note">
+    Реконструкция по 134 ракурсам (облёт + крупные планы), 2.6 млн мазков.
+    Мышь — вращение, колесо — масштаб, правая кнопка / Shift — сдвиг,
+    WASD — полёт. <b>Для ориентировки, не для отсмотра</b>: мелкое могло
+    усредниться — проверяй по исходным кадрам.
+    <a href="polyot-3d.html#photo,eye">← Полёт 3D</a> ·
+    <a href="map.html">Карта</a><br>
+    Сцены: <a href="scena-3d.html?scene=koshki">кошки 16.08</a> ·
+    <a href="scena-3d.html?scene=zona">стена до вершины</a>
+  </div>
+</div>
+<div id="progress"></div>
+<div id="spinner">загрузка сцены…</div>
+<div id="quality"><span id="fps"></span> <span id="camid"></span></div>
+<div id="message"></div>
+<div class="cube-wrapper"><div class="cube"></div></div>
+<canvas id="canvas"></canvas>
+<script>
+// Сцены: ?scene=koshki (умолч.) | zona. Файлы частями из-за лимита хостинга;
+// стартовая камера каждой сцены — реальная поза дрона (хэш в ссылке сильнее).
+const SCENES = {
+  koshki: {
+    url: "scenes/koshki_d0,scenes/koshki_d1,scenes/koshki_d2,scenes/koshki_d3",
+    view: [0.9983,0.0012,-0.0589,0,-0.0137,0.9769,-0.2131,0,
+           0.0573,0.2135,0.9753,0,0.5734,0.9325,0.4864,1],
+    ttl: "Сцена 16.08 «кошки» — честная 3D (сплаты)"},
+  zona: {
+    url: "scenes/zona_d0,scenes/zona_d1,scenes/zona_d2",
+    view: [0.9986,-0.0188,0.0487,0,0.0429,0.8288,-0.5579,0,
+           -0.0299,0.5592,0.8285,0,-0.8689,-0.0461,-1.0735,1],
+    ttl: "Стена до вершины — честная 3D (сплаты)"},
+};
+{
+  const sc = SCENES[new URLSearchParams(location.search).get("scene")] || SCENES.koshki;
+  window.DEFAULT_SPLAT_URL = sc.url;
+  document.getElementById("ttl").textContent = sc.ttl;
+  if (!location.hash || location.hash.length < 3)
+    location.hash = JSON.stringify(sc.view);
+}
+</script>
+<script src="vendor/splat-render.js"></script>
+</body>
+</html>
