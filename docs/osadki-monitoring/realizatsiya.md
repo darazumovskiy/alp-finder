@@ -165,7 +165,12 @@ python3 analysis/osadki/fetch_clim.py
 python3 -m http.server 8077 -d . ; open http://localhost:8077/analysis/viewer/osadki-monitoring.html#date=2026-08-27
 ```
 
-launchd: `launchctl list | grep osadki` (должно быть `com.alp-finder.osadki`); переустановка —
+**Расписание остановлено 25.09.2026** — операция завершена, launchd-агент выгружен
+(`launchctl bootout gui/$UID/com.alp-finder.osadki`), plist из `~/Library/LaunchAgents/` удалён. Последний
+автоматический прогон — 25.09 18:02 по Бишкеку. Конвейер по-прежнему запускается руками (команды выше);
+чтобы вернуть расписание — установить plist заново, как описано ниже.
+
+launchd (пока работало): `launchctl list | grep osadki` (должно быть `com.alp-finder.osadki`); переустановка —
 `launchctl unload ~/Library/LaunchAgents/com.alp-finder.osadki.plist; cp scripts/com.alp-finder.osadki.plist
 ~/Library/LaunchAgents/; launchctl load ~/Library/LaunchAgents/com.alp-finder.osadki.plist`; разовый запуск
 по расписанию — `launchctl start com.alp-finder.osadki`. Mac должен быть включён и не спать в 05:00/15:00 по

@@ -33,7 +33,8 @@ PAGES = ["index.html", "map.html", "montages.html", "panoramy.html",
          "otchet-tg-aktivnost.html",
          "osadki-monitoring.html",
          "sverka-avgust-2026.html",
-         "otchety.html"]
+         "otchety.html",
+         "o-proekte.html"]
 
 # Самодостаточные HTML вне viewer/ (ссылки из навигации) → имя в корне dist
 EXTRA_FILES = {

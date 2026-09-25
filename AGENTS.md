@@ -4,6 +4,8 @@
 
 **Это не учебный проект. От скорости и качества работы может зависеть жизнь людей.** Любая находка перепроверяется перед передачей штабу; ложные срабатывания тратят ресурс спасателей, пропущенные кадры — хуже.
 
+**Статус: поисковая операция завершена (25.09.2026).** Автоматический мониторинг снега остановлен (launchd-агент выгружен), режим приватности снят, ветка `team-only` влита в `main`, репозиторий и сайт открыты. Проект — архив и справочник; новые данные не ожидаются.
+
 Этот файл и `CLAUDE.md` — зеркальные копии (один для Cursor, другой для Claude Code); менять оба одновременно. Локальные, не входящие в git инструкции (`CLAUDE.local.md`, `docs/*.local.md`) имеют приоритет над этим файлом.
 
 ## Точки входа: скиллы
@@ -22,7 +24,7 @@
 - **Справочник реализации — [docs/osadki-monitoring/realizatsiya.md](docs/osadki-monitoring/realizatsiya.md)**: что где лежит, поток данных, шаги конвейера, индекс снега v2, ИИ-агент, запуск руками, расписание, отладка, публикация, что в git. Читать первым при любой работе с `analysis/osadki/`.
 - База знаний — [docs/osadki-monitoring.md](docs/osadki-monitoring.md): рисерч источников (§1–6, отчёты в `docs/osadki-monitoring/otchety/`), уточнённый интент штаба (§7), аудиты методики, индекс v2, конвейер, агент (§8; аудиты — `docs/osadki-monitoring/audit/`).
 - Код — `analysis/osadki/`: `run_daily.py` (конвейер, 13 шагов), `snow_index.py` (индекс v2), `agent_daily.py` (ИИ-оценка, **только `claude-fable-5`**), `build_report.py` → `analysis/viewer/osadki-monitoring.html`, `build_sverka.py` → `sverka-avgust-2026.html`; рукописный журнал `analysis/osadki/fakt-vs-model.tsv`; заметки агента `analysis/osadki/agent/notes/`.
-- Расписание — launchd `com.alp-finder.osadki` (`scripts/osadki_daily.sh`, `scripts/com.alp-finder.osadki.plist`), 08:00 и 18:00 по Бишкеку; каждый запуск виден на странице.
+- Расписание — было: launchd `com.alp-finder.osadki` (`scripts/osadki_daily.sh`, `scripts/com.alp-finder.osadki.plist`), 08:00 и 18:00 по Бишкеку; каждый запуск виден на странице. **Остановлено 25.09.2026** (операция завершена), последний прогон — 25.09 18:02 по Бишкеку; запуск руками по-прежнему возможен.
 - Решения оператора: только Fable 5 без запасных моделей; все числа с погрешностью, выводы с уровнем доверия; на странице явно различать алгоритмический расчёт (шаблон) и сгенерированный текст агента; оценка агента лежит на дне снимка Sentinel-2; методику проверять независимыми сабагентами на чистом контексте; в TG пока не слать.
 
 ## Контекст операции
@@ -134,11 +136,13 @@ analysis/               — код и артефакты анализа виде
                           пункты меню «Снег и погода» и «Отчёты» есть во всех страницах и генераторах.
                           Локальный запуск и развёртывание с нуля (venv, DEM) — README «Развёртывание».
                           Публикация: python analysis/viewer/build_dist.py (собирает dist/ со всеми
-                          картинками, пути относительные) → bash scripts/deploy_private.sh (действующий
-                          контур; адрес и доступ — в локальных файлах docs/zakrytaya-zona.local.md /
-                          CLAUDE.local.md, не в git; wrangler.toml рядом с dist). Публичные адреса
-                          https://alp-finder.pages.dev и зеркало https://darazumovskiy.github.io/alp-finder/
-                          (scripts/deploy_mirror.sh) обновляются ТОЛЬКО по явной команде оператора.
+                          картинками, пути относительные) → npx wrangler pages deploy analysis/viewer/dist
+                          --project-name alp-finder (публичный https://alp-finder.pages.dev, лимит Pages —
+                          20 000 файлов) и bash scripts/deploy_mirror.sh (зеркало
+                          https://darazumovskiy.github.io/alp-finder/ для РФ/РБ). Деплой — по команде
+                          оператора. Закрытый контур (scripts/deploy_private.sh, Cloudflare Worker под
+                          Basic Auth; адрес и доступ — в локальных файлах, не в git) действовал 16.08–25.09.2026
+                          в режиме приватности; режим снят 25.09.
 data/drive/             — локальное зеркало Drive: <дата>/<слаг-папки>/<файл>
 data/telegram/          — медиа из TG-группы: <слаг-темы>/<msg_id>_<файл>
 data/dem/N39E073.tif    — тайл Copernicus GLO-30 для geoproject/coverage/карты; скачивание — README «Развёртывание»
